@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Фильтры и пресеты — режим работы одним движением (учебная глава, 3 части)</title>
+<style>
+  /* Цвета/форматы воссозданы из кода форка (R-3), привязка координат — в r3-registry-g4.md.
+     UI-хром пилюль/панели приблизительный (цвет хрома смысла-решения не несёт);
+     механизм (активный пресет, ⌥+цифра, 5 системных пресетов, фильтр-поля) — точно из кода. */
+  :root{
+    --bg:#fafafa; --panel:#ffffff; --surface2:#f4f4f5; --border:#e0e0e0;
+    --text:#1a1a1a; --text-secondary:#666;
+    --green:#1a8a2e; --red:#cc2222; --warning:#b45309;
+    --accent:#2563eb; --hl:rgba(37,99,235,.14);
+    --mono:ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.55}
+  .wrap{max-width:820px;margin:0 auto;padding:28px 18px 80px}
+  h1{font-size:24px;margin:0 0 6px}
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin:0 0 4px}
+  h3{font-size:17px;margin:0 0 4px}
+  .lead{color:var(--text-secondary);font-size:15px;margin:0 0 8px}
+  .part{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px 20px 22px;margin:18px 0}
+  .part-head{border-left:3px solid var(--accent);padding-left:10px;margin-bottom:14px}
+  .part-head .step{font-size:12px;color:var(--text-secondary)}
+  .signal{border-top:1px solid var(--border);padding:16px 0 4px}
+  .signal:first-of-type{border-top:none;padding-top:4px}
+  .sig-why{color:var(--text-secondary);margin:2px 0 10px}
+  .demo{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px}
+  .demo-cap{font-size:11px;color:var(--text-secondary);margin:6px 2px 0}
+  .honest{background:#fff8e6;border:1px solid #f0d99a;border-radius:6px;padding:8px 10px;font-size:12.5px;color:#6b5418;margin-top:8px}
+  .honest b{color:#5a4510}
+  .key{background:#eef4ff;border:1px solid #c5d8f5;border-radius:6px;padding:8px 10px;font-size:13px;margin-top:8px}
+  table{width:100%;border-collapse:collapse}
+  th{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-secondary);text-align:left;padding:4px 6px;border-bottom:1px solid var(--border)}
+  td{padding:5px 6px;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums;vertical-align:middle}
+  table.dense td{padding:2px 6px;font-size:13px}
+  table.dense th{padding:2px 6px}
+  .st-pct{font-weight:700;color:var(--green)}
+  .st-league{color:var(--text-secondary);font-size:11px}
+  .st-odds{font-family:var(--mono);white-space:nowrap}
+  .st-age{font-family:var(--mono);font-size:12px;color:var(--text-secondary)}
+  .st-age--fresh{color:var(--green);font-weight:600}
+  .st-age--alive{color:var(--warning)}
+  .st-age--dying{color:var(--red);font-weight:600}
+  /* имитация топбара с пилюлями пресетов */
+  .topbar-sim{display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:8px 10px}
+  .preset-pill{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;padding:4px 9px;border:1px solid var(--border);border-radius:16px;background:var(--surface2);color:var(--text);cursor:default;white-space:nowrap}
+  .preset-pill--active{background:var(--hl);border-color:var(--accent);color:var(--accent);font-weight:600}  /* активная пилюля пресета — подсвечена */
+  .preset-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+  .preset-hotkey{font-size:10px;color:var(--text-secondary);font-family:var(--mono)}
+  .preset-pill--active .preset-hotkey{color:var(--accent)}
+  /* панель ★ Presets (вкладка управления) */
+  .pp-list{border:1px solid var(--border);border-radius:8px;overflow:hidden}
+  .pp-row{display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid var(--border);font-size:13px}
+  .pp-row:last-child{border-bottom:none}
+  .pp-row--active{background:var(--hl)}
+  .pp-name{flex:1}
+  .pp-sys{font-size:9px;color:var(--text-secondary);border:1px solid var(--border);border-radius:3px;padding:0 3px;margin-left:5px}
+  .pp-actions{display:flex;gap:3px;font-size:13px;color:var(--text-secondary)}
+  .pp-actions span{padding:1px 3px;border-radius:4px}
+  .pp-save{margin-top:8px;font-size:12.5px;color:var(--accent);border:1px dashed var(--accent);border-radius:6px;padding:6px 10px;text-align:center}
+  /* быстрый фильтр типов рынка */
+  .mkt-row{display:flex;flex-wrap:wrap;gap:5px}
+  .mkt-btn{font-size:12px;padding:3px 9px;border:1px solid var(--border);border-radius:5px;background:var(--surface2);color:var(--text-secondary)}
+  .mkt-btn--active{background:var(--hl);border-color:var(--accent);color:var(--accent);font-weight:600}  /* активный тип рынка — показан в потоке */
+  /* Часть 2 — поток + статичная легенда */
+  .part2-grid{display:grid;grid-template-columns:1fr;gap:16px;align-items:start} /* правка приёмки (вёрстка part2-grid): легенда ПОД таблицу (таблица на полную ширину, все 9 колонок видны) */
+  @media(max-width:680px){.part2-grid{grid-template-columns:1fr}}
+  .legend-static{font-size:12.5px}
+  .legend-static .item{padding:6px 9px;border-radius:7px;border:1px solid var(--border);margin-bottom:6px;transition:background .25s,border-color .25s}
+  .legend-static .item.lit{background:var(--hl);border-color:var(--accent)}
+  .legend-static .item b{display:block;font-size:12.5px;margin-bottom:1px}
+  .legend-static .item span{color:var(--text-secondary);font-size:11.5px}
+  .flowcount{font-size:12px;color:var(--text-secondary);margin:8px 2px 0}
+  .flowcount b{color:var(--accent)}
+  .pace{font-size:11px;color:var(--text-secondary);margin:6px 2px 0}
+  .syslist{font-size:12.5px;margin:6px 0 0}
+  .syslist li{margin-bottom:3px}
+  code{font-size:12px}
+  /* интерактив оживления (механика «жми→эффект» Г6): кликабельные пилюли пресетов / кнопки типов рынка */
+  .preset-pill[data-pid],.mkt-btn[data-mkt]{cursor:pointer;transition:border-color .15s,background .15s,color .15s}
+  .preset-pill[data-pid]:hover{border-color:var(--accent);color:var(--accent)}
+  .mkt-btn[data-mkt]:hover{border-color:var(--accent)}
+  .p2-hint{font-size:11.5px;color:#1d4f7a;background:#eef4ff;border:1px solid #c5d8f5;border-radius:6px;padding:6px 9px;margin:0 0 10px}
+  .p2-hint b{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Фильтры и пресеты</h1>
+  <p class="lead">Решение, которое обслуживает эта функция: <b>«как из тысячи строк оставить свои сорок — и переключить весь режим работы одним движением»</b>. С бэкенда падают сотни вилок в секунду по всем спортам и конторам. Глазами это не охватить. Фильтры — переключатели сортировочной станции: они режут поток до нужного профиля. А <b>пресет</b> — это сохранённая конфигурация всей станции разом: нажал — и поток мгновенно перестроился под «европейский вечер», «баскетбол» или «разведку». Эта глава — про пресеты (ядро) и быстрый фильтр типов рынка в топбаре. Детальная тонкая настройка фильтров (гистограммы, лиги, дерево типов) — отдельная глава.</p>
+
+  <p class="key"><b>Зачем это главное.</b> У вилочника не один режим, а несколько: днём европейский футбол, ночью азиатский, иногда разведка новой конторы. У каждого — свои спорты, конторы, пороги. Переключать десяток фильтров вручную каждый раз — потеря секунд, которых нет. Пресет переключает <b>весь профиль одним движением</b> (клик по пилюле или <code>⌥</code>+цифра). Это и есть «сортировочная станция»: тысяча вагонов проходит, а на нужный путь падают только профильные.</p>
+
+  <!-- ============ ЧАСТЬ 1 — УЧЁБА ИЗОЛИРОВАННО ============ -->
+  <section class="part">
+    <div class="part-head">
+      <h2>Часть 1 · Учёба</h2>
+      <div class="step">Каждый элемент по отдельности — что это и какое решение обслуживает. Под описанием маленькое демо.</div>
+    </div>
+
+    <div class="signal">
+      <h3>① Что такое пресет — снимок всех фильтров</h3>
+      <p class="sig-why">Пресет — это сохранённая конфигурация фильтров целиком. Настроил поток один раз под задачу → нажал «Save current filters» → получил пресет. Дальше один клик возвращает ровно этот режим.</p>
+      <details class="honest"><summary>Что именно входит в снимок</summary>В пресете лежит весь набор настроек потока: какие спорты, лиги, типы рынка и страны включены; какие конторы; пороги процента, кэфа и возраста; режим исходов; скрытые бейджи. То есть пресет помнит не одну галочку, а всю комбинацию фильтров целиком.</details>
+      <div class="demo" id="d1"></div>
+      <div class="demo-cap">Набор фильтров → «Save current filters» → пилюля-пресет. Внутри пилюли — снимок всех настроек, которые были активны в момент сохранения.</div>
+    </div>
+
+    <div class="signal">
+      <h3>② Пять готовых (системных) пресетов</h3>
+      <p class="sig-why">Сканер уже несёт пять системных пресетов — их нельзя удалить, можно только сбросить к дефолту. Это стартовые режимы:</p>
+      <ul class="syslist">
+        <li><b>All Sports</b> — пустой фильтр, весь поток (режим по умолчанию).</li>
+        <li><b>Soccer EU</b> — только футбол и шесть европейских лиг (АПЛ, Ла Лига, Бундеслига, Серия А, Лига 1, ЛЧ).</li>
+        <li><b>Basketball</b> — только баскетбол.</li>
+        <li><b>Sharp Only</b> — вилки до 3% и моложе 30 секунд (консистентные, не аномальные).</li>
+        <li><b>Exploration</b> — всё нараспашку: пороги сняты (до 100%, до 600с), все спорты/рынки/конторы, включая то, что обычно отсечено. Режим разведки.</li>
+      </ul>
+      <div class="demo" id="d2"></div>
+      <div class="demo-cap">По кругу: имя пресета → что он делает с потоком (число строк — на демо-наборе из 8 вилок).</div>
+      <details class="honest"><summary>Важно про «Sharp Only» — имя обещает не то, что делает код</summary>Несмотря на имя, этот пресет фильтрует <b>не по sharp-конторам</b>, а по двум числам: процент ≤ 3% и возраст ≤ 30 секунд. То есть он показывает «здоровые», консистентные вилки, а не «вилки на sharp-конторах». А sharp-контор (Pinnacle, биржи) в текущем потоке нет вообще — они не подключены к парсингу. Поэтому в этом пресете и видны обычные конторы: фильтр работает по проценту с возрастом, а не по типу конторы. Глава честно показывает реальный механизм.</details>
+    </div>
+
+    <div class="signal">
+      <h3>③ Как переключать — пилюли и <code>⌥</code>+цифра</h3>
+      <p class="sig-why">Закреплённые пресеты висят пилюлями в топбаре. Клик по пилюле применяет режим; активная подсвечена. А для скорости — горячие клавиши: <b><code>⌥</code> (Alt) + 1…9</b> применяют закреплённый пресет по его позиции. Хоткей работает по <b>закреплённым</b> пресетам (📌) и не срабатывает, когда курсор в поле ввода. Так смена режима — это полсекунды, а не поход в настройки.</p>
+      <div class="demo">
+        <div class="topbar-sim" id="d3"></div>
+      </div>
+      <div class="demo-cap">Пилюли пресетов в топбаре. Цифра справа — горячая клавиша (<code>⌥1</code>…). Активный режим подсвечен.</div>
+      <div class="honest"><b>Деталь про клавишу:</b> у нас это <b><code>⌥</code> (Alt) + цифра</b>. В сильнейших сканерах-конкурентах (Forted) та же идея на <code>Ctrl</code>+цифра — механизм один (режим одним движением), клавиша у нас другая.</div>
+    </div>
+
+    <div class="signal">
+      <h3>④ Управление пресетами — вкладка ★ Presets</h3>
+      <p class="sig-why">Вкладка «★ Presets» — место, где один раз собирается набор боевых режимов. Главное действие здесь — <b>закрепить</b> (📌) те два-три пресета, между которыми идёт скачка весь день (скажем, «вечерний футбол» и «разведка»): закреплённые встают в пилюли топбара и на <code>⌥</code>-хоткеи — дальше они переключаются вслепую с клавиатуры, не открывая вкладку.</p>
+      <details class="honest"><summary>Остальное на вкладке — обслуживание набора</summary>Создать пресет из текущих фильтров («+ Save current filters»); повесить цвет-метку, чтобы различать пилюли в топбаре одним взглядом (🎨); переименовать под удобный язык (✎). Системные (бейдж «sys») удалить нельзя — только сбросить к дефолту (↻), если случайно перенастроены; свои — удалить (✕).</details>
+      <div class="demo" id="d4"></div>
+      <div class="demo-cap">Вкладка управления пресетами (статичный вид). Системные с бейджем «sys» — только reset, свои — удаляемы.</div>
+    </div>
+
+    <div class="signal">
+      <h3>⑤ Быстрый фильтр типов рынка — в топбаре</h3>
+      <p class="sig-why">Рядом с пилюлями — ряд кнопок типов рынка: тотал, фора, исход и т.д. Клик мгновенно прячет или показывает этот тип в потоке, не открывая фильтры. Подсвеченная кнопка = тип сейчас в ленте. Это то же самое, что галочки на вкладке типов рынка в фильтрах (в текущем интерфейсе она подписана «Bet types»), только под рукой — для быстрого сужения «сейчас смотрю только тоталы».</p>
+      <div class="demo">
+        <div class="mkt-row" id="d5"></div>
+      </div>
+      <div class="demo-cap">Кнопки типов рынка в топбаре. Активные (подсвечены) — показаны в потоке; клик переключает. Синхронно с вкладкой типов рынка в фильтрах («Bet types»).</div>
+    </div>
+  </section>
+
+  <!-- ============ ЧАСТЬ 2 — ЖИВОЙ СКАНЕР + ПЕРЕКЛЮЧЕНИЕ ПРЕСЕТА ============ -->
+  <section class="part">
+    <div class="part-head">
+      <h2>Часть 2 · В живом сканере</h2>
+      <div class="step">Один и тот же поток вилок — под разными пресетами. <b>Кликни пилюлю пресета</b> в топбаре — поток мгновенно перестроится под режим, счётчик внизу покажет, сколько строк осталось, и режим зафиксируется (можно читать спокойно). Легенда справа — что делает активный пресет.</div>
+    </div>
+    <div class="p2-hint">👆 <b>Кликни пилюлю</b> (All Sports / Soccer EU / Basketball / Sharp Only) — поток перестроится под режим, счётчик покажет «N из 8 вилок», и режим <b>зафиксируется</b> (можно читать спокойно). Можно просто <b>навести</b> — подсмотреть режим на лету, но стоит убрать курсор, и листание по кругу возобновится. Это и есть «вся станция за одно движение».</div>
+    <div class="topbar-sim" id="p2pills" style="margin-bottom:10px"></div>
+    <div class="part2-grid">
+      <div class="demo" style="padding:6px;overflow-x:auto">
+        <table id="p2table">
+          <thead><tr>
+            <th>Arb%</th><th>Спорт</th><th>Событие</th><th>Market</th><th>БК 1</th><th>Кэф 1</th><th>БК 2</th><th>Кэф 2</th><th>Возр.</th>
+          </tr></thead>
+          <tbody id="p2rows"></tbody>
+        </table>
+        <div class="flowcount" id="p2count"></div>
+      </div>
+      <div class="legend-static">
+        <div class="item" data-lg="preset-all"><b>All Sports</b><span>весь поток, без ограничений</span></div>
+        <div class="item" data-lg="preset-soccer-eu"><b>Soccer EU</b><span>только футбол + европейские лиги</span></div>
+        <div class="item" data-lg="preset-basketball"><b>Basketball</b><span>только баскетбол</span></div>
+        <div class="item" data-lg="preset-sharp"><b>Sharp Only</b><span>≤ 3% и моложе 30с (по числам, не по конторам)</span></div>
+      </div>
+    </div>
+    <div class="pace">Поток замедлен для учёбы. <b>Клик</b> по пилюле фиксирует режим (можно читать спокойно); пока никто не трогает — листается по кругу как подсказка. В реальной работе это клик или <code>⌥</code>+цифра. Пилюля переключилась → поток сузился до режима: вся станция за одно движение.</div>
+  </section>
+
+  <!-- ============ ЧАСТЬ 3 — КАК В БОЮ ============ -->
+  <section class="part">
+    <div class="part-head">
+      <h2>Часть 3 · Как в бою</h2>
+      <div class="step">Топбар с пилюлями пресетов и плотный поток под активным режимом. Без подсказок — так это в работе.</div>
+    </div>
+    <div class="topbar-sim" id="p3pills" style="margin-bottom:8px"></div>
+    <div class="demo" style="padding:4px;overflow-x:auto">
+      <table class="dense">
+        <thead><tr><th>Arb%</th><th>Спорт</th><th>Событие</th><th>Market</th><th>БК 1</th><th>Кэф 1</th><th>БК 2</th><th>Кэф 2</th><th>Возр.</th></tr></thead>
+        <tbody id="p3rows"></tbody>
+      </table>
+    </div>
+    <div class="pace">Активен «Soccer EU» — в потоке только футбол европейских лиг. Сменить пресет — сменится весь поток.</div>
+  </section>
+
+</div>
+
+<script>
+/* ============================================================
+   Фильтры и пресеты — движок учебной главы (слой 4, Г4).
+   Механизмы/пресеты — из кода форка (R-3), см. r3-registry-g4.md:
+     5 системных пресетов [filter-overlay.helpers.ts:295-356]
+     применение [arbs.vue:495 handlePresetChange / :504 handlePresetApplied]
+     Alt+1..9 [arbs.vue:537-545] · pinnedPresets [arbs.vue:276]
+     пилюли/active [top-bar.vue:104-130] · быстрый фильтр типов [top-bar.vue:135-155]
+     MARKET_TYPES [helpers.ts:104] · FilterState [helpers.ts:8-74]
+   Имена контор — canon enum [bookmakers.ts:71-94], все soft. Math.random не используется.
+   ============================================================ */
+
+// ── 5 системных пресетов: имя + предикат фильтра (из makeSystemPresets) ──
+const PRESETS = [
+  {id:"preset-all",      name:"All Sports",  test:()=>true},
+  {id:"preset-soccer-eu",name:"Soccer EU",   test:a=>a.sport==="Soccer"},
+  {id:"preset-basketball",name:"Basketball", test:a=>a.sport==="Basketball"},
+  {id:"preset-sharp",    name:"Sharp Only",  test:a=>a.pct<=3 && a.age<=30},   // maxArbPercent:3, maxAge:30
+  {id:"preset-exploration",name:"Exploration",test:()=>true}                    // пороги сняты — на дефолтном потоке = всё
+];
+
+// ── демо-поток: canon-конторы (все soft), разные спорты/% /возраст ──
+const POOL=[
+  {sport:"Soccer",league:"EPL",event:"Man City — Arsenal",mkt:"TO 2.5: O/U",pct:2.4,age:8, bk1:"bet365.com",bk2:"betonline.ag"},
+  {sport:"Soccer",league:"LAL",event:"Real — Barca",      mkt:"1X2: 1/X",   pct:1.8,age:14,bk1:"bet365.com",bk2:"virginbet.com"},
+  {sport:"Basketball",league:"NBA",event:"Lakers — Celtics",mkt:"HC -4.5",  pct:3.6,age:5, bk1:"vbet.co.uk",bk2:"bet365.com"},
+  {sport:"Tennis",league:"ATP",event:"Alcaraz — Sinner",  mkt:"MW: 1/2",    pct:2.1,age:40,bk1:"lottoland.co.uk",bk2:"bet365.com"},
+  {sport:"Hockey",league:"NHL",event:"Rangers — Bruins",  mkt:"TO 5.5: O/U",pct:4.9,age:22,bk1:"betonline.ag",bk2:"fon.bet"},
+  {sport:"Basketball",league:"EUL",event:"CSKA — Real",   mkt:"HC +3.5",    pct:2.8,age:9, bk1:"livescorebet.com",bk2:"betonline.ag"},
+  {sport:"Soccer",league:"SER",event:"Inter — Milan",     mkt:"TO 1.5: O/U",pct:5.5,age:3, bk1:"vbet.co.uk",bk2:"betonline.ag"},
+  {sport:"Tennis",league:"WTA",event:"Swiatek — Gauff",   mkt:"TO 21.5: O/U",pct:1.5,age:55,bk1:"bet365.com",bk2:"silverglow58.xyz"}
+];
+const SPORT_ABBR={Soccer:"SOC",Basketball:"BAS",Tennis:"TEN",Hockey:"HOC"};
+function ageCls(s){ return s<10?"st-age--fresh":(s<30?"st-age--alive":"st-age--dying"); }
+function fmtAge(s){ const r=Math.round(s); return r<60?`${r}s`:`${Math.floor(r/60)}m`; }
+// детерминированные кэфы по индексу (без Math.random)
+function odds(seed){ const x=((seed*1103515245+12345)&0x7fffffff)/0x7fffffff; return +(1.7+x*0.9).toFixed(2); }
+function rowHtml(a,i){
+  return `<tr>`+
+    `<td class="st-pct">${a.pct.toFixed(2)}%</td>`+
+    `<td>${SPORT_ABBR[a.sport]||a.sport}<span class="st-league">/${a.league}</span></td>`+
+    `<td>${a.event}</td>`+
+    `<td>${a.mkt}</td>`+
+    `<td>${a.bk1}</td>`+
+    `<td class="st-odds">${odds(i*7+1).toFixed(2)}</td>`+
+    `<td>${a.bk2}</td>`+
+    `<td class="st-odds">${odds(i*7+4).toFixed(2)}</td>`+
+    `<td class="st-age ${ageCls(a.age)}">${fmtAge(a.age)}</td>`+
+  `</tr>`;
+}
+
+/* ---------- ① что такое пресет: фильтры → Save → пилюля ---------- */
+(function(){
+  document.getElementById("d1").innerHTML =
+    `<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:center">`+
+      `<div style="font-size:12.5px;border:1px solid var(--border);border-radius:8px;padding:8px 11px;background:var(--panel);line-height:1.7">`+
+        `<div style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-secondary);margin-bottom:3px">Активные фильтры</div>`+
+        `Спорт: <b>Футбол</b><br>Лиги: <b>АПЛ, Ла Лига, …</b><br>Профит: <b>≥ 2%</b><br>Возраст: <b>≤ 40с</b><br>Конторы: <b>мои 12</b>`+
+      `</div>`+
+      `<div style="font-size:22px;color:var(--accent)">→</div>`+
+      `<div style="text-align:center"><div class="pp-save" style="margin:0">+ Save current filters</div>`+
+        `<div style="font-size:18px;color:var(--accent);margin:4px 0">↓</div>`+
+        `<span class="preset-pill preset-pill--active"><span class="preset-dot" style="background:#2563eb"></span>Вечерний футбол<span class="preset-hotkey">⌥1</span></span>`+
+      `</div>`+
+    `</div>`;
+})();
+
+/* ---------- ② 5 системных пресетов: КЛИК пилюлю → что делает с потоком ---------- */
+(function(){
+  const el=document.getElementById("d2");
+  const desc={
+    "preset-all":"весь поток — никаких ограничений",
+    "preset-soccer-eu":"только футбол + европейские лиги",
+    "preset-basketball":"только баскетбол",
+    "preset-sharp":"профит ≤ 3% и возраст ≤ 30с (по числам, не по конторам)",
+    "preset-exploration":"всё нараспашку: пороги сняты, видно даже аномальное и старое"
+  };
+  let i=0, pinned=null, hovering=false;
+  function show(p){
+    const k=PRESETS.indexOf(p);
+    el.innerHTML =
+      `<div style="text-align:center;padding:2px 0">`+
+        `<div class="topbar-sim" style="justify-content:center;border:none;background:transparent;padding:2px 0">`+
+          PRESETS.map((c,idx)=>`<span class="preset-pill${c.id===p.id?" preset-pill--active":""}" data-pid="${c.id}">${c.name}<span class="preset-hotkey">⌥${idx+1}</span></span>`).join("")+
+        `</div>`+
+        `<div style="font-size:12.5px;color:var(--text-secondary);margin-top:7px">${desc[p.id]}</div>`+
+        `<div style="font-size:12px;margin-top:5px">на демо-потоке из 8 вилок показывает: <b style="color:var(--accent)">${POOL.filter(p.test).length}</b></div>`+
+      `</div>`;
+  }
+  const presetOf=id=>PRESETS.find(c=>c.id===id);
+  el.addEventListener("click",e=>{ const pl=e.target.closest("[data-pid]"); if(pl){ pinned=pl.dataset.pid; show(presetOf(pinned)); } });
+  el.addEventListener("mouseover",e=>{ const pl=e.target.closest("[data-pid]"); if(pl){ hovering=true; if(!pinned) show(presetOf(pl.dataset.pid)); } });
+  el.addEventListener("mouseout",e=>{ if(!el.contains(e.relatedTarget)) hovering=false; });
+  function tour(){ if(pinned||hovering) return; i=(i+1)%PRESETS.length; show(PRESETS[i]); }
+  show(PRESETS[0]); setInterval(tour,2400);
+})();
+
+/* ---------- ③ пилюли с хоткеями: КЛИК → активный режим подсвечен ---------- */
+(function(){
+  const el=document.getElementById("d3");
+  const pills=["All Sports","Soccer EU","Basketball","Sharp Only","Exploration"];
+  let active=1;
+  function render(){
+    el.innerHTML = `<span style="font-size:11px;color:var(--text-secondary);margin-right:4px">Режим:</span>`+
+      pills.map((n,idx)=>`<span class="preset-pill${idx===active?" preset-pill--active":""}" data-idx="${idx}">${n}<span class="preset-hotkey">⌥${idx+1}</span></span>`).join("")+
+      `<span class="preset-pill" style="border-style:dashed;color:var(--text-secondary)">★ Manage presets</span>`;
+  }
+  el.addEventListener("click",e=>{ const pl=e.target.closest("[data-idx]"); if(pl){ active=+pl.dataset.idx; render(); } });
+  render();
+})();
+
+/* ---------- ④ панель управления ★ Presets ---------- */
+(function(){
+  const el=document.getElementById("d4");
+  const rows=[
+    {name:"All Sports",sys:true,active:true},
+    {name:"Soccer EU",sys:true},
+    {name:"Basketball",sys:true},
+    {name:"Sharp Only",sys:true},
+    {name:"Exploration",sys:true},
+    {name:"Вечерний футбол (мой)",sys:false,color:"#2563eb"}
+  ];
+  el.innerHTML =
+    `<div class="pp-list">`+
+      rows.map(r=>
+        `<div class="pp-row${r.active?" pp-row--active":""}">`+
+          `<span class="preset-dot" style="background:${r.color||"transparent"};border:1px solid var(--border)"></span>`+
+          `<span class="pp-name">${r.name}${r.sys?'<span class="pp-sys">sys</span>':""}</span>`+
+          `<span class="pp-actions">`+
+            `<span title="Закрепить на топбар">📌</span><span title="Цвет">🎨</span><span title="Переименовать">✎</span>`+
+            (r.sys?`<span title="Сбросить к дефолту">↻</span>`:`<span title="Удалить" style="color:var(--red)">✕</span>`)+
+          `</span>`+
+        `</div>`
+      ).join("")+
+    `</div>`+
+    `<div class="pp-save">+ Save current filters</div>`;
+})();
+
+/* ---------- ⑤ быстрый фильтр типов рынка: КЛИК → тип показан/скрыт (toggleMarket, top-bar.vue:135-155) ---------- */
+(function(){
+  const el=document.getElementById("d5");
+  // MARKET_TYPES (helpers.ts:104)
+  const types=["Match Result","1X2","Total","Handicap","Double Chance","Goals"];
+  const state={"Match Result":false,"1X2":true,"Total":true,"Handicap":true,"Double Chance":false,"Goals":false};
+  function render(){ el.innerHTML = types.map(t=>`<span class="mkt-btn${state[t]?" mkt-btn--active":""}" data-mkt="${t}">${t}</span>`).join(""); }
+  el.addEventListener("click",e=>{ const b=e.target.closest("[data-mkt]"); if(b){ state[b.dataset.mkt]=!state[b.dataset.mkt]; render(); } });
+  render();
+})();
+
+/* ---------- общий рендер потока под пресетом ---------- */
+function renderFlow(tbId, preset, dense){
+  const rows = POOL.filter(preset.test);
+  document.getElementById(tbId).innerHTML = rows.map((a,i)=>rowHtml(a,i)).join("");
+  return rows.length;
+}
+
+/* ---------- ЧАСТЬ 2 — КЛИК пилюли пресета → поток перестраивается (сердце Г4, поведенческая «жми→эффект») ----------
+   Привод — рука читателя: клик/наведи пилюлю → renderFlow под этот пресет + счётчик «N из M» + легенда.
+   Пока не трогаешь — медленный автокруг как подсказка (в работе это твой клик или ⌥+цифра). */
+(function(){
+  const carousel=[PRESETS[0],PRESETS[1],PRESETS[2],PRESETS[3]]; // All → Soccer EU → Basketball → Sharp Only
+  let i=0, pinned=null, hovering=false;
+  const pillsEl=document.getElementById("p2pills"), countEl=document.getElementById("p2count");
+  function applyPreset(p){
+    // пилюли с подсветкой активной (как top-bar: id===activePresetId), data-pid для делегирования клика
+    pillsEl.innerHTML=`<span style="font-size:11px;color:var(--text-secondary);margin-right:4px">Режим:</span>`+
+      carousel.map((c,idx)=>`<span class="preset-pill${c.id===p.id?" preset-pill--active":""}" data-pid="${c.id}">${c.name}<span class="preset-hotkey">⌥${idx+1}</span></span>`).join("");
+    const shown=renderFlow("p2rows",p,false);
+    countEl.innerHTML=`Активен <b>${p.name}</b> — в потоке <b>${shown}</b> из ${POOL.length} вилок.`;
+    document.querySelectorAll(".legend-static .item.lit").forEach(e=>e.classList.remove("lit"));
+    const lg=document.querySelector(`.legend-static .item[data-lg="${p.id}"]`); if(lg) lg.classList.add("lit");
+  }
+  const presetOf=id=>carousel.find(c=>c.id===id);
+  pillsEl.addEventListener("click",e=>{ const pl=e.target.closest("[data-pid]"); if(pl){ pinned=pl.dataset.pid; applyPreset(presetOf(pinned)); } });
+  pillsEl.addEventListener("mouseover",e=>{ const pl=e.target.closest("[data-pid]"); if(pl){ hovering=true; if(!pinned) applyPreset(presetOf(pl.dataset.pid)); } });
+  pillsEl.addEventListener("mouseout",e=>{ if(!pillsEl.contains(e.relatedTarget)) hovering=false; });
+  function tour(){ if(pinned||hovering) return; i=(i+1)%carousel.length; applyPreset(carousel[i]); }
+  applyPreset(carousel[0]); setInterval(tour,3000);
+})();
+
+/* ---------- ЧАСТЬ 3 — КАК В БОЮ: КЛИК пилюли → поток под режимом (без подсказок) ---------- */
+(function(){
+  const pillsEl=document.getElementById("p3pills"), tb=document.getElementById("p3rows");
+  let activeId="preset-soccer-eu", rows=[];
+  function renderPills(){
+    pillsEl.innerHTML=`<span style="font-size:11px;color:var(--text-secondary);margin-right:4px">Режим:</span>`+
+      PRESETS.map((p,idx)=>`<span class="preset-pill${p.id===activeId?" preset-pill--active":""}" data-pid="${p.id}">${p.name}<span class="preset-hotkey">⌥${idx+1}</span></span>`).join("");
+  }
+  function applyActive(){ const a=PRESETS.find(p=>p.id===activeId); rows=POOL.filter(a.test).map(x=>({...x})); renderPills(); }
+  pillsEl.addEventListener("click",e=>{ const pl=e.target.closest("[data-pid]"); if(pl){ activeId=pl.dataset.pid; applyActive(); } });
+  function tick(){ rows.forEach(a=>a.age++); tb.innerHTML=rows.map((a,i)=>rowHtml(a,i)).join(""); }
+  applyActive(); tick(); setInterval(tick,1500);
+})();
+</script>
+</body>
+</html>
