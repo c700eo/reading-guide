@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Жизнь вилки во времени — учебная глава (3 части)</title>
+<style>
+  /* Цвета и формулы — из кода форка (R-3); привязки координат живут в r3-registry.md рядом */
+  :root{
+    --bg:#fafafa; --panel:#ffffff; --border:#e0e0e0; --text:#1a1a1a; --text-secondary:#666;
+    --green:#1a8a2e; --red:#cc2222; --flash:rgba(96,165,250,0.45);
+    --accent:#2563eb; --hl:rgba(37,99,235,.12);
+    --mono:ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.55}
+  .wrap{max-width:760px;margin:0 auto;padding:28px 18px 80px}
+  h1{font-size:24px;margin:0 0 6px}
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin:0 0 4px}
+  h3{font-size:17px;margin:0 0 4px}
+  .lead{color:var(--text-secondary);font-size:15px;margin:0 0 8px}
+  .part{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px 20px 22px;margin:18px 0}
+  .part-head{border-left:3px solid var(--accent);padding-left:10px;margin-bottom:14px}
+  .part-head .step{font-size:12px;color:var(--text-secondary)}
+  .signal{border-top:1px solid var(--border);padding:16px 0 4px}
+  .signal:first-of-type{border-top:none;padding-top:4px}
+  .sig-why{color:var(--text-secondary);margin:2px 0 10px}
+  .demo{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px}
+  .demo-cap{font-size:11px;color:var(--text-secondary);margin:6px 2px 0}
+  .honest{background:#fff8e6;border:1px solid #f0d99a;border-radius:6px;padding:8px 10px;font-size:12.5px;color:#6b5418;margin-top:8px}
+  .honest b{color:#5a4510}
+  details.honest summary{cursor:pointer;font-weight:600;color:#5a4510}
+  details.honest[open] summary{margin-bottom:5px}
+  table{width:100%;border-collapse:collapse}
+  th{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-secondary);text-align:left;padding:4px 6px;border-bottom:1px solid var(--border)}
+  td{padding:5px 6px;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums}
+  /* ПЛОТНЫЙ режим — Часть 3 (лечит «много воздуха», ближе к реальному сканеру) */
+  table.dense td{padding:2px 6px;font-size:13px}
+  table.dense th{padding:2px 6px}
+  tr.arb-row{cursor:default}
+  .st-pct{font-weight:700}
+  .st-odds{font-family:var(--mono);white-space:nowrap}
+  .st-cell-flash{animation:cellFlash 1100ms ease-out}        /* демо-замедление: в бою вспышка ~200мс */
+  @keyframes cellFlash{0%{background-color:var(--flash)}100%{background-color:transparent}}
+  .st-odds-arrow{display:inline-block;margin-left:3px;font-size:11px;font-weight:700;vertical-align:middle;line-height:1}
+  .st-odds-arrow--up{color:var(--green)}                      /* рост */
+  .st-odds-arrow--down{color:var(--red)}                      /* падение */
+  .st-odds-arrow--stale{color:var(--text-secondary);opacity:.6}/* stale: верь осторожно */
+  .st-age{font-family:var(--mono);font-size:12px;color:var(--text-secondary)}
+  /* Часть 2 — статичная подсвечиваемая легенда */
+  .part2-grid{display:grid;grid-template-columns:1fr 220px;gap:16px;align-items:start}
+  @media(max-width:640px){.part2-grid{grid-template-columns:1fr}}
+  .legend-static{font-size:12.5px}
+  .legend-static .item{padding:7px 9px;border-radius:7px;border:1px solid var(--border);margin-bottom:7px;transition:background .25s,border-color .25s}
+  .legend-static .item.lit{background:var(--hl);border-color:var(--accent)}
+  .legend-static .item b{display:block;font-size:13px;margin-bottom:1px}
+  .legend-static .item span{color:var(--text-secondary)}
+  .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--text-secondary);margin-left:6px;vertical-align:middle;opacity:.25;transition:opacity .25s}
+  .item.lit .dot{opacity:1;background:var(--accent)}
+  .nav{font-size:12px;color:var(--text-secondary);margin-bottom:4px}
+  .pace{font-size:11px;color:var(--text-secondary);margin:4px 2px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Жизнь вилки во времени</h1>
+  <p class="lead">Решение, которое обслуживает эта функция: <b>«успеть закрыть обе ноги, или вилка уже труп»</b>. Вилка не статична — рождается, дёргается, стареет, умирает. За одну секунду на строку экран успевает сказать четыре вещи о её жизни. Читать их — значит не поставить на то, что уже умирает.</p>
+
+  <!-- ============ ЧАСТЬ 1 — УЧЁБА ИЗОЛИРОВАННО ============ -->
+  <section class="part">
+    <div class="part-head">
+      <h2>Часть 1 · Учёба</h2>
+      <div class="step">Каждый сигнал по отдельности. Под описанием — своё маленькое демо, где видно <i>только этот</i> сигнал, без шума остальных.</div>
+    </div>
+
+    <div class="signal">
+      <h3>① Вспышка ячейки</h3>
+      <p class="sig-why">Кэф только что сменился — ячейка коротко подсвечивается. Сигнал мгновения: «что-то сдвинулось, перепроверь». Вспышка ловит <b>любую</b> смену (вверх, вниз, на чуть-чуть), не говорит «хорошо/плохо» — только «смотри сюда».</p>
+      <div class="demo"><table><tbody id="d1"></tbody></table></div>
+      <div class="demo-cap">Кэф меняется — ячейка вспыхивает. Стрелки здесь нет: вспышка ≠ направление.</div>
+      <details class="honest"><summary>Почему вспышка такая короткая</summary>В бою вспышка длится около <b>200&nbsp;мс</b> — легко прозевать. Здесь замедлена, чтобы поймать глазом. Именно потому что короткая, её и учат узнавать.</details>
+    </div>
+
+    <div class="signal">
+      <h3>② Стрелка движения ↑↓</h3>
+      <p class="sig-why">Стрелка — другое, чем вспышка. Загорается, только когда кэф сдвинулся <b>направленно и заметно</b>. Вспышка = «дёрнулось», стрелка = «поехало в одну сторону». Направленное движение — ранний признак: контора пересчитывает линию, вилка вот-вот схлопнется. Стрелка читается как «возможно, пора уходить».</p>
+      <div class="demo"><table><tbody id="d2"></tbody></table></div>
+      <div class="demo-cap">Кэф ползёт вверх — зелёная ↑; вниз — красная ↓. Мелкие колебания стрелку не зажигают.</div>
+    </div>
+
+    <div class="signal">
+      <h3>③ Возраст и прозрачность</h3>
+      <p class="sig-why">Чем дольше вилка живёт, тем бледнее вся строка. Свежая — яркая, старая — поблёкшая. Число возраста читается как таймер, блёклость ловится боковым зрением, без вчитывания.</p>
+      <div class="demo"><table><tbody id="d3"></tbody></table></div>
+      <div class="demo-cap">Сверху свежая (яркая), снизу та же вилка стареет по кругу: число растёт, строка блёкнет.</div>
+      <details class="honest"><summary>Как именно бледнеет</summary>Яркость падает с возрастом относительно типичного времени жизни этого спорта; до конца не исчезает — у самой старой строки остаётся минимальная видимость.</details>
+    </div>
+
+    <div class="signal">
+      <h3>④ Stale — серая стрелка</h3>
+      <p class="sig-why">Stale — не отдельный значок и не «вся строка побледнела». Это особый <b>цвет</b> стрелки движения: у вилки, уже старой для своего спорта, стрелка горит серым вместо зелёного/красного. Читается как «движение показано, но данные могли устареть — проверь вручную».</p>
+      <div class="demo"><table><tbody id="d4"></tbody></table></div>
+      <div class="demo-cap">Старая вилка дёргает кэф — стрелка загорается серой, не цветной.</div>
+      <details class="honest"><summary>Честно: stale — догадка, не факт</summary>Это догадка по возрасту, а не реальный сигнал «контора зависла». Сканер видит: вилка живёт подозрительно долго для своего спорта — и красит стрелку серой. Настоящего сигнала «котировка перестала обновляться» в данных пока нет — он требует поля бэкенда, которого ещё нет. Поэтому серая стрелка = «верь осторожно», а не факт «данные мёртвы».</details>
+    </div>
+
+    <div class="signal" style="border-top:1px solid var(--border)">
+      <h3 style="font-size:15px">Возраст и stale — не путать</h3>
+      <p class="sig-why" style="margin-bottom:2px"><b>Блёклость</b> отвечает на «давно ли живёт» — тускнеет вся строка, всегда, от возраста. <b>Серая стрелка</b> отвечает на «можно ли верить вот этому движению» — красит одну стрелку, и только когда есть <i>и</i> движение, <i>и</i> старость. Отсюда: свежей со stale не бывает, а старая без stale — запросто (не двигалась — красить нечего).</p>
+    </div>
+  </section>
+
+  <!-- ============ ЧАСТЬ 2 — ЖИВОЙ СКАНЕР + ПОДСВЕТКА СТАТИЧНОГО ТЕКСТА ============ -->
+  <section class="part">
+    <div class="part-head">
+      <h2>Часть 2 · В живом сканере</h2>
+      <div class="step">Теперь все четыре сигнала вместе, как в реальном потоке. Текст справа <b>не меняется</b> — он подсвечивается, когда соответствующий сигнал происходит в таблице. Следи за подсветкой и находи её причину в строках.</div>
+    </div>
+    <div class="part2-grid">
+      <div class="demo" style="padding:6px">
+        <table><thead><tr><th>%</th><th>Спорт</th><th>Событие</th><th>БК 1</th><th>Кэф 1</th><th>БК 2</th><th>Кэф 2</th><th>Возр.</th></tr></thead><tbody id="p2rows"></tbody></table>
+      </div>
+      <div class="legend-static">
+        <div class="item" id="lg-flash"><b>Вспышка <span class="dot"></span></b><span>кэф только что сменился</span></div>
+        <div class="item" id="lg-arrow"><b>Стрелка ↑↓ <span class="dot"></span></b><span>кэф поехал направленно (|Δ|≥0.03)</span></div>
+        <div class="item" id="lg-age"><b>Блёклость <span class="dot"></span></b><span>возраст — вся строка тускнеет</span></div>
+        <div class="item" id="lg-stale"><b>Серая стрелка <span class="dot"></span></b><span>stale — движению верь осторожно</span></div>
+      </div>
+    </div>
+    <div class="pace">Поток замедлен для учёбы. В реальном сканере темп выше. <b>Серая стрелка (stale)</b> загорается реже остальных сигналов — ищи её у самых старых, бледных строк (внизу подсветки «Серая стрелка» справа).</div>
+  </section>
+
+  <!-- ============ ЧАСТЬ 3 — РЕАЛЬНЫЙ СКАНЕР БЕЗ ПОДСКАЗОК ============ -->
+  <section class="part">
+    <div class="part-head">
+      <h2>Часть 3 · Как в бою</h2>
+      <div class="step">Плотный поток, без подсказок и подсветки. Так это выглядит в работе — узнаёшь сигналы сам.</div>
+    </div>
+    <div class="demo" style="padding:4px">
+      <table class="dense"><thead><tr><th>%</th><th>Спорт</th><th>Событие</th><th>БК 1</th><th>Кэф 1</th><th>БК 2</th><th>Кэф 2</th><th>Возр.</th></tr></thead><tbody id="p3rows"></tbody></table>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* ============================================================
+   Жизнь вилки во времени — движок учебной главы.
+   Пороги/формулы — из кода форка (R-3), см. r3-registry.md:
+     вспышка: use-flash-cells.ts:6 (CELL_FLASH_MS=200; в демо замедлено)
+     стрелка: ODDS_MOVEMENT_THRESHOLD=0.03  [arb-row.vue:55,93-94]
+     возраст: opacity = 0.55 + freshness*0.45 [interpretation.ts:50-52]
+     freshness = max(0,min(1,1 - cdf)), падает с возрастом [interpretation.ts:43]
+     stale: isLive && arbFreshness < 0.4, красит стрелку [arb-row.vue:57,108]
+   freshness здесь — линейная (1 - age/lt), упрощение демо; в форке per-sport CDF.
+   Math.random не используется — детерминированный seed (стабильно при перезапуске).
+   ============================================================ */
+const ODDS_MOVEMENT_THRESHOLD = 0.03;
+const STALE_FRESHNESS = 0.4;
+const LIFETIME = { Tennis:22, Soccer:38, Basket:18, TT:13, Hockey:26, Volley:24 };
+function freshness(sport, age){ const lt = LIFETIME[sport]||25; return Math.max(0, Math.min(1, 1 - age/lt)); }
+function arrowHtml(delta, stale){
+  if(Math.abs(delta) < ODDS_MOVEMENT_THRESHOLD) return '';
+  const cls = stale ? 'st-odds-arrow--stale' : (delta>0 ? 'st-odds-arrow--up' : 'st-odds-arrow--down');
+  const title = stale ? 'Stale movement: вилка старая для своего спорта — проверь вручную'
+                      : (delta>0 ? 'кэф растёт' : 'кэф падает');
+  return `<span class="st-odds-arrow ${cls}" title="${title}">${delta>0?'↑':'↓'}</span>`;
+}
+function rowHtml(a){
+  const fr = freshness(a.sport, a.age);
+  const opacity = (0.55 + fr*0.45).toFixed(2);
+  const stale = a.isLive && fr < STALE_FRESHNESS;
+  const d1 = a.odds1 - a.prev1, d2 = a.odds2 - a.prev2;
+  const fl = f => f ? 'st-cell-flash' : '';
+  return `<tr class="arb-row" style="opacity:${opacity}">
+    <td class="st-pct">${a.pct}%</td><td>${a.sport}</td><td>${a.event}</td>
+    <td>${a.bk1}</td><td class="st-odds ${fl(a.flash1)}">${a.odds1.toFixed(2)}${arrowHtml(d1,stale)}</td>
+    <td>${a.bk2}</td><td class="st-odds ${fl(a.flash2)}">${a.odds2.toFixed(2)}${arrowHtml(d2,stale)}</td>
+    <td class="st-age">${a.age}s</td></tr>`;
+}
+
+/* ---------- ЧАСТЬ 1 — изолированные демо (по одному сигналу) ---------- */
+
+// ① Вспышка: кэф меняется, стрелки нет (|Δ| держим < 0.03 → чистая вспышка без направления)
+(function flashDemo(){
+  const el = document.getElementById('d1');
+  let odds = 1.92, phase = 0;
+  function step(){
+    const base = {sport:'Tennis',event:'Alcaraz — Sinner',bk1:'bet365',bk2:'pinnacle',
+      odds2:2.10, prev2:2.10, age:3, pct:3.20, isLive:true, flash2:false};
+    // межшаговое колебание 0.01 (< порога 0.03) — вспышка есть, стрелка НЕ загорается (вспышка ≠ направление)
+    const prev = odds; odds = (phase%2 ? 1.93 : 1.92); phase++;
+    el.innerHTML = rowHtml({...base, odds1:odds, prev1:prev, flash1:true});
+  }
+  step(); setInterval(step, 2200);
+})();
+
+// ② Стрелка: кэф ползёт направленно вверх ступенями ≥0.03 → ↑ горит; затем сброс, цикл
+(function arrowDemo(){
+  const el = document.getElementById('d2');
+  const seq = [1.85, 1.90, 1.96, 2.03, 2.11];  // шаги по ~0.05-0.08 (> порога)
+  let i = 0;
+  function step(){
+    const prev = i===0 ? seq[0] : seq[i-1];
+    const cur = seq[i];
+    const base = {sport:'Soccer',event:'Real — Barca',bk1:'1xbet',bk2:'bet365',
+      odds2:2.30, prev2:2.30, age:5, pct:2.80, isLive:true, flash2:false};
+    el.innerHTML = rowHtml({...base, odds1:cur, prev1:prev, flash1:i>0});
+    i = (i+1) % seq.length;
+  }
+  step(); setInterval(step, 1600);
+})();
+
+// ③ Возраст: верхняя строка — вечно свежая (контраст), нижняя стареет по кругу
+(function ageDemo(){
+  const el = document.getElementById('d3');
+  let age = 0;
+  function step(){
+    const fresh = {sport:'Tennis',event:'Swiatek — Gauff',bk1:'pinnacle',bk2:'bet365',
+      odds1:1.80,prev1:1.80,odds2:2.35,prev2:2.35,age:1,pct:4.10,isLive:true,flash1:false,flash2:false};
+    const aging = {sport:'Tennis',event:'Alcaraz — Sinner',bk1:'bet365',bk2:'pinnacle',
+      odds1:1.92,prev1:1.92,odds2:2.10,prev2:2.10,age:age,pct:3.20,isLive:true,flash1:false,flash2:false};
+    el.innerHTML = rowHtml(fresh) + rowHtml(aging);
+    age += 2; if(age > 22) age = 0;   // Tennis lifetime 22s → к концу почти труп, потом заново
+  }
+  step(); setInterval(step, 900);
+})();
+
+// ④ Stale: старая вилка (age 30 > Tennis 22 → freshness<0.4) дёргает кэф → серая стрелка
+(function staleDemo(){
+  const el = document.getElementById('d4');
+  let on = true, odds = 2.10;
+  function step(){
+    const prev = odds; odds = +(odds + (on? 0.06 : -0.06)).toFixed(2); on = !on;  // движение ≥0.03 каждый шаг
+    const base = {sport:'Tennis',event:'Alcaraz — Sinner',bk1:'bet365',bk2:'pinnacle',
+      odds1:1.92, prev1:1.92, age:30, pct:3.20, isLive:true, flash1:false};
+    el.innerHTML = rowHtml({...base, odds2:odds, prev2:prev, flash2:true});
+  }
+  step(); setInterval(step, 1900);
+})();
+
+/* ---------- ЧАСТЬ 2 — живой поток + подсветка статичной легенды ---------- */
+(function liveScanner(){
+  const POOL = [
+    ["Tennis","Alcaraz — Sinner","bet365","pinnacle"],["Soccer","Real — Barca","1xbet","bet365"],
+    ["Basket","Lakers — Celtics","betonline","pinnacle"],["TT","Dedek — Postelt","lottoland","bet365"],
+    ["Hockey","CSKA — SKA","1xbet","betonline"],["Volley","Italy — Brazil","bet365","pinnacle"],
+    ["Soccer","PSG — Bayern","betonline","1xbet"],["Tennis","Swiatek — Gauff","pinnacle","bet365"]
+  ];
+  let seed = 7;
+  const rnd = () => { seed = (seed*1103515245 + 12345) & 0x7fffffff; return seed/0x7fffffff; };
+  function mk(id){
+    const p = POOL[id % POOL.length]; const o1 = 1.6+rnd()*1.2, o2 = 1.6+rnd()*1.2;
+    return {id,sport:p[0],event:p[1],bk1:p[2],bk2:p[3],odds1:+o1.toFixed(2),odds2:+o2.toFixed(2),
+      prev1:+o1.toFixed(2),prev2:+o2.toFixed(2),age:Math.floor(rnd()*8),pct:+(1+rnd()*4).toFixed(2),
+      flash1:false,flash2:false,isLive:true};
+  }
+  let arbs = Array.from({length:6},(_,i)=>mk(i)), nextId = 6;
+  arbs[0].age = 17;  // якорь видимости stale: Tennis (lt 22) → freshness≈0.23 < 0.4 → старая бледная строка; при движении её стрелка серая (чтобы связка «подсветка→причина» была видна с первых секунд)
+  const tb = document.getElementById('p2rows');
+  function lit(id){ const e=document.getElementById(id); if(!e)return; e.classList.add('lit'); setTimeout(()=>e.classList.remove('lit'),1100); }
+  function tick(){
+    let anyFlash=false, anyArrow=false, anyStale=false;
+    arbs.forEach(a=>{
+      a.age++; a.flash1=a.flash2=false;
+      if(rnd()<0.35){a.prev1=a.odds1;a.odds1=+(a.odds1+(rnd()-0.5)*0.16).toFixed(2);a.flash1=true;}
+      if(rnd()<0.30){a.prev2=a.odds2;a.odds2=+(a.odds2+(rnd()-0.5)*0.16).toFixed(2);a.flash2=true;}
+      const fr=freshness(a.sport,a.age), stale=a.isLive&&fr<STALE_FRESHNESS;
+      if(a.flash1||a.flash2) anyFlash=true;
+      if(Math.abs(a.odds1-a.prev1)>=ODDS_MOVEMENT_THRESHOLD||Math.abs(a.odds2-a.prev2)>=ODDS_MOVEMENT_THRESHOLD){ anyArrow=true; if(stale) anyStale=true; }
+    });
+    arbs = arbs.map(a => freshness(a.sport,a.age)<=0 ? mk(nextId++) : a);
+    tb.innerHTML = arbs.map(rowHtml).join('');
+    // подсветка статичной легенды по факту событий тика (возраст активен всегда)
+    if(anyFlash) lit('lg-flash');
+    if(anyArrow) lit('lg-arrow');
+    lit('lg-age');
+    if(anyStale) lit('lg-stale');
+  }
+  for(let i=0;i<3;i++) tick();   // прогреть, чтобы движение было сразу
+  setInterval(tick, 1800);
+})();
+
+/* ---------- ЧАСТЬ 3 — плотный реальный сканер, без подсказок ---------- */
+(function denseScanner(){
+  const POOL = [
+    ["Tennis","Alcaraz — Sinner","bet365","pinnacle"],["Soccer","Real — Barca","1xbet","bet365"],
+    ["Basket","Lakers — Celtics","betonline","pinnacle"],["TT","Dedek — Postelt","lottoland","bet365"],
+    ["Hockey","CSKA — SKA","1xbet","betonline"],["Volley","Italy — Brazil","bet365","pinnacle"],
+    ["Soccer","PSG — Bayern","betonline","1xbet"],["Tennis","Swiatek — Gauff","pinnacle","bet365"],
+    ["Basket","Heat — Bucks","bet365","betonline"],["TT","Jiri — Vladimir","lottoland","pinnacle"]
+  ];
+  let seed = 31;
+  const rnd = () => { seed = (seed*1103515245 + 12345) & 0x7fffffff; return seed/0x7fffffff; };
+  function mk(id){
+    const p = POOL[id % POOL.length]; const o1 = 1.6+rnd()*1.2, o2 = 1.6+rnd()*1.2;
+    return {id,sport:p[0],event:p[1],bk1:p[2],bk2:p[3],odds1:+o1.toFixed(2),odds2:+o2.toFixed(2),
+      prev1:+o1.toFixed(2),prev2:+o2.toFixed(2),age:Math.floor(rnd()*8),pct:+(1+rnd()*4).toFixed(2),
+      flash1:false,flash2:false,isLive:true};
+  }
+  let arbs = Array.from({length:10},(_,i)=>mk(i)), nextId = 10;
+  const tb = document.getElementById('p3rows');
+  function tick(){
+    arbs.forEach(a=>{
+      a.age++; a.flash1=a.flash2=false;
+      if(rnd()<0.35){a.prev1=a.odds1;a.odds1=+(a.odds1+(rnd()-0.5)*0.16).toFixed(2);a.flash1=true;}
+      if(rnd()<0.30){a.prev2=a.odds2;a.odds2=+(a.odds2+(rnd()-0.5)*0.16).toFixed(2);a.flash2=true;}
+    });
+    arbs = arbs.map(a => freshness(a.sport,a.age)<=0 ? mk(nextId++) : a);
+    tb.innerHTML = arbs.map(rowHtml).join('');
+  }
+  for(let i=0;i<3;i++) tick();
+  setInterval(tick, 1300);
+})();
+</script>
+</body>
+</html>
