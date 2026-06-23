@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Учебник «Читаю сканер» — оглавление</title>
+<style>
+  :root{
+    --bg:#fafafa; --panel:#ffffff; --surface2:#f4f4f5; --border:#e0e0e0;
+    --text:#1a1a1a; --text-secondary:#666; --text-tertiary:#8a8a8a; --inverse:#fff;
+    --accent:#2563eb; --hl:rgba(37,99,235,.08);
+    --green:#1a8a2e; --green-bg:rgba(26,138,46,.10);
+    --amber:#b45309; --amber-bg:#fff7ed; --amber-border:#e0b070;
+    --mono:ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.55}
+  .wrap{max-width:840px;margin:0 auto;padding:28px 18px 80px}
+  h1{font-size:26px;margin:0 0 4px}
+  .lead{color:var(--text-secondary);font-size:15px;margin:0 0 4px}
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin:26px 0 10px;border-bottom:1px solid var(--border);padding-bottom:5px}
+  .how{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin:14px 0 4px;font-size:13px;color:var(--text-secondary)}
+  .how b{color:var(--text)}
+  .how code{font-family:var(--mono);font-size:12px;background:var(--panel);padding:1px 4px;border-radius:3px;border:1px solid var(--border)}
+
+  .card{display:block;text-decoration:none;color:inherit;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;transition:border-color .15s,box-shadow .15s}
+  a.card:hover{border-color:var(--accent);box-shadow:0 2px 10px rgba(37,99,235,.10)}
+  .card-top{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .num{font-family:var(--mono);font-weight:700;font-size:15px;color:var(--accent);flex-shrink:0}
+  .name{font-size:16px;font-weight:600}
+  .arrow{margin-left:auto;color:var(--accent);font-size:13px;flex-shrink:0}
+  .badge{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:2px 8px;border-radius:20px;flex-shrink:0}
+  .badge--done{background:var(--green-bg);color:var(--green);border:1px solid var(--green)}
+  .badge--draft{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border)}
+  .about{color:var(--text-secondary);margin:6px 0 0;font-size:13.5px}
+  .ask{margin:8px 0 0;font-size:12.5px;color:var(--amber);background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:6px;padding:6px 9px}
+  .ask b{color:#5a4510}
+  .soon{display:flex;align-items:baseline;gap:10px;padding:8px 12px;border-radius:8px;border:1px dashed var(--border);margin-bottom:7px;color:var(--text-tertiary);background:var(--panel)}
+  .soon .num{color:var(--text-tertiary)}
+  .soon .name{font-size:14px;font-weight:500;color:var(--text-secondary)}
+  .soon .tag{margin-left:auto;font-size:10px;text-transform:uppercase;letter-spacing:.04em;flex-shrink:0}
+  .foot{margin-top:30px;font-size:12px;color:var(--text-tertiary);border-top:1px solid var(--border);padding-top:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Учебник «Читаю сканер»</h1>
+  <p class="lead">Оглавление обучающих глав. Каждая глава — об одном решении вилочника за нашим сканером: что видеть, что решать, на что не вестись.</p>
+
+  <div class="how">
+    <b>Как принимать главу.</b> Жми на карточку — глава откроется в новой вкладке (оглавление остаётся здесь). Внутри три части: <b>Ч1 — учёба</b> (каждый элемент отдельно, со своим демо) → <b>Ч2 — живой сканер</b> (всё вместе, подсветка) → <b>Ч3 — как в бою</b> (плотно, без подсказок). У <b>поведенческих</b> глав (Г4/Г5/Г6/Г8/Г10/Г11) кнопки и поля живые — жми и вводи. После прохода: «понял, нет путаницы что у нас есть / чего нет» <i>или</i> дай правки. Под каждой главой — что именно решить на приёмке.
+  </div>
+
+  <h2>Готовы — на приёмку</h2>
+
+  <a class="card" href="g1-stroka-vilki.html" target="_blank" rel="noopener">
+    <div class="card-top"><span class="num">Г1</span><span class="name">Строка вилки — анатомия</span><span class="badge badge--draft">черновик · ждёт приёмки</span><span class="arrow">открыть ↗</span></div>
+    <p class="about">Слой 1. Решение «что это за расхождение и стоит ли вчитываться»: 9 ячеек строки, sharp/soft выделение, возраст числом и прозрачностью.</p>
+    <p class="ask"><b>На приёмке решить:</b> столбец подписан «период», а это маркет (на что ставить) — переименовать / путаница восприятия? (вопрос #2)</p>
+  </a>
+
+  <a class="card" href="g2-cveta-riski.html" target="_blank" rel="noopener">
+    <div class="card-top"><span class="num">Г2</span><span class="name">Цвета и риски</span><span class="badge badge--draft">черновик · ждёт приёмки</span><span class="arrow">открыть ↗</span></div>
+    <p class="about">Слой 2. Решение «опасна вилка или чистая» — две опасности разной природы: survival-граница (надёжность контор) и структурные бейджи (SAME BK / SAME GAME / CONFLICTING / DIFF RULES / PALP).</p>
+    <p class="ask"><b>На приёмке решить:</b> метки «M/L» — выдумка первой версии учебника, в коде survival = цвет границы, не буквы (вопрос #3); «только красная заливка» — переформулировать зелёную/красную.</p>
+  </a>
+
+  <a class="card" href="g3-zhizn-vilki.html" target="_blank" rel="noopener">
+    <div class="card-top"><span class="num">Г3</span><span class="name">Жизнь вилки во времени</span><span class="badge badge--done">принята · эталон</span><span class="arrow">открыть ↗</span></div>
+    <p class="about">Слой 3. Решение «успею закрыть обе ноги или это труп»: вспышка, стрелка движения, возраст/прозрачность, stale-сигнал. Утверждена партнёром руками — эталон формата для остальных глав.</p>
+  </a>
+
+  <a class="card" href="g4-filtry-presety.html" target="_blank" rel="noopener">
+    <div class="card-top"><span class="num">Г4</span><span class="name">Фильтры и пресеты</span><span class="badge badge--draft">черновик · ждёт приёмки</span><span class="arrow">открыть ↗</span></div>
+    <p class="about">Слой 4. Решение «как из тысячи строк оставить мои сорок за секунду»: пресет = снимок всех фильтров + Alt+1..9 = режим работы одним движением (сортировочная станция).</p>
+    <p class="ask"><b>На приёмке решить:</b> «Sharp Only» фильтрует по %+возрасту, не по sharp-конторам (объясняет твой баг-репорт) — объяснение снимает или переименовать?; граница Г4↔Г11 (пресеты отдельно от детальных фильтров).</p>
+  </a>
+
+  <a class="card" href="g5-kalkulyator.html" target="_blank" rel="noopener">
+    <div class="card-top"><span class="num">Г5</span><span class="name">Калькулятор — где деньги</span><span class="badge badge--draft">черновик · ждёт приёмки</span><span class="arrow">открыть ↗</span></div>
+    <p class="about">Слой 5. Двойное решение «сколько ставить ровным профитом» + «сколько контора реально примет»: equal-profit, шаг в валюте конторы, налог, перекос-предупреждение, lock, Odd History, All Books. Поля живые — введи сумму, переключи шаг/валюту.</p>
+    <p class="ask"><b>На приёмке решить:</b> equal-profit ядро узнаёшь?; перекос показываем, но не переливаем — формулировка ок?; 7 блоков не тяжело (Odd History / All Books вынесены в Г9)?</p>
+  </a>
+
+  <a class="card" href="g6-postanovka-go.html" target="_blank" rel="noopener">
+    <div class="card-top"><span class="num">Г6</span><span class="name">Постановка и GO</span><span class="badge badge--draft">черновик · ждёт приёмки</span><span class="arrow">открыть ↗</span></div>
+    <p class="about">Слой 6. Решение «какой ногой первой и как нажать быстрее, чем кэф уйдёт»: порядок ног (бóльший эффективный кэф), GO/GO BOTH, купон БК читается обратно. Жми кнопки — демо живое.</p>
+    <p class="ask"><b>На приёмке решить:</b> формат поведенческой главы («жми → эффект»); граница порядок-ног Г6↔Г5; демо takeBet симулировано (без живого расширения) — достаточно?</p>
+  </a>
+
+  <a class="card" href="g7-recovery.html" target="_blank" rel="noopener">
+    <div class="card-top"><span class="num">Г7</span><span class="name">Recovery — нога слетела</span><span class="badge badge--draft">черновик · ждёт приёмки</span><span class="arrow">открыть ↗</span></div>
+    <p class="about">Слой 7. Решение «первая нога стоит, вторая слетела — чем перекрыть, чтобы перекрытие наверняка прошло»: панель в аварии, топ-3 варианта по НАДЁЖНОСТИ конторы (не по прибыли), break-even. Жми кнопки — сломай ногу → панель; контр-пример сортировки.</p>
+    <p class="ask"><b>На приёмке решить:</b> формат поведенческой главы; границы Г7↔Г5 и Г7↔Г12; демо симулировано — достаточно?</p>
+  </a>
+
+  <a class="card" href="g8-moat.html" target="_blank" rel="noopener">
+    <div class="card-top"><span class="num">Г8</span><span class="name">Моат — чем сканер под капотом другой</span><span class="badge badge--draft">черновик · ждёт приёмки</span><span class="arrow">открыть ↗</span></div>
+    <p class="about">Слой 8. Решение владельца «почему наш сканер фундаментально другой»: моат = система за фичами (бот по обе стороны клика, 31M ставок, замкнутый цикл), а не набор фишек. Три опоры (survival / extension / recovery) + замкнутый цикл + что копируемо/нет. Кликни звенья цикла.</p>
+    <p class="ask"><b>На приёмке решить:</b> honest-границы не слишком скромны (extension не уникален; survival — эвристика, полная модель впереди)?; карта копируемо/нет — твоя бизнес-линза верна?</p>
+  </a>
+
+  <a class="card" href="g9-detail-panel.html" target="_blank" rel="noopener">
+    <div class="card-top"><span class="num">Г9</span><span class="name">Detail-панель — копнуть вилку глубже</span><span class="badge badge--draft">черновик · ждёт приёмки</span><span class="arrow">открыть ↗</span></div>
+    <p class="about">Вне слоёв. Решение «строка зацепила, но брать ли — не видно из строки»: клик раскрывает панель — Odd History (куда едет кэф), Initiator (кто двинул + sharp/soft), Fair Odds, Condition (скрытый риск словами), All Books on this Market (3 режима), мёртвая вилка. Жми вкладки и строки.</p>
+    <p class="ask"><b>На приёмке решить:</b> визуальный вид раскрытой панели на живом потоке сверить (собрана от кода, не сверена с реальным экраном); граница «что наше / что с backend» — список книг синтетический до интеграции, формула наша; граница Г9↔Г5 (вынести ли Odd History/All Books из калькулятора).</p>
+  </a>
+
+  <a class="card" href="g10-topbar-rezhimy.html" target="_blank" rel="noopener">
+    <div class="card-top"><span class="num">Г10</span><span class="name">Топбар и режимы отображения</span><span class="badge badge--draft">черновик · ждёт приёмки</span><span class="arrow">открыть ↗</span></div>
+    <p class="about">Вне слоёв. Решение «настроить вид под мой ритм и смену»: формат кэфа (Dec/Am/Frac), плотность, тема, пауза, поиск, счётчик живости. Жми кнопки — все 6 режимов работают.</p>
+    <p class="ask"><b>На приёмке решить:</b> граница Г10↔Г4 по плотности; формат «интерактив сам жми» наглядно?</p>
+  </a>
+
+  <a class="card" href="g11-filtry-detalno.html" target="_blank" rel="noopener">
+    <div class="card-top"><span class="num">Г11</span><span class="name">Фильтры детально</span><span class="badge badge--draft">черновик · ждёт приёмки</span><span class="arrow">открыть ↗</span></div>
+    <p class="about">Слой 4 расш. Решение «пресет дал грубый режим — теперь отрезать ровно то, на что охочусь»: гистограмма + порог процента, возраст, типы рынка деревом, лиги/страны, Safety. Плюс честная граница — рычаги, что режут поток сейчас, и рычаги, что ждут бэкенда (Live/Prematch, Error probability). Жми фильтры — поток режется, счётчик «N из M».</p>
+    <p class="ask"><b>На приёмке решить:</b> граница «работает сейчас / ждёт бэкенда» (Live/Prematch + Error probability серые) — читается как «придёт», не «сломано»?; граница Г11↔Г4 (рычаги vs пресет-снимок) и Г11↔Г12 (статусы контор → Г12).</p>
+  </a>
+
+  <h2>Впереди — ещё не собраны</h2>
+
+  <div class="soon"><span class="num">Г12</span><span class="name">Мои конторы</span><span class="tag">тяжёлая · отдельная смена</span></div>
+  <div class="soon"><span class="num">Г13</span><span class="name">Настройки калькулятора / late-stage</span><span class="tag">обычная</span></div>
+  <div class="soon"><span class="num">Г14</span><span class="name">Служебное (toast / вход)</span><span class="tag">мелкая</span></div>
+
+  <div class="foot">
+    Готово 10 черновиков (ядро Г1–Г8 + Г10 + Г11) + 1 принятая глава (Г3). Осталось собрать Г12–Г14. Главы — черновики, ждут партнёрской приёмки руками единым проходом. Это оглавление — навигация, не сам материал.
+  </div>
+
+</div>
+</body>
+</html>
