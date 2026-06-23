@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Чем наш сканер под капотом другой — учебная глава (3 части)</title>
+<style>
+  /* Цвета/токены воссозданы из кода форка (R-3), см. r3-registry-g8.md:
+     палитра :root + факторы надёжности (Sharp/Exchange/Regular) +
+     механизмы постановки/recovery. Концепция моата — DNA (замкнутый цикл, 31M ставок, 8 лет). */
+  :root{
+    --bg:#fafafa; --panel:#ffffff; --border:#e0e0e0; --text:#1a1a1a; --text-secondary:#666;
+    --green:#1a8a2e; --red:#cc2222; --amber:#b8860b;
+    --accent:#2563eb; --hl:rgba(37,99,235,.12);
+    --info-bg:#e8f1fb; --info-border:#c8ddf0; --info-text:#1d4f7a;   /* index.css :root — купон */
+    --danger-bg:#fff0f0; --danger-border:#e88a8a; --danger-text:#991b1b; /* index.css :root — suspended */
+    --mono:ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.55}
+  .wrap{max-width:780px;margin:0 auto;padding:28px 18px 80px}
+  h1{font-size:24px;margin:0 0 6px}
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin:0 0 4px}
+  h3{font-size:17px;margin:0 0 4px}
+  .lead{color:var(--text-secondary);font-size:15px;margin:0 0 8px}
+  .bigidea{background:#f0f5ff;border:1px solid #cfe0ff;border-left:3px solid var(--accent);border-radius:8px;padding:13px 15px;margin:14px 0 4px;font-size:14.5px}
+  .bigidea b{color:#1a3a7a}
+  .part{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px 20px 22px;margin:18px 0}
+  .part-head{border-left:3px solid var(--accent);padding-left:10px;margin-bottom:14px}
+  .part-head .step{font-size:12px;color:var(--text-secondary)}
+  .pillar{border-top:1px solid var(--border);padding:18px 0 6px}
+  .pillar:first-of-type{border-top:none;padding-top:4px}
+  .why{color:var(--text-secondary);margin:2px 0 10px}
+  .behind{font-size:13px;margin:8px 0 0;padding:9px 11px;background:var(--bg);border:1px solid var(--border);border-radius:7px}
+  .behind b{color:var(--text)}
+  .demo{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px}
+  .demo-cap{font-size:11px;color:var(--text-secondary);margin:6px 2px 0}
+  .honest{background:#fff8e6;border:1px solid #f0d99a;border-radius:6px;padding:8px 10px;font-size:12.5px;color:#6b5418;margin-top:8px}
+  .honest b{color:#5a4510}
+  button{font:inherit;cursor:pointer}
+  .tgl{display:inline-flex;gap:6px;flex-wrap:wrap;margin:2px 0 10px}
+  .tgl button{padding:5px 11px;border:1px solid var(--border);border-radius:6px;background:#fff;color:var(--text)}
+  .tgl button.on{border-color:var(--accent);background:var(--hl);color:#1a3a7a;font-weight:600}
+  /* строка-образец с цветной survival-границей слева */
+  .srow{display:flex;align-items:center;gap:10px;padding:8px 10px;background:#fff;border:1px solid var(--border);border-left-width:5px;border-radius:6px;font-variant-numeric:tabular-nums}
+  .srow .ev{flex:1}
+  .srow .od{font-family:var(--mono)}
+  .srow.lv-high{border-left-color:var(--green)}
+  .srow.lv-med{border-left-color:var(--amber)}
+  .srow.lv-low{border-left-color:var(--red)}
+  .factor{font-family:var(--mono);font-weight:700}
+  .go-btn{padding:6px 16px;border:1px solid var(--green);background:var(--green);color:#fff;border-radius:6px;font-weight:600}
+  .coupon{margin-top:10px;padding:9px 11px;border-radius:7px;background:var(--info-bg);border:1px solid var(--info-border);color:var(--info-text);font-size:13px;display:none}
+  .coupon.show{display:block}
+  .coupon .clip{font-weight:600}
+  .coupon .read{font-family:var(--mono);font-size:12px;margin-top:3px}
+  .break-btn{padding:6px 14px;border:1px solid var(--danger-border);background:var(--danger-bg);color:var(--danger-text);border-radius:6px;font-weight:600}
+  .recov{margin-top:10px;border:1px solid var(--border);border-radius:8px;overflow:hidden;display:none}
+  .recov.show{display:block}
+  .recov-h{background:var(--danger-bg);color:var(--danger-text);padding:8px 11px;font-size:12.5px;border-bottom:1px solid var(--danger-border)}
+  .opt{display:flex;align-items:center;gap:9px;padding:8px 11px;border-bottom:1px solid var(--border);font-size:13px}
+  .opt:last-child{border-bottom:none}
+  .opt .rank{width:18px;height:18px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
+  .opt .bk{flex:1}
+  .badge{display:inline-block;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;vertical-align:middle}
+  .badge.b-high{background:#e7f6ea;color:var(--green)}
+  .badge.b-mid{background:#fbf3e0;color:var(--amber)}
+  .opt .pnl{font-family:var(--mono);font-size:12px;color:var(--text-secondary)}
+  /* Часть 2 — замкнутый цикл */
+  .cycle{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin:6px 0 2px}
+  .node{flex:1;min-width:130px;border:1px solid var(--border);border-radius:8px;padding:10px 11px;background:#fff;text-align:left;transition:background .2s,border-color .2s}
+  .node:hover,.node.sel{border-color:var(--accent);background:var(--hl)}
+  .node .t{font-weight:600;font-size:13px;margin-bottom:2px;color:#1a3a7a}
+  .node .s{font-size:11.5px;color:var(--text-secondary)}
+  .arrow{align-self:center;color:var(--text-secondary);font-size:16px}
+  .node-detail{margin-top:10px;padding:10px 12px;border:1px dashed var(--accent);border-radius:7px;background:#f6f9ff;font-size:13px;min-height:20px}
+  /* Часть 3 — что копируемо / нет */
+  .cmp{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px}
+  @media(max-width:600px){.cmp{grid-template-columns:1fr}.part2-flow{flex-direction:column}}
+  .col{border:1px solid var(--border);border-radius:8px;padding:12px 14px}
+  .col.can{background:#fffaf7;border-color:#f0d2b8}
+  .col.cant{background:#f5fbf6;border-color:#c2e2cb}
+  .col h4{margin:0 0 8px;font-size:14px}
+  .col.can h4{color:#9a5a23}
+  .col.cant h4{color:#1a6e30}
+  .col ul{margin:0;padding-left:18px}
+  .col li{margin-bottom:6px}
+  .src{font-size:11px;color:var(--text-secondary);font-style:italic}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Чем наш сканер под капотом другой</h1>
+  <p class="lead">Решение, которое обслуживает эта глава, — не про чтение строки, а про вопрос, который владелец обязан уметь объяснить сам: <b>почему наш сканер фундаментально другой — и что из этого уже работает, а что мы только строим</b>. Без рекламы: где есть преимущество — скажем где, где это ещё впереди — скажем честно.</p>
+
+  <div class="bigidea">
+    <b>Главная мысль.</b> Моат — это не три фичи, «которых ни у кого нет». Это одна <b>система</b> за ними: бот, который восемь лет стоит по обе стороны клика и записал 31&nbsp;миллион ставок. Конкурент может скопировать отдельную фичу. Систему — нет. Ниже три места, где эта система выходит на экран, а потом — сам механизм, который их связывает.
+  </div>
+
+  <!-- ============ ЧАСТЬ 1 — УЧЁБА ИЗОЛИРОВАННО: ТРИ ОПОРЫ ============ -->
+  <section class="part">
+    <div class="part-head">
+      <h2>Часть 1 · Три опоры — по отдельности</h2>
+      <div class="step">Каждая опора моата — отдельно: что по ней видно на экране, что за ней стоит, и где честная граница «работает сейчас / идём туда». Покрути демо руками.</div>
+    </div>
+
+    <!-- ОПОРА 1 — SURVIVAL -->
+    <div class="pillar">
+      <h3>① За цветом строки — данные бота</h3>
+      <p class="why">Слева у строки — цветная граница надёжности. Решение вилочника за секунду: <b>«насколько вообще доверять этой вилке»</b>. Откуда сканер берёт оценку? Переключи тип конторы — увидишь, от чего она пляшет.</p>
+      <div class="demo">
+        <div class="tgl" id="t-surv">
+          <button data-lv="high" class="on">Sharp-контора</button>
+          <button data-lv="med">Биржа (exchange)</button>
+          <button data-lv="low">Обычная контора</button>
+        </div>
+        <div class="srow lv-high" id="surv-row">
+          <span class="ev">Alcaraz — Sinner · ТБ 22.5</span>
+          <span>надёжность: <span class="factor" id="surv-f">0.95</span></span>
+          <span class="od">3.2%</span>
+        </div>
+        <div class="demo-cap">Цвет границы и «надёжность» меняются от <b>типа</b> конторы: Sharp 0.95 → Exchange 0.92 → Regular 0.85.</div>
+      </div>
+      <div class="behind"><b>Что за этим:</b> бот годами проходил расхождения и записывал, что было дальше. Сейчас сканер сводит это к надёжности <b>по типу конторы</b> — три числа выше. Сам код это и называет: эвристика-набросок, а полная модель — в данных бота (31&nbsp;миллион ставок).</div>
+      <details class="honest"><summary><b>Честная граница: что работает сейчас, а что — куда идём</b></summary>Сканер пока <b>не</b> говорит «эта вилка проживёт N секунд». Зелёная граница = базовая надёжность по типу конторы — то, что вилочник и сам знает за годы работы. Полная сила — «эта конкретная вилка на этой конторе в этот час живёт столько-то» — придёт с моделью на 31M (лаборатория Tipsters). Это <b>куда идём</b>, не то, что уже работает. И «посчитать потолок ставки автоматически» сканер тоже не обещает — лимиты контора прячет; из 31M мы поймём природу вилки, а не угадаем её скрытый лимит.</details>
+    </div>
+
+    <!-- ОПОРА 2 — EXTENSION -->
+    <div class="pillar">
+      <h3>② Путь постановки — сканер видит купон конторы</h3>
+      <p class="why">Решение: <b>«поставить обе ноги быстрее, чем кэф уйдёт»</b>. Жми GO — и смотри, что появляется.</p>
+      <div class="demo">
+        <button class="go-btn" id="go-btn">GO · нога 1 (bet365)</button>
+        <div class="coupon" id="coupon">
+          <div class="clip">📋 Купон bet365 · Alcaraz — Sinner · ТБ 22.5</div>
+          <div class="read">сканер читает купон обратно → кэф конторы вживую: <b>1.92</b></div>
+        </div>
+        <div class="demo-cap">GO кладёт исход в купон конторы через расширение; сканер подписан на купон и читает его обратно — двусторонняя связь.</div>
+      </div>
+      <div class="behind"><b>Что за этим:</b> расширение в антидетект-браузере кладёт исход в купон конторы <b>и</b> читает купон обратно — двусторонняя связь. У всех остальных — deeplink: открыл сайт конторы, дальше сам. Важная граница механизма: в купон уходит только событие и контора, <b>без суммы</b> — сумму вводит вилочник, и финальную кнопку жмёт вилочник, не сканер.</div>
+      <details class="honest"><summary><b>Честно: расширение — не «то, чего нет ни у кого»</b></summary>Сам факт «расширение для постановки» — <b>не</b> то, чего нет у конкурентов: у BetBurger есть arbhelp. Что именно тут наше преимущество и где мы быстрее — это предмет детального разбора-сравнения с конкурентами (отдельная работа этапа), а не громкое «такого нет ни у кого».</details>
+    </div>
+
+    <!-- ОПОРА 3 — RECOVERY -->
+    <div class="pillar">
+      <h3>③ Нога слетела — чем перекрыть</h3>
+      <p class="why">Момент паники: первая нога стоит, вторая ушла. Решение: <b>«чем закрыть, чтобы перекрытие точно прошло»</b>. Сломай вторую ногу в демо.</p>
+      <div class="demo">
+        <button class="break-btn" id="break-btn">⚠ Нога 2 слетела</button>
+        <div class="recov" id="recov">
+          <div class="recov-h">Recovery · нога 1: €500 @ 1.92 (bet365 · Alcaraz ТБ 22.5)</div>
+          <div class="opt"><span class="rank">1</span><span class="bk">pinnacle <span class="badge b-high">Sharp · 0.95</span></span><span class="pnl">перекрытие €476 · в ноль</span></div>
+          <div class="opt"><span class="rank">2</span><span class="bk">betfair <span class="badge b-mid">Биржа · 0.92</span></span><span class="pnl">перекрытие €489 · в ноль</span></div>
+          <div class="opt"><span class="rank">3</span><span class="bk">1xbet <span class="badge b-mid">Обычная · 0.85</span></span><span class="pnl">перекрытие €462 · в ноль</span></div>
+        </div>
+        <div class="demo-cap">Панель появляется только когда нога мертва; перебирает конторы события, ранжирует по <b>надёжности</b> (Sharp→Exchange→Regular), даёт топ-3.</div>
+      </div>
+      <div class="behind"><b>Что за этим:</b> в аварии сканер ставит первым критерием <b>надёжность</b>, а не лишнюю копейку прибыли — важнее, чтобы перекрытие прошло. Сумму считает от <b>реально поставленной</b> ноги 1 (её замороженного кэфа), а не от живого кэфа мёртвой пары.</div>
+      <details class="honest"><summary><b>Честные границы recovery</b></summary>Панель перебирает конторы события из потока — фильтра «есть ли депозит в этой конторе» в самом механизме <b>нет</b> (это настройка контор, отдельная глава). И насколько recovery уникален против конкурентов — снова предмет детального сравнения, не голословное «ни у кого нет».</details>
+    </div>
+  </section>
+
+  <!-- ============ ЧАСТЬ 2 — СЕРДЦЕ: ЗАМКНУТЫЙ ЦИКЛ ============ -->
+  <section class="part">
+    <div class="part-head">
+      <h2>Часть 2 · Одна система за тремя опорами</h2>
+      <div class="step">Три опоры выше — не три отдельные фичи. Это три выхода одного цикла. Кликни звено — увидишь, что оно даёт.</div>
+    </div>
+    <div class="cycle" id="cycle">
+      <button class="node sel" data-k="bot"><div class="t">Бот ставит 24/7</div><div class="s">value, одна нога, по обе стороны клика</div></button>
+      <span class="arrow">→</span>
+      <button class="node" data-k="data"><div class="t">Пишет 31M ставок</div><div class="s">20 параметров на каждую</div></button>
+      <span class="arrow">→</span>
+      <button class="node" data-k="model"><div class="t">Данные → модель</div><div class="s">природа и жизнь вилки</div></button>
+      <span class="arrow">→</span>
+      <button class="node" data-k="scan"><div class="t">Модель → сканер</div><div class="s">оценка качества вилки</div></button>
+      <span class="arrow">→</span>
+      <button class="node" data-k="users"><div class="t">Пользователи → данные</div><div class="s">вилки двумя ногами + синдикат</div></button>
+    </div>
+    <div class="node-detail" id="cycle-detail"></div>
+    <div class="honest"><b>Честно про перенос:</b> не всё от бота переносится на вилочника напрямую. Переносится — время жизни расхождения, скорость фикса конкретной конторы, вероятность принятия ставки, лимиты. Не переносится — ROI и конверсия (бот ставит value одной ногой, вилочник — обе ноги для гарантии). Мы работаем с тем, что переносится, и честно отделяем то, что нет. <span class="src">(источник — DNA: «данные от бота питают сканер, но не напрямую»)</span></div>
+  </section>
+
+  <!-- ============ ЧАСТЬ 3 — КАК В БОЮ: ЧТО КОПИРУЕМО / НЕТ ============ -->
+  <section class="part">
+    <div class="part-head">
+      <h2>Часть 3 · Что конкурент может скопировать, а что — нет</h2>
+      <div class="step">Без подсказок. Прочитай две колонки и сформулируй сам, в чём наш моат на самом деле.</div>
+    </div>
+    <div class="cmp">
+      <div class="col can">
+        <h4>Может скопировать</h4>
+        <ul>
+          <li>Отдельные фичи и элементы интерфейса</li>
+          <li>Даже грубую версию оценки выживаемости — конкуренты уже двигаются в эту сторону (у кого-то в коде появляются зачатки оценки длительности вилки)</li>
+          <li>Расширение для постановки — у BetBurger есть arbhelp</li>
+        </ul>
+      </div>
+      <div class="col cant">
+        <h4>Не может скопировать</h4>
+        <ul>
+          <li>Замкнутый цикл: бот → данные → модель → сканер → пользователи → ещё данные</li>
+          <li>Восемь лет операции на ~150 БК и 31M залогированных ставок</li>
+          <li>Вторую ступень: воронку в синдикат (сканер для нас — не весь бизнес, а вход)</li>
+        </ul>
+      </div>
+    </div>
+    <p class="src" style="margin-top:10px">Источник колонок — DNA betsynd (раздел «Что мы строим»: что конкуренты могут и не могут повторить). Моат — не фича, а система: одну фичу копируют, систему, выросшую из восьми лет реальной работы, — нет.</p>
+  </section>
+
+</div>
+
+<script>
+/* ============================================================
+   Г8 «Моат» — движок учебной главы.
+   Все факторы/механизмы — из кода форка (R-3), см. r3-registry-g8.md:
+     надёжность по типу конторы: SHARP 0.95 / EXCHANGE 0.92 / REGULAR 0.85 [survival-config.ts:12-16]
+     постановка без суммы: takeBet({eventId,bookmaker}) [calculator.vue:939]
+     чтение купона обратно: subscribeToCoupon [use-coupon-stream.ts:59]
+     recovery ранжир по надёжности + топ-3: findAlternativeLegs [interpretation.ts:274,330-345,438]
+   Концепция моата (цикл, 31M, копируемо/нет) — DNA betsynd.
+   Конкретные вилки/суммы в демо — иллюстрация (синтетика); из кода берутся МЕХАНИЗМ и числа-факторы.
+   Math.random не используется.
+   ============================================================ */
+
+/* ① SURVIVAL — переключатель типа конторы → фактор + цвет границы */
+(function survDemo(){
+  const FACT = { high:'0.95', med:'0.92', low:'0.85' };  // survival-config.ts:12-16
+  const row = document.getElementById('surv-row');
+  const fEl = document.getElementById('surv-f');
+  document.querySelectorAll('#t-surv button').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      document.querySelectorAll('#t-surv button').forEach(x=>x.classList.remove('on'));
+      b.classList.add('on');
+      const lv = b.dataset.lv;
+      row.className = 'srow lv-' + lv;
+      fEl.textContent = FACT[lv];
+    });
+  });
+})();
+
+/* ② EXTENSION — GO → купон-плашка (читает обратно). Тумблер показать/скрыть. */
+(function goDemo(){
+  const btn = document.getElementById('go-btn');
+  const cp = document.getElementById('coupon');
+  btn.addEventListener('click', ()=>{
+    const shown = cp.classList.toggle('show');
+    btn.textContent = shown ? 'GO · исход в купоне ✓' : 'GO · нога 1 (bet365)';
+  });
+})();
+
+/* ③ RECOVERY — «нога слетела» → панель топ-3 (ранжир по надёжности) */
+(function recovDemo(){
+  const btn = document.getElementById('break-btn');
+  const panel = document.getElementById('recov');
+  btn.addEventListener('click', ()=>{
+    const shown = panel.classList.toggle('show');
+    btn.textContent = shown ? '↺ Сбросить демо' : '⚠ Нога 2 слетела';
+  });
+})();
+
+/* ЧАСТЬ 2 — клик по звену цикла → что оно даёт */
+(function cycleDemo(){
+  const DET = {
+    bot:'Бот ставит value круглосуточно, по обе стороны клика — мы и разработчик сканера, и игрок промышленного масштаба. Что это даёт вилочнику: оценки в сканере стоят на реальных ставках в живом рынке, днём и ночью, а не на чьей-то теории. Бот видит сразу дневной и ночной рынок — то, чего по отдельности не видит ни дневной, ни ночной вилочник.',
+    data:'Каждая из 31M ставок залогирована: контора, матч, маркет, кэф, приняли/отклонили, сколько прожило расхождение, исход, час, день недели — около 20 параметров. Это карта леса, а не отдельная ставка.',
+    model:'Из миллионов записей проступают паттерны: где ошибки живут долго, какая контора фиксит за секунду, а какая тормозит. Что уже работает у вилочника: надёжность по типу конторы — та самая цветная граница строки. Что впереди: полная модель «эта вилка на этой конторе сейчас проживёт столько-то» — её строит лаборатория Tipsters.',
+    scan:'Результат модели приходит в сканер одной оценкой на вилку. Снаружи — простое число/цвет. Внутри — годы данных. Сейчас это эвристика по типу конторы; полная модель впереди.',
+    users:'Подписчики сканера дают НОВЫЙ тип данных, которого у бота не было: вилки двумя ногами на разных конторах с разными лимитами. Среди них находим кандидатов в синдикат. Маховик ускоряется.'
+  };
+  const det = document.getElementById('cycle-detail');
+  function sel(k, node){
+    document.querySelectorAll('#cycle .node').forEach(n=>n.classList.remove('sel'));
+    node.classList.add('sel');
+    det.textContent = DET[k];
+  }
+  document.querySelectorAll('#cycle .node').forEach(n=>{
+    n.addEventListener('click', ()=>sel(n.dataset.k, n));
+  });
+  // стартовое состояние — первое звено раскрыто
+  det.textContent = DET.bot;
+})();
+</script>
+</body>
+</html>
