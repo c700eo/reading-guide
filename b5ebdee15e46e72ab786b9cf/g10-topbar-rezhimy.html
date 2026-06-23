@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Топбар: режимы экрана — учебная глава (3 части)</title>
+<style>
+  /* Цвета/значения воссозданы из кода сканера (R-3, координаты — в r3-registry-g10.md). */
+  :root{
+    --bg:#fafafa; --panel:#ffffff; --border:#e0e0e0; --text:#1a1a1a; --text-secondary:#666;
+    --green:#1a8a2e; --red:#cc2222; --flash:rgba(96,165,250,0.45);
+    --accent:#2563eb; --hl:rgba(37,99,235,.12); --active-bg:rgba(37,99,235,.10);
+    --mono:ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.55}
+  .wrap{max-width:780px;margin:0 auto;padding:28px 18px 80px}
+  h1{font-size:24px;margin:0 0 6px}
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin:0 0 4px}
+  h3{font-size:17px;margin:0 0 4px}
+  .lead{color:var(--text-secondary);font-size:15px;margin:0 0 8px}
+  .part{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px 20px 22px;margin:18px 0}
+  .part-head{border-left:3px solid var(--accent);padding-left:10px;margin-bottom:14px}
+  .part-head .step{font-size:12px;color:var(--text-secondary)}
+  .signal{border-top:1px solid var(--border);padding:16px 0 4px}
+  .signal:first-of-type{border-top:none;padding-top:4px}
+  .sig-why{color:var(--text-secondary);margin:2px 0 10px}
+  .demo{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px}
+  .demo-cap{font-size:11px;color:var(--text-secondary);margin:6px 2px 0}
+  .honest{background:#fff8e6;border:1px solid #f0d99a;border-radius:6px;padding:8px 10px;font-size:12.5px;color:#6b5418;margin-top:8px}
+  .honest b{color:#5a4510}
+  table{width:100%;border-collapse:collapse}
+  th{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-secondary);text-align:left;padding:4px 6px;border-bottom:1px solid var(--border)}
+  td{padding:5px 6px;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums}
+  /* Плотность строк — РОВНО как в сканере:
+     comfortable (просторный) = дефолт (td 4px / th 6px вертикальный padding);
+     compact (компактный) = td 4→2px, th 6→3px. Меняется ТОЛЬКО вертикальный padding — шрифт/бейджи не трогаются. */
+  table.density-comfortable td{padding-top:4px;padding-bottom:4px}
+  table.density-comfortable th{padding-top:6px;padding-bottom:6px}
+  table.density-compact td{padding-top:2px;padding-bottom:2px}
+  table.density-compact th{padding-top:3px;padding-bottom:3px}
+  /* бейджи риска в строке — для образца «компакт с бейджами»: показать, что бейджи остаются и в компакте.
+     PALP = красный процент. */
+  .badge{display:inline-block;font-size:9px;font-weight:700;padding:0 3px;line-height:15px;margin-left:5px;vertical-align:middle;border:1px solid;border-radius:2px}
+  .b-samegame{color:#6b3a8a;background:#f3eaf7;border-color:#b48fc8}   /* SAME GAME — фиолетовый advisory :820-829 */
+  .b-diffrules{color:#b45309;background:#fff7ed;border-color:#b45309}  /* DIFF RULES — оранжевый :703-713 */
+  .st-arb-palp{color:var(--red);font-weight:700}                       /* PALP — красный процент */
+  .st-pct{font-weight:700}
+  .st-odds{font-family:var(--mono);white-space:nowrap}
+  .st-cell-flash{animation:cellFlash 1100ms ease-out}  /* демо-замедление вспышки ячейки (в бою короче — мелькание) */
+  @keyframes cellFlash{0%{background-color:var(--flash)}100%{background-color:transparent}}
+  /* survival-уровень строки — цвет левой границы + слабый фон (правка-2 приёмки: демо как реальный сканер, не серое). Цвета = index.css:72-74 */
+  tr.surv-high td:first-child{box-shadow:inset 3px 0 0 #16a34a}
+  tr.surv-med  td:first-child{box-shadow:inset 3px 0 0 #ca8a04}
+  tr.surv-low  td:first-child{box-shadow:inset 3px 0 0 #dc2626}
+  tr.surv-high td{background:rgba(22,163,74,.055)}
+  tr.surv-med  td{background:rgba(202,138,4,.06)}
+  tr.surv-low  td{background:rgba(220,38,38,.06)}
+  /* ── Топбар (воспроизводит components/top-bar.vue) ── */
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:8px;
+    border:1px solid var(--border);background:var(--panel);border-radius:6px;padding:6px 8px;flex-wrap:wrap}
+  .tb-left,.tb-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .tb-btn{padding:4px 8px;border:1px solid var(--border);background:var(--panel);font-size:12px;
+    line-height:1;color:var(--text-secondary);cursor:pointer;border-radius:4px}
+  .tb-btn:hover{background:var(--active-bg)}
+  .tb-btn.active{color:var(--text);border-color:var(--accent);background:var(--active-bg);font-weight:600}
+  .tb-seg{display:flex;gap:1px;border:1px solid var(--border);border-radius:4px;overflow:hidden}
+  .tb-seg .tb-btn{border:none;border-radius:0}
+  .tb-search{width:170px;padding:5px 8px;border:1px solid var(--border);background:var(--panel);
+    font-size:12px;color:var(--text);outline:none;border-radius:4px}
+  .tb-search:focus{border-color:var(--accent)}
+  .tb-counter{font-family:var(--mono);font-size:13px;color:var(--text-secondary);white-space:nowrap}
+  .tb-counter .filt{color:var(--text);font-weight:600;display:inline-block;padding:0 3px;border-radius:2px}
+  .tb-counter .filt.flash{animation:counterFlash 600ms ease-out}
+  @keyframes counterFlash{0%{background-color:var(--flash)}100%{background-color:transparent}}
+  .tb-counter.paused{opacity:.6}
+  /* Демо-тема: переключение data-theme на ОБЁРТКЕ демо (не на странице целиком).
+     В сканере — один атрибут на странице перекрашивает весь набор цветовых ролей. Здесь — несколько ролей для сути. */
+  .theme-box[data-theme="dark"]{
+    --bg:#15171c; --panel:#1d2026; --border:#333842; --text:#e6e8eb; --text-secondary:#9aa0a8;
+    --active-bg:rgba(96,165,250,.16);
+    background:var(--bg);color:var(--text);border-radius:8px;padding:10px;transition:background .25s,color .25s
+  }
+  .theme-box{transition:background .25s,color .25s}
+  /* Часть 2 — статичная подсвечиваемая легенда */
+  .part2-grid{display:grid;grid-template-columns:1fr;gap:16px;align-items:start} /* правка приёмки (вёрстка part2-grid): легенда ПОД таблицу (таблица на полную ширину, все 9 колонок видны) */
+  @media(max-width:680px){.part2-grid{grid-template-columns:1fr}}
+  .legend-static{font-size:12.5px}
+  .legend-static .item{padding:7px 9px;border-radius:7px;border:1px solid var(--border);margin-bottom:7px;transition:background .25s,border-color .25s}
+  .legend-static .item.lit{background:var(--hl);border-color:var(--accent)}
+  .legend-static .item b{display:block;font-size:13px;margin-bottom:1px}
+  .legend-static .item span{color:var(--text-secondary)}
+  .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--text-secondary);margin-left:6px;vertical-align:middle;opacity:.25;transition:opacity .25s}
+  .item.lit .dot{opacity:1;background:var(--accent)}
+  .pace{font-size:11px;color:var(--text-secondary);margin:8px 2px 0}
+  .map{font-size:12.5px;color:var(--text-secondary);background:var(--bg);border:1px dashed var(--border);border-radius:6px;padding:8px 10px;margin-top:8px}
+  .map b{color:var(--text)}
+  code{font-family:var(--mono);font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Топбар: режимы экрана</h1>
+  <p class="lead">Решение, которое обслуживает топбар: <b>«настрой экран под свой режим работы и держи контроль над потоком»</b>. Сами вилки топбар не меняет — он меняет, <i>как</i> они видны и можно ли остановить поток, когда нужно. Шесть переключателей справа в верхней полосе. Каждый отвечает на свой вопрос профи: в какой записи я считаю кэф, сколько строк держу на экране, не жгут ли глаза в ночную смену, как кликнуть в бегущий список, как найти конкретный матч, жив ли поток вообще.</p>
+
+  <div class="map">
+    <b>Где это на экране.</b> Топбар — пульт, не строка данных. <b>Слева</b> — управление потоком: пресеты (своя глава — «Фильтры и пресеты»), быстрый фильтр типов рынка (глава «Фильтры детально»), кнопки <code>Filters</code>/<code>Settings</code>. <b>Справа</b> — шесть режимов отображения, эта глава. Здесь разбираем только правую часть; левую не трогаем, чтобы не путать.
+  </div>
+
+  <!-- ============ ЧАСТЬ 1 — УЧЁБА ИЗОЛИРОВАННО ============ -->
+  <section class="part">
+    <div class="part-head">
+      <h2>Часть 1 · Учёба</h2>
+      <div class="step">Каждый режим по отдельности. Под описанием — живое демо: жми кнопку и смотри, что меняется. Только этот режим, без шума остальных.</div>
+    </div>
+
+    <div class="signal">
+      <h3>① Формат кэфа — Dec / Am / Frac</h3>
+      <p class="sig-why">Размер ставки профи считает в уме за секунды. Переключатель меняет <b>запись</b> коэффициента под ту систему, в которой мозг считает без перевода: <b>Dec</b> — десятичная (европейская, 2.50 = «в 2.5 раза»), <b>Am</b> — американская мани-лайн (+150 / −200), <b>Frac</b> — британская дробная (3/2). Цифра одна и та же, запись разная. Жми — один кэф меняет лицо.</p>
+      <div class="demo">
+        <div class="tb-seg" style="display:inline-flex;margin-bottom:10px" id="d1-fmt">
+          <button class="tb-btn active" data-f="dec">Dec</button>
+          <button class="tb-btn" data-f="am">Am</button>
+          <button class="tb-btn" data-f="frac">Frac</button>
+        </div>
+        <table class="density-comfortable"><thead><tr><th>Событие</th><th>БК 1</th><th>Кэф 1</th><th>БК 2</th><th>Кэф 2</th></tr></thead><tbody id="d1"></tbody></table>
+      </div>
+      <div class="demo-cap">Один и тот же поток, три записи.</div>
+      <details class="honest"><summary>Формула пересчёта (ровно из кода сканера)</summary>Dec — как есть; Am — <code>(кэф−1)·100</code> при кэф≥2 (иначе <code>−100/(кэф−1)</code>); Frac — <code>(кэф−1)</code> дробью. Воспроизведено в демо байт-в-байт, не на глаз.</details>
+      <div class="honest"><b>Зачем профи переключать:</b> формат — это удобство расчёта в привычной системе, не свойство вилки. Сама вилка, её процент и порядок ног от записи не меняются. Меняется только то, насколько быстро прикидывается ставка в уме.</div>
+    </div>
+
+    <div class="signal">
+      <h3>② Плотность — компактный ▤ / просторный ▦</h3>
+      <p class="sig-why">Сколько строк держать на экране зависит от ритма смены. <b>День:</b> поток валит сотнями, вилки живут секунды — нужен максимум строк в глаза, компактный режим жмёт строки плотнее. <b>Ночь:</b> вилок мало, живут дольше, плотность ни к чему — просторный даёт воздух. Жми — строки сожмутся/расправятся.</p>
+      <div class="demo">
+        <button class="tb-btn active" id="d2-btn" style="margin-bottom:10px">▦ Просторный → жать на компактный</button>
+        <table class="density-comfortable" id="d2-table"><thead><tr><th>%</th><th>Событие</th><th>БК 1</th><th>Кэф 1</th><th>БК 2</th><th>Кэф 2</th><th>Возр.</th></tr></thead><tbody id="d2"></tbody></table>
+      </div>
+      <div class="demo-cap">Компактный режим уменьшает <b>только вертикальный отступ</b> строки (в коде 4→2px, заголовок 6→3px). Видно: строк влезает больше — а бейджи риска (SAME GAME, DIFF RULES) и красный PALP-процент <b>остаются на месте</b>: так выглядит плотный компактный поток с бейджами.</div>
+      <details class="honest"><summary>Честно: компактный режим не жертвует сигналами</summary>Бейджи риска (в образце выше — SAME GAME, DIFF RULES; так же SAME BK), survival-цвет, период, курсор фокуса — остаются на месте. Жмётся только пустое место между строк, не содержание. И плотность — это «косметика над таблицей»: она не трогает ни фильтры, ни какие вилки в потоке.</details>
+    </div>
+
+    <div class="signal">
+      <h3>③ Тема — светлая ☀ / тёмная 🌙</h3>
+      <p class="sig-why">Восемь часов ночной смены перед белым экраном — глаза не доживут до утра. Тёмная тема здесь — <b>эргономика ночного режима</b>, не вкусовщина (так и в коде: «эргономика ночи, не декор», dna «два режима — день/ночь»). День — светлая, ночь — тёмная, по своим глазам.</p>
+      <div class="demo">
+        <div class="theme-box" id="d3-box">
+          <button class="tb-btn active" id="d3-btn" style="margin-bottom:10px">☀ Светлая → переключить на тёмную</button>
+          <table class="density-comfortable"><thead><tr><th>%</th><th>Событие</th><th>БК 1</th><th>Кэф 1</th><th>БК 2</th><th>Кэф 2</th></tr></thead><tbody id="d3"></tbody></table>
+        </div>
+      </div>
+      <div class="demo-cap">Весь экран темнеет/светлеет разом одним переключателем.</div>
+      <details class="honest"><summary>Как это устроено (и в чём упрощение демо)</summary>В сканере тема — это один атрибут <code>data-theme</code> на странице, который перекрашивает <b>весь набор цветовых ролей</b> разом; цвет не «течёт» в каждый компонент, они темнеют сами. Тут демо переключает несколько ключевых ролей, чтобы показать суть — реальная меняет весь набор одним атрибутом. И тема запоминается между сессиями + применяется до отрисовки (чтобы ночью не мигнуло белым).</details>
+    </div>
+
+    <div class="signal">
+      <h3>④ Пауза потока ⏸ / ▶</h3>
+      <p class="sig-why">Список бежит, вилка живёт 15 секунд, а курсор не попадает в нужную строку — она уже уехала. Пауза <b>замораживает кадр</b>: список встаёт, можно спокойно прицелиться точно в строку. Жми ⏸ — поток замрёт, ▶ — побежит снова.</p>
+      <div class="demo">
+        <button class="tb-btn" id="d4-btn" style="margin-bottom:10px">⏸ Пауза</button>
+        <table class="density-comfortable"><thead><tr><th>%</th><th>Событие</th><th>БК 1</th><th>Кэф 1</th><th>БК 2</th><th>Кэф 2</th><th>Возр.</th></tr></thead><tbody id="d4"></tbody></table>
+        <div class="demo-cap" id="d4-status">Поток идёт — строки обновляются.</div>
+      </div>
+      <div class="honest"><b>Пауза замораживает глаза, а не деньги.</b> Список и счётчик встают на снимок, но при клике на вилку деталь-панель и калькулятор считают по <b>живому</b> кэфу, не по замороженному. То есть кадр заморожен, чтобы попасть курсором, — но сумма ставки всё равно из актуальной цены. Пауза для точности клика, не для «остановить расчёт».</div>
+    </div>
+
+    <div class="signal">
+      <h3>⑤ Поиск событий</h3>
+      <p class="sig-why">Нужен конкретный матч или только одна контора — впиши кусок названия, и поток схлопнется до совпадений. Поиск смотрит сразу в <b>шесть полей</b>: событие, обе конторы, спорт, лигу, тип рынка. Впиши «sinner», «bet365» или «soccer».</p>
+      <div class="demo">
+        <input class="tb-search" id="d5-search" type="text" placeholder="Search events..." style="margin-bottom:10px">
+        <table class="density-comfortable"><thead><tr><th>%</th><th>Спорт</th><th>Событие</th><th>БК 1</th><th>БК 2</th></tr></thead><tbody id="d5"></tbody></table>
+        <div class="demo-cap" id="d5-status"></div>
+      </div>
+    </div>
+
+    <div class="signal">
+      <h3>⑥ Счётчик живости</h3>
+      <p class="sig-why">Две цифры в углу: <b>видимых / всего</b> в потоке. Это не просто счёт — это пульс. Ловится боковым зрением: цифра прыгает — поток жив, данные идут. Замерла надолго — связь оборвалась, сканер завис или вилок сейчас нет. Подсветка моргает, когда появляется новая вилка.</p>
+      <div class="demo">
+        <span class="tb-counter" id="d6-counter"><span class="filt" id="d6-filt">6</span> / <span id="d6-total">240</span></span>
+        <div class="demo-cap">Счётчик живёт сам — следи за подсветкой при росте левой цифры.</div>
+      </div>
+      <details class="honest"><summary>Тонкость (осознанная, не баг): почему подсветка моргает только при росте</summary>Подсветка моргает <b>только когда вилок стало БОЛЬШЕ</b> (новая пришла в поток) — не когда счёт упал. Если бы моргала при уменьшении, она вспыхивала бы каждый раз при ручном сужении фильтром, — ложный сигнал «живой поток» на собственное действие. Профи важно появление новых вилок, не исчезновение. И ещё: если счётчик <b>погас на паузе</b> (приглушился) — это не «поток умер», это он заморожен; снять паузу — цифры снова задышат.<br><b>[Гипотеза, не финал]:</b> длительность подсветки 600мс — черновое значение «Sprint 1» до калибровки на эталонном видео конкурента, не измеренная физика.</details>
+    </div>
+  </section>
+
+  <!-- ============ ЧАСТЬ 2 — ЖИВОЙ СКАНЕР + ПОДСВЕТКА СТАТИЧНОЙ ЛЕГЕНДЫ ============ -->
+  <section class="part">
+    <div class="part-head">
+      <h2>Часть 2 · В живом сканере</h2>
+      <div class="step">Теперь весь топбар над живым потоком — все кнопки рабочие. Текст справа <b>не меняется</b>, он подсвечивается при касании соответствующего режима (или счётчик дышит сам). Покрути режимы и следи за подсветкой.</div>
+    </div>
+    <div class="theme-box" id="p2-box">
+      <div class="topbar">
+        <div class="tb-left">
+          <span style="font-size:11px;color:var(--text-secondary)">⋯ пресеты · фильтры (другие главы)</span>
+        </div>
+        <div class="tb-right">
+          <input class="tb-search" id="p2-search" type="text" placeholder="Search events...">
+          <button class="tb-btn" id="p2-pause">⏸</button>
+          <button class="tb-btn active" id="p2-density">▦</button>
+          <button class="tb-btn active" id="p2-theme">☀</button>
+          <span class="tb-counter" id="p2-counter"><span class="filt" id="p2-filt">6</span> / <span id="p2-total">240</span></span>
+          <div class="tb-seg" id="p2-fmt">
+            <button class="tb-btn active" data-f="dec">Dec</button>
+            <button class="tb-btn" data-f="am">Am</button>
+            <button class="tb-btn" data-f="frac">Frac</button>
+          </div>
+        </div>
+      </div>
+      <div class="part2-grid" style="margin-top:12px">
+        <div class="demo" style="padding:6px">
+          <table class="density-comfortable" id="p2-table"><thead><tr><th>%</th><th>Спорт</th><th>Событие</th><th>БК 1</th><th>Кэф 1</th><th>БК 2</th><th>Кэф 2</th><th>Возр.</th></tr></thead><tbody id="p2rows"></tbody></table>
+        </div>
+        <div class="legend-static">
+          <div class="item" id="lg-fmt"><b>Формат кэфа <span class="dot"></span></b><span>запись Dec/Am/Frac — привычная система счёта</span></div>
+          <div class="item" id="lg-density"><b>Плотность <span class="dot"></span></b><span>компактный (день) / просторный (ночь)</span></div>
+          <div class="item" id="lg-theme"><b>Тема <span class="dot"></span></b><span>светлая (день) / тёмная (ночь)</span></div>
+          <div class="item" id="lg-pause"><b>Пауза <span class="dot"></span></b><span>заморозить кадр для точного клика</span></div>
+          <div class="item" id="lg-search"><b>Поиск <span class="dot"></span></b><span>сузить поток до совпадений</span></div>
+          <div class="item" id="lg-counter"><b>Счётчик <span class="dot"></span></b><span>пульс: дышит — поток жив</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="pace">Поток замедлен для учёбы. Счётчик подсвечивается сам при появлении новой вилки; остальные режимы — при касании. На паузе счётчик гаснет (поток заморожен — не «мёртв»).</div>
+  </section>
+
+  <!-- ============ ЧАСТЬ 3 — РЕАЛЬНЫЙ ТОПБАР БЕЗ ПОДСКАЗОК ============ -->
+  <section class="part">
+    <div class="part-head">
+      <h2>Часть 3 · Как в бою</h2>
+      <div class="step">Плотный поток, компактный режим, без подсказок и легенд. Так топбар работает в смене — режимами вилочник управляет сам.</div>
+    </div>
+    <div class="theme-box" id="p3-box">
+      <div class="topbar">
+        <div class="tb-left"><span style="font-size:11px;color:var(--text-secondary)">Sharp Only ▾ · Soccer EU ▾ · Filters · Settings</span></div>
+        <div class="tb-right">
+          <input class="tb-search" id="p3-search" type="text" placeholder="Search events...">
+          <button class="tb-btn" id="p3-pause">⏸</button>
+          <button class="tb-btn active" id="p3-density">▤</button>
+          <button class="tb-btn" id="p3-theme">🌙</button>
+          <span class="tb-counter" id="p3-counter"><span class="filt" id="p3-filt">10</span> / <span id="p3-total">312</span></span>
+          <div class="tb-seg" id="p3-fmt">
+            <button class="tb-btn active" data-f="dec">Dec</button>
+            <button class="tb-btn" data-f="am">Am</button>
+            <button class="tb-btn" data-f="frac">Frac</button>
+          </div>
+        </div>
+      </div>
+      <div class="demo" style="padding:4px;margin-top:10px">
+        <table class="density-compact" id="p3-table"><thead><tr><th>%</th><th>Спорт</th><th>Событие</th><th>БК 1</th><th>Кэф 1</th><th>БК 2</th><th>Кэф 2</th><th>Возр.</th></tr></thead><tbody id="p3rows"></tbody></table>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* ============================================================
+   Топбар: режимы экрана — движок учебной главы.
+   Формулы/значения — из кода форка (R-3), см. r3-registry-g10.md:
+     формат кэфа: data/display-utils.ts:27-66 (decimalToAmerican / decimalToFractional+gcd / formatOdds)
+     плотность: scanner-table.vue:433-441 (td 4→2px, th 6→3px, только вертикаль)
+     тема: use-theme.ts:12 (data-theme на <html>, весь набор цветовых ролей — демо упрощает до сути)
+     пауза: arbs.vue:328-332 (frozenSnapshot); расчёт по живой трубе :445,451,461
+     поиск: arbs.vue:289-298 (includes по 6 полям: event/bk1/bk2/sport/league/market)
+     счётчик: top-bar.vue:60-84 (flash только при росте — cry-wolf guard; 600ms TENTATIVE)
+   Math.random не используется — детерминированный seed (стабильно при перезапуске).
+   ============================================================ */
+
+// ── Формат кэфа: воспроизведено байт-в-байт из data/display-utils.ts:27-66 ──
+function decimalToAmerican(dec){
+  if(dec >= 2.0) return `+${Math.round((dec-1)*100)}`;
+  return String(Math.round(-100/(dec-1)));
+}
+function gcd(a,b){ a=Math.abs(a); b=Math.abs(b); while(b){const t=b; b=a%b; a=t;} return a; }
+function decimalToFractional(dec){
+  const profit = dec-1, denom = 1000, numer = Math.round(profit*denom);
+  if(numer <= 0) return "0/1";
+  const d = gcd(numer, denom);
+  return `${numer/d}/${denom/d}`;
+}
+function formatOdds(dec, fmt){
+  switch(fmt){ case 'dec': return dec.toFixed(2); case 'am': return decimalToAmerican(dec); case 'frac': return decimalToFractional(dec); }
+}
+// ── Процент вилки = функция кэфов (R-3: воспроизведено из data/arbs.ts:209 → const value = (1 - 1/o1 - 1/o2) * 100) ──
+// Кэф первичен, процент — следствие: дёргаются кэфы → процент пересчитывается из них (правка-3 приёмки).
+function arbPct(o1,o2){ return (1 - 1/o1 - 1/o2) * 100; }
+// ── Survival-уровень по надёжности контор (survival-config.ts: SHARP 0.95 > EXCHANGE 0.92 > REGULAR 0.85) ──
+function survLevel(bk1,bk2){
+  const sharp=['pinnacle','betonline'], weak=['1xbet','lottoland'];
+  if(weak.includes(bk1)||weak.includes(bk2)) return 'low';    // слабая/скам нога (1xbet/lottoland) → низкая выживаемость (красная граница)
+  if(sharp.includes(bk1)&&sharp.includes(bk2)) return 'high'; // обе ноги sharp → высокая (зелёная)
+  return 'med';                                               // sharp+regular / regular → средняя (жёлтая) — все три уровня видны (правило D полные пары)
+}
+
+/* ---------- ① Формат кэфа — изолированное демо ---------- */
+(function fmtDemo(){
+  let fmt = 'dec';
+  const rows = [
+    {event:'Alcaraz — Sinner', bk1:'bet365', o1:1.92, bk2:'pinnacle', o2:2.10},
+    {event:'Real — Barca', bk1:'1xbet', o1:2.50, bk2:'bet365', o2:1.66},
+    {event:'Lakers — Celtics', bk1:'betonline', o1:1.45, bk2:'pinnacle', o2:3.05}
+  ];
+  const tb = document.getElementById('d1');
+  function render(){
+    tb.innerHTML = rows.map(r=>`<tr>
+      <td>${r.event}</td><td>${r.bk1}</td><td class="st-odds">${formatOdds(r.o1,fmt)}</td>
+      <td>${r.bk2}</td><td class="st-odds">${formatOdds(r.o2,fmt)}</td></tr>`).join('');
+  }
+  document.querySelectorAll('#d1-fmt .tb-btn').forEach(b=>{
+    b.onclick = ()=>{
+      fmt = b.dataset.f;
+      document.querySelectorAll('#d1-fmt .tb-btn').forEach(x=>x.classList.toggle('active', x===b));
+      render();
+    };
+  });
+  render();
+})();
+
+/* ---------- ② Плотность — изолированное демо ---------- */
+(function densityDemo(){
+  const ROWS = [
+    {event:'Alcaraz — Sinner',bk1:'bet365',o1:2.05,bk2:'pinnacle',o2:2.12,age:4,badge:'SAME GAME',badgeCls:'b-samegame'},
+    {event:'Real — Barca',bk1:'1xbet',o1:2.08,bk2:'bet365',o2:2.06,age:9,badge:'DIFF RULES',badgeCls:'b-diffrules'},
+    {event:'Lakers — Celtics',bk1:'betonline',o1:2.05,bk2:'pinnacle',o2:2.45,age:2,palp:true},
+    {event:'CSKA — SKA',bk1:'1xbet',o1:2.05,bk2:'betonline',o2:2.08,age:14},
+    {event:'Italy — Brazil',bk1:'bet365',o1:2.12,bk2:'pinnacle',o2:2.10,age:6}
+  ];
+  const tb = document.getElementById('d2'), table = document.getElementById('d2-table'), btn = document.getElementById('d2-btn');
+  let compact = false;
+  tb.innerHTML = ROWS.map(r=>`<tr class="surv-${survLevel(r.bk1,r.bk2)}">
+    <td class="st-pct${r.palp?' st-arb-palp':''}">${arbPct(r.o1,r.o2).toFixed(2)}%</td><td>${r.event}${r.badge?` <span class="badge ${r.badgeCls}">${r.badge}</span>`:''}</td><td>${r.bk1}</td><td class="st-odds">${r.o1.toFixed(2)}</td>
+    <td>${r.bk2}</td><td class="st-odds">${r.o2.toFixed(2)}</td><td>${r.age}s</td></tr>`).join('');
+  btn.onclick = ()=>{
+    compact = !compact;
+    table.className = compact ? 'density-compact' : 'density-comfortable';
+    btn.classList.toggle('active', !compact);
+    btn.textContent = compact ? '▤ Компактный → жать на просторный' : '▦ Просторный → жать на компактный';
+  };
+})();
+
+/* ---------- ③ Тема — изолированное демо ---------- */
+(function themeDemo(){
+  const ROWS = [
+    {event:'Alcaraz — Sinner',bk1:'bet365',o1:2.05,bk2:'pinnacle',o2:2.12},
+    {event:'Real — Barca',bk1:'1xbet',o1:2.08,bk2:'bet365',o2:2.06},
+    {event:'Lakers — Celtics',bk1:'betonline',o1:2.10,bk2:'pinnacle',o2:2.15}
+  ];
+  document.getElementById('d3').innerHTML = ROWS.map(r=>`<tr class="surv-${survLevel(r.bk1,r.bk2)}">
+    <td class="st-pct">${arbPct(r.o1,r.o2).toFixed(2)}%</td><td>${r.event}</td><td>${r.bk1}</td><td class="st-odds">${r.o1.toFixed(2)}</td>
+    <td>${r.bk2}</td><td class="st-odds">${r.o2.toFixed(2)}</td></tr>`).join('');
+  const box = document.getElementById('d3-box'), btn = document.getElementById('d3-btn');
+  let dark = false;
+  btn.onclick = ()=>{
+    dark = !dark;
+    box.setAttribute('data-theme', dark ? 'dark' : 'light');
+    btn.classList.toggle('active', !dark);
+    btn.textContent = dark ? '🌙 Тёмная → переключить на светлую' : '☀ Светлая → переключить на тёмную';
+  };
+})();
+
+/* ---------- ④ Пауза — изолированное демо ---------- */
+(function pauseDemo(){
+  let seed = 5; const rnd = ()=>{ seed=(seed*1103515245+12345)&0x7fffffff; return seed/0x7fffffff; };
+  const POOL = [['Alcaraz — Sinner','bet365','pinnacle'],['Real — Barca','1xbet','bet365'],
+    ['Lakers — Celtics','betonline','pinnacle'],['CSKA — SKA','1xbet','betonline'],['Italy — Brazil','bet365','pinnacle']];
+  let arbs = POOL.map((p,i)=>({pct:0,event:p[0],bk1:p[1],o1:+(2.02+rnd()*0.25).toFixed(2),
+    bk2:p[2],o2:+(2.02+rnd()*0.25).toFixed(2),age:Math.floor(rnd()*10)}));
+  arbs.forEach(a=>{a.pct=+arbPct(a.o1,a.o2).toFixed(2);});
+  const tb = document.getElementById('d4'), btn = document.getElementById('d4-btn'), status = document.getElementById('d4-status');
+  let paused = false;
+  function render(){
+    tb.innerHTML = arbs.map(a=>`<tr class="surv-${survLevel(a.bk1,a.bk2)}">
+      <td class="st-pct">${a.pct}%</td><td>${a.event}</td><td>${a.bk1}</td><td class="st-odds">${a.o1.toFixed(2)}</td>
+      <td>${a.bk2}</td><td class="st-odds">${a.o2.toFixed(2)}</td><td>${a.age}s</td></tr>`).join('');
+  }
+  function tick(){
+    if(paused) return;
+    arbs.forEach(a=>{ a.age++; if(rnd()<0.5){ a.o1=+(a.o1+(rnd()-0.5)*0.08).toFixed(2);} if(rnd()<0.4){ a.o2=+(a.o2+(rnd()-0.5)*0.08).toFixed(2);} a.pct=+arbPct(a.o1,a.o2).toFixed(2); if(a.pct<0.3){a.o1=+(2.02+rnd()*0.25).toFixed(2);a.o2=+(2.02+rnd()*0.25).toFixed(2);a.pct=+arbPct(a.o1,a.o2).toFixed(2);} });
+    render();
+  }
+  btn.onclick = ()=>{
+    paused = !paused;
+    btn.classList.toggle('active', paused);
+    btn.textContent = paused ? '▶ Возобновить' : '⏸ Пауза';
+    status.innerHTML = paused ? '<b>Поток заморожен</b> — строки встали, можно целиться курсором.' : 'Поток идёт — строки обновляются.';
+  };
+  render(); setInterval(tick, 1400);
+})();
+
+/* ---------- ⑤ Поиск — изолированное демо (includes по 6 полям, arbs.vue:289-298) ---------- */
+(function searchDemo(){
+  const DATA = [
+    {pct:3.20,sport:'Tennis',event:'Alcaraz — Sinner',league:'ATP',bk1:'bet365',bk2:'pinnacle',market:'Total'},
+    {pct:2.80,sport:'Soccer',event:'Real — Barca',league:'La Liga',bk1:'1xbet',bk2:'bet365',market:'1X2'},
+    {pct:4.10,sport:'Basketball',event:'Lakers — Celtics',league:'NBA',bk1:'betonline',bk2:'pinnacle',market:'Handicap'},
+    {pct:1.90,sport:'Hockey',event:'CSKA — SKA',league:'KHL',bk1:'1xbet',bk2:'betonline',market:'Total'},
+    {pct:3.55,sport:'Tennis',event:'Swiatek — Gauff',league:'WTA',bk1:'pinnacle',bk2:'bet365',market:'Total'},
+    {pct:2.40,sport:'Soccer',event:'PSG — Bayern',league:'Champions League',bk1:'betonline',bk2:'1xbet',market:'1X2'}
+  ];
+  const tb = document.getElementById('d5'), inp = document.getElementById('d5-search'), st = document.getElementById('d5-status');
+  function matches(a,q){ // arbs.vue:293-298 — 6 полей
+    return a.event.toLowerCase().includes(q)||a.bk1.toLowerCase().includes(q)||a.bk2.toLowerCase().includes(q)
+      ||a.sport.toLowerCase().includes(q)||a.league.toLowerCase().includes(q)||a.market.toLowerCase().includes(q);
+  }
+  function render(){
+    const q = inp.value.trim().toLowerCase();
+    const shown = q ? DATA.filter(a=>matches(a,q)) : DATA;
+    tb.innerHTML = shown.map(a=>`<tr class="surv-${survLevel(a.bk1,a.bk2)}">
+      <td class="st-pct">${a.pct}%</td><td>${a.sport}</td><td>${a.event}</td><td>${a.bk1}</td><td>${a.bk2}</td></tr>`).join('')
+      || `<tr><td colspan="5" style="color:var(--text-secondary);padding:10px">Нет совпадений «${q}»</td></tr>`;
+    st.textContent = q ? `${shown.length} из ${DATA.length} — совпало по событию / конторе / спорту / лиге / рынку` : `${DATA.length} вилок (поиск пуст)`;
+  }
+  inp.oninput = render; render();
+})();
+
+/* ---------- ⑥ Счётчик живости — изолированное демо (flash только при росте) ---------- */
+(function counterDemo(){
+  let seed = 13; const rnd = ()=>{ seed=(seed*1103515245+12345)&0x7fffffff; return seed/0x7fffffff; };
+  const filt = document.getElementById('d6-filt'), totalEl = document.getElementById('d6-total');
+  let cur = 6, total = 240, prev = 6;
+  function tick(){
+    // имитация потока: чаще рост (новые вилки), иногда спад
+    const delta = rnd()<0.6 ? 1+Math.floor(rnd()*3) : -(1+Math.floor(rnd()*2));
+    cur = Math.max(1, cur+delta); total = Math.max(cur, total + (rnd()<0.5?1:-1));
+    filt.textContent = cur; totalEl.textContent = total;
+    if(cur > prev){ // flash ТОЛЬКО при увеличении (cry-wolf guard, top-bar.vue:67)
+      filt.classList.add('flash'); setTimeout(()=>filt.classList.remove('flash'), 600);
+    }
+    prev = cur;
+  }
+  setInterval(tick, 1500);
+})();
+
+/* ---------- ЧАСТЬ 2 — живой поток + полный топбар + подсветка легенды ---------- */
+(function part2(){
+  let seed = 7; const rnd = ()=>{ seed=(seed*1103515245+12345)&0x7fffffff; return seed/0x7fffffff; };
+  const POOL = [['Tennis','Alcaraz — Sinner','bet365','pinnacle','ATP','Total'],['Soccer','Real — Barca','1xbet','bet365','La Liga','1X2'],
+    ['Basketball','Lakers — Celtics','betonline','pinnacle','NBA','Handicap'],['Hockey','CSKA — SKA','1xbet','betonline','KHL','Total'],
+    ['Soccer','PSG — Bayern','betonline','1xbet','Champions League','1X2'],['Tennis','Swiatek — Gauff','pinnacle','bet365','WTA','Total']];
+  let arbs = POOL.map((p,i)=>({id:i,sport:p[0],event:p[1],bk1:p[2],bk2:p[3],league:p[4],market:p[5],
+    o1:+(2.02+rnd()*0.25).toFixed(2),o2:+(2.02+rnd()*0.25).toFixed(2),p1:0,p2:0,age:Math.floor(rnd()*8),
+    pct:0,f1:false,f2:false}));
+  arbs.forEach(a=>{a.p1=a.o1;a.p2=a.o2;a.pct=+arbPct(a.o1,a.o2).toFixed(2);});
+  let fmt='dec', paused=false, total=240, prevFilt=arbs.length;
+  const tb=document.getElementById('p2rows'), table=document.getElementById('p2-table'),
+        box=document.getElementById('p2-box'), filt=document.getElementById('p2-filt'),
+        totalEl=document.getElementById('p2-total'), counter=document.getElementById('p2-counter');
+  const search=document.getElementById('p2-search');
+  function lit(id){ const e=document.getElementById(id); if(!e)return; e.classList.add('lit'); setTimeout(()=>e.classList.remove('lit'),1100); }
+  function matches(a,q){ return a.event.toLowerCase().includes(q)||a.bk1.toLowerCase().includes(q)||a.bk2.toLowerCase().includes(q)||a.sport.toLowerCase().includes(q)||a.league.toLowerCase().includes(q)||a.market.toLowerCase().includes(q); }
+  function render(){
+    const q = search.value.trim().toLowerCase();
+    const shown = q ? arbs.filter(a=>matches(a,q)) : arbs;
+    tb.innerHTML = shown.map(a=>`<tr class="surv-${survLevel(a.bk1,a.bk2)}">
+      <td class="st-pct">${a.pct}%</td><td>${a.sport}</td><td>${a.event}</td>
+      <td>${a.bk1}</td><td class="st-odds ${a.f1?'st-cell-flash':''}">${formatOdds(a.o1,fmt)}</td>
+      <td>${a.bk2}</td><td class="st-odds ${a.f2?'st-cell-flash':''}">${formatOdds(a.o2,fmt)}</td>
+      <td>${a.age}s</td></tr>`).join('') || `<tr><td colspan="8" style="color:var(--text-secondary);padding:8px">Нет совпадений</td></tr>`;
+    const n = shown.length;
+    filt.textContent = n;
+    if(!paused && n>prevFilt){ filt.classList.add('flash'); setTimeout(()=>filt.classList.remove('flash'),600); lit('lg-counter'); }
+    prevFilt = n;
+  }
+  function tick(){
+    if(paused) return;
+    arbs.forEach(a=>{ a.age++; a.f1=a.f2=false;
+      // кэф первичен: дёргаем кэфы малым шагом (±0.04), процент пересчитываем ИЗ них (правка-3)
+      if(rnd()<0.5){a.p1=a.o1;a.o1=+(a.o1+(rnd()-0.5)*0.08).toFixed(2);a.f1=true;}
+      if(rnd()<0.4){a.p2=a.o2;a.o2=+(a.o2+(rnd()-0.5)*0.08).toFixed(2);a.f2=true;}
+      a.pct=+arbPct(a.o1,a.o2).toFixed(2);
+      // вилка «умерла» (процент ушёл в ~0) → приходит новая пара в зоне вилки — как в реальном потоке
+      if(a.pct<0.3){a.o1=+(2.02+rnd()*0.25).toFixed(2);a.o2=+(2.02+rnd()*0.25).toFixed(2);a.pct=+arbPct(a.o1,a.o2).toFixed(2);a.age=Math.floor(rnd()*4);}
+    });
+    total = Math.max(arbs.length, total + (rnd()<0.5?2:-1));
+    totalEl.textContent = total;
+    render();
+  }
+  // формат
+  document.querySelectorAll('#p2-fmt .tb-btn').forEach(b=>b.onclick=()=>{
+    fmt=b.dataset.f; document.querySelectorAll('#p2-fmt .tb-btn').forEach(x=>x.classList.toggle('active',x===b)); lit('lg-fmt'); render();
+  });
+  // плотность
+  const dBtn=document.getElementById('p2-density'); let compact=false;
+  dBtn.onclick=()=>{ compact=!compact; table.className=compact?'density-compact':'density-comfortable';
+    dBtn.textContent=compact?'▤':'▦'; dBtn.classList.toggle('active',!compact); lit('lg-density'); };
+  // тема
+  const tBtn=document.getElementById('p2-theme'); let dark=false;
+  tBtn.onclick=()=>{ dark=!dark; box.setAttribute('data-theme',dark?'dark':'light');
+    tBtn.textContent=dark?'🌙':'☀'; tBtn.classList.toggle('active',!dark); lit('lg-theme'); };
+  // пауза
+  const pBtn=document.getElementById('p2-pause');
+  pBtn.onclick=()=>{ paused=!paused; pBtn.textContent=paused?'▶':'⏸'; pBtn.classList.toggle('active',paused);
+    counter.classList.toggle('paused',paused); lit('lg-pause'); };
+  // поиск
+  search.oninput=()=>{ lit('lg-search'); render(); };
+  for(let i=0;i<3;i++) tick();
+  setInterval(tick, 1700);
+})();
+
+/* ---------- ЧАСТЬ 3 — плотный реальный топбар, без подсказок ---------- */
+(function part3(){
+  let seed = 31; const rnd = ()=>{ seed=(seed*1103515245+12345)&0x7fffffff; return seed/0x7fffffff; };
+  const POOL = [['Tennis','Alcaraz — Sinner','bet365','pinnacle','ATP','Total'],['Soccer','Real — Barca','1xbet','bet365','La Liga','1X2'],
+    ['Basketball','Lakers — Celtics','betonline','pinnacle','NBA','Handicap'],['Hockey','CSKA — SKA','1xbet','betonline','KHL','Total'],
+    ['Soccer','PSG — Bayern','betonline','1xbet','Champions League','1X2'],['Tennis','Swiatek — Gauff','pinnacle','bet365','WTA','Total'],
+    ['Basketball','Heat — Bucks','bet365','betonline','NBA','Total'],['Hockey','TPS — HIFK','lottoland','pinnacle','Liiga','Handicap'],
+    ['Soccer','Inter — Milan','1xbet','bet365','Serie A','1X2'],['Tennis','Medvedev — Zverev','bet365','pinnacle','ATP','Total']];
+  let arbs = POOL.map((p,i)=>({id:i,sport:p[0],event:p[1],bk1:p[2],bk2:p[3],league:p[4],market:p[5],
+    o1:+(2.02+rnd()*0.25).toFixed(2),o2:+(2.02+rnd()*0.25).toFixed(2),age:Math.floor(rnd()*12),pct:0,f1:false,f2:false}));
+  arbs.forEach(a=>{a.pct=+arbPct(a.o1,a.o2).toFixed(2);});
+  let fmt='dec', paused=false, total=312, prevFilt=arbs.length, dark=false, compact=true;
+  const tb=document.getElementById('p3rows'), table=document.getElementById('p3-table'),
+        box=document.getElementById('p3-box'), filt=document.getElementById('p3-filt'), totalEl=document.getElementById('p3-total'),
+        counter=document.getElementById('p3-counter'), search=document.getElementById('p3-search');
+  box.setAttribute('data-theme','light');
+  function matches(a,q){ return a.event.toLowerCase().includes(q)||a.bk1.toLowerCase().includes(q)||a.bk2.toLowerCase().includes(q)||a.sport.toLowerCase().includes(q)||a.league.toLowerCase().includes(q)||a.market.toLowerCase().includes(q); }
+  function render(){
+    const q=search.value.trim().toLowerCase(); const shown=q?arbs.filter(a=>matches(a,q)):arbs;
+    tb.innerHTML = shown.map(a=>`<tr class="surv-${survLevel(a.bk1,a.bk2)}">
+      <td class="st-pct">${a.pct}%</td><td>${a.sport}</td><td>${a.event}</td>
+      <td>${a.bk1}</td><td class="st-odds ${a.f1?'st-cell-flash':''}">${formatOdds(a.o1,fmt)}</td>
+      <td>${a.bk2}</td><td class="st-odds ${a.f2?'st-cell-flash':''}">${formatOdds(a.o2,fmt)}</td>
+      <td>${a.age}s</td></tr>`).join('') || `<tr><td colspan="8" style="color:var(--text-secondary);padding:6px">Нет совпадений</td></tr>`;
+    const n=shown.length; filt.textContent=n;
+    if(!paused && n>prevFilt){ filt.classList.add('flash'); setTimeout(()=>filt.classList.remove('flash'),600); }
+    prevFilt=n;
+  }
+  function tick(){ if(paused) return;
+    arbs.forEach(a=>{ a.age++; a.f1=a.f2=false;
+      if(rnd()<0.5){a.o1=+(a.o1+(rnd()-0.5)*0.08).toFixed(2);a.f1=true;}
+      if(rnd()<0.4){a.o2=+(a.o2+(rnd()-0.5)*0.08).toFixed(2);a.f2=true;}
+      a.pct=+arbPct(a.o1,a.o2).toFixed(2);
+      if(a.pct<0.3){a.o1=+(2.02+rnd()*0.25).toFixed(2);a.o2=+(2.02+rnd()*0.25).toFixed(2);a.pct=+arbPct(a.o1,a.o2).toFixed(2);a.age=Math.floor(rnd()*4);} });
+    total=Math.max(arbs.length,total+(rnd()<0.5?2:-1)); totalEl.textContent=total; render();
+  }
+  document.querySelectorAll('#p3-fmt .tb-btn').forEach(b=>b.onclick=()=>{ fmt=b.dataset.f;
+    document.querySelectorAll('#p3-fmt .tb-btn').forEach(x=>x.classList.toggle('active',x===b)); render(); });
+  const dBtn=document.getElementById('p3-density');
+  dBtn.onclick=()=>{ compact=!compact; table.className=compact?'density-compact':'density-comfortable'; dBtn.textContent=compact?'▤':'▦'; dBtn.classList.toggle('active',compact); };
+  const tBtn=document.getElementById('p3-theme');
+  tBtn.onclick=()=>{ dark=!dark; box.setAttribute('data-theme',dark?'dark':'light'); tBtn.textContent=dark?'🌙':'☀'; tBtn.classList.toggle('active',dark); };
+  const pBtn=document.getElementById('p3-pause');
+  pBtn.onclick=()=>{ paused=!paused; pBtn.textContent=paused?'▶':'⏸'; pBtn.classList.toggle('active',paused); counter.classList.toggle('paused',paused); };
+  search.oninput=render;
+  for(let i=0;i<3;i++) tick(); setInterval(tick, 1200);
+})();
+</script>
+</body>
+</html>
