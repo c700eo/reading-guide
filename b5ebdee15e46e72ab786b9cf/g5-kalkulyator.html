@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Калькулятор — где деньги (учебная глава, 3 части)</title>
+<style>
+  /* Цвета/токены воссозданы из кода форка. Формулы и пороги (равный профит,
+     округление к шагу, перекос >3%, налог, эффективный кэф) — из кода; координаты — в r3-registry-g5.md.
+     Конкретные вилки и суммы в демо — иллюстрация (синтетика), из кода берутся ФОРМУЛЫ и пороги. */
+  :root{
+    --bg:#fafafa; --panel:#ffffff; --border:#e0e0e0; --text:#1a1a1a; --text-secondary:#666;
+    --green:#1a8a2e; --red:#cc2222; --amber:#b8860b;
+    --accent:#2563eb; --hl:rgba(37,99,235,.12);
+    --info-bg:#e8f1fb; --info-border:#c8ddf0; --info-text:#1d4f7a;
+    --warn-bg:#fff7ed; --warn-border:#fed7aa; --warn-text:#9a5a23;
+    --danger-bg:#fff0f0; --danger-border:#e88a8a; --danger-text:#991b1b;
+    --mono:ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.55}
+  .wrap{max-width:780px;margin:0 auto;padding:28px 18px 80px}
+  h1{font-size:24px;margin:0 0 6px}
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin:0 0 4px}
+  h3{font-size:17px;margin:0 0 4px}
+  .lead{color:var(--text-secondary);font-size:15px;margin:0 0 8px}
+  .bigidea{background:#f0f5ff;border:1px solid #cfe0ff;border-left:3px solid var(--accent);border-radius:8px;padding:13px 15px;margin:14px 0 4px;font-size:14.5px}
+  .bigidea b{color:#1a3a7a}
+  .part{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px 20px 22px;margin:18px 0}
+  .part-head{border-left:3px solid var(--accent);padding-left:10px;margin-bottom:14px}
+  .part-head .step{font-size:12px;color:var(--text-secondary)}
+  .blk{border-top:1px solid var(--border);padding:18px 0 6px}
+  .blk:first-of-type{border-top:none;padding-top:4px}
+  .why{color:var(--text-secondary);margin:2px 0 10px}
+  .behind{font-size:13px;margin:8px 0 0;padding:9px 11px;background:var(--bg);border:1px solid var(--border);border-radius:7px}
+  .behind b{color:var(--text)}
+  .demo{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px}
+  .demo-cap{font-size:11px;color:var(--text-secondary);margin:6px 2px 0}
+  .honest{background:#fff8e6;border:1px solid #f0d99a;border-radius:6px;padding:8px 10px;font-size:12.5px;color:#6b5418;margin-top:8px}
+  .honest b{color:#5a4510}
+  button{font:inherit;cursor:pointer}
+  /* калькулятор-поля */
+  .calc{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .leg{border:1px solid var(--border);border-radius:8px;padding:10px;background:#fff}
+  .leg h4{margin:0 0 6px;font-size:13px;color:var(--text-secondary)}
+  .leg .bk{font-weight:600;font-size:13px}
+  .fld{display:flex;align-items:center;gap:6px;margin-top:6px}
+  .fld label{font-size:11px;color:var(--text-secondary);width:54px}
+  input[type=number],input[type=text]{font:inherit;width:100%;padding:5px 7px;border:1px solid var(--border);border-radius:5px;font-variant-numeric:tabular-nums}
+  input.locked{background:#f0f5ff;border-color:var(--accent)}
+  .stake{font-family:var(--mono);font-weight:700;font-size:15px}
+  .row-total{display:flex;align-items:center;gap:8px;margin:0 0 10px}
+  .row-total label{font-size:12px;color:var(--text-secondary)}
+  .row-total input{max-width:120px}
+  .summary{margin-top:10px;padding:9px 11px;border-radius:7px;background:var(--info-bg);border:1px solid var(--info-border);color:var(--info-text);font-size:13px}
+  .summary .pf{font-family:var(--mono)}
+  .warn{margin-top:8px;padding:8px 10px;border-radius:6px;background:var(--warn-bg);border:1px solid var(--warn-border);color:var(--warn-text);font-size:12.5px;display:none}
+  .warn.show{display:block}
+  .gasnet{margin-top:8px;padding:8px 10px;border-radius:6px;background:var(--danger-bg);border:1px solid var(--danger-border);color:var(--danger-text);font-size:12.5px;display:none}
+  .gasnet.show{display:block}
+  .tgl{display:inline-flex;gap:6px;flex-wrap:wrap;margin:2px 0 8px}
+  .tgl button{padding:5px 11px;border:1px solid var(--border);border-radius:6px;background:#fff;color:var(--text)}
+  .tgl button.on{border-color:var(--accent);background:var(--hl);color:#1a3a7a;font-weight:600}
+  .lockbtn{padding:4px 10px;border:1px solid var(--border);border-radius:5px;background:#fff;font-size:12px}
+  .lockbtn.on{border-color:var(--accent);background:var(--hl);color:#1a3a7a;font-weight:600}
+  /* sparkline Odd History */
+  .spark{display:flex;align-items:center;gap:8px;padding:6px 0}
+  .spark .lbl{font-size:12px;width:60px;color:var(--text-secondary)}
+  .spark svg{background:#fff;border:1px solid var(--border);border-radius:4px}
+  .spark .dl{font-family:var(--mono);font-size:12px}
+  .up{color:var(--green)} .down{color:var(--red)} .flat{color:var(--text-secondary)}
+  /* ALL BOOKS grid */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-secondary);text-align:left;padding:4px 6px;border-bottom:1px solid var(--border)}
+  td{padding:4px 6px;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums}
+  td.best{color:var(--green);font-weight:700}
+  .legend-static{font-size:12.5px;margin-top:10px}
+  .legend-static .item{padding:7px 9px;border-radius:7px;border:1px solid var(--border);margin-bottom:7px;transition:background .25s,border-color .25s}
+  .legend-static .item.lit{background:var(--hl);border-color:var(--accent)}
+  .legend-static .item b{display:block;font-size:13px;margin-bottom:1px}
+  .legend-static .item span{color:var(--text-secondary)}
+  @media(max-width:560px){.calc{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Калькулятор — где деньги</h1>
+  <p class="lead">Решение, которое обслуживает эта функция, двойное: <b>«сколько ставить на каждую ногу, чтобы профит был ровным при любом исходе»</b> и <b>«сколько контора реально примет»</b>. Первое — арифметика равного профита. Второе — приземление этой арифметики в реальность конкретной конторы: её шаг ставки, её валюта, её налог. Калькулятор делает обе вещи и честно гаснет там, где данных не хватает.</p>
+
+  <div class="bigidea">
+    <b>Главная мысль.</b> Калькулятор не «подбирает суммы красиво». Он решает <b>equal-profit</b>: распределить ставку так, чтобы выигрыш был одинаков, какая бы нога ни сыграла. А потом честно приземляет результат — округляет к шагу <b>в валюте самой конторы</b>, предупреждает о перекосе, и <b>гасит расчёт плашкой</b>, если нет курса валют, вместо того чтобы подсунуть выдуманные числа.
+  </div>
+
+  <!-- ============ ЧАСТЬ 1 — УЧЁБА ИЗОЛИРОВАННО ============ -->
+  <section class="part">
+    <div class="part-head">
+      <h2>Часть 1 · По одному решению</h2>
+      <div class="step">Каждый кусок калькулятора — отдельно: какое решение вилочника он обслуживает, что за ним в коде, где честная граница. Поля живые — покрути руками.</div>
+    </div>
+
+    <!-- А equal-profit -->
+    <div class="blk">
+      <h3>① Сколько ставить — равный профит</h3>
+      <p class="why">Ввёл одну сумму — калькулятор разнёс её по двум ногам так, чтобы профит был <b>одинаков при любом исходе</b>. Реши, от чего считать: от общей суммы, или от уже введённой ноги.</p>
+      <div class="demo">
+        <div class="tgl" id="ep-mode">
+          <button data-m="total" class="on">От общей суммы</button>
+          <button data-m="leg1">От ноги 1</button>
+        </div>
+        <div class="row-total" id="ep-total-row"><label>Сумма €</label><input type="number" id="ep-total" value="1000" step="50"></div>
+        <div class="calc">
+          <div class="leg"><div class="bk">bet365 · кэф 2.10</div><div class="fld"><label>ставка €</label><input type="number" id="ep-s1" value="" readonly></div></div>
+          <div class="leg"><div class="bk">pinnacle · кэф 1.95</div><div class="fld"><label>ставка €</label><input type="number" id="ep-s2" value="" readonly></div></div>
+        </div>
+        <div class="summary">Профит при любом исходе: <span class="pf" id="ep-profit">—</span></div>
+        <div class="demo-cap">Формула равного профита: <code>ставка1 = сумма × кэф2 / (кэф1 + кэф2)</code>. В боевом калькуляторе точек входа пять: от суммы, от ноги 1, от ноги 2, обе заморожены, одна залочена.</div>
+      </div>
+    </div>
+
+    <!-- Б сколько примут: шаг + налог + эфф.кэф -->
+    <div class="blk">
+      <h3>② Сколько контора реально примет — шаг и налог</h3>
+      <p class="why">Идеальная сумма из формулы — дробная. Но контора принимает ставку <b>кратно своему шагу</b>, и шаг этот — <b>в её валюте</b>. Переключи валюту ноги 2 — увидишь, как сумма подгоняется под шаг конторы.</p>
+      <div class="demo">
+        <div class="tgl" id="step-cur">
+          <button data-c="EUR" class="on">нога 2 в EUR (шаг 1)</button>
+          <button data-c="RUB">нога 2 в ₽ (шаг 50)</button>
+        </div>
+        <div class="calc">
+          <div class="leg"><div class="bk">bet365 · EUR · шаг 1</div><div class="fld"><label>ставка</label><span class="stake" id="st-s1">—</span></div></div>
+          <div class="leg"><div class="bk" id="st-bk2">pinnacle · EUR · шаг 1</div><div class="fld"><label>ставка</label><span class="stake" id="st-s2">—</span></div></div>
+        </div>
+        <details class="demo-cap"><summary>Почему именно в валюте купона + про налог и эффективный кэф</summary>Округление к шагу идёт <b>в валюте купона</b>: кратность в EUR не переживает конвертацию (50 EUR × 97.3 ≈ 4865 ₽ при шаге 50 ₽). Налог конторы и комиссия биржи срезают «эффективный кэф» — расчёт идёт от него, не от номинала на табло.</details>
+      </div>
+      <div class="honest"><b>Честная граница (важно):</b> сколько контора примет МАКСИМУМ — её скрытый лимит — сканер <b>не знает и не считает автоматически</b>. Лимит контора прячет политикой, поля лимита в калькуляторе нет. Лимит вилочник держит в голове сам; автоподстановка придёт позже, с данными бота, а не «из потолка».</div>
+    </div>
+
+    <!-- В валюта гаснет -->
+    <div class="blk">
+      <h3>③ Когда курса нет — расчёт честно гаснет</h3>
+      <p class="why">Ноги в разных валютах считаются по курсу. Решение момента: <b>можно ли доверять цифре</b>. Если курса нет — калькулятор не подставляет «1 к 1», он <b>гасит расчёт</b> и говорит об этом. Нажми «убрать курс».</p>
+      <div class="demo">
+        <button class="lockbtn" id="rate-btn">Убрать курс EUR→₽</button>
+        <div class="calc" id="rate-calc">
+          <div class="leg"><div class="bk">bet365 · EUR</div><div class="fld"><label>ставка</label><span class="stake" id="rt-s1">476 €</span></div></div>
+          <div class="leg"><div class="bk">winline · ₽</div><div class="fld"><label>ставка</label><span class="stake" id="rt-s2">51 000 ₽</span></div></div>
+        </div>
+        <div class="gasnet" id="rate-gasnet">⚠ Нет курса EUR→₽ — расчёт по этой ноге погашен. Молчаливого «1 к 1» не будет: лучше пустое поле, чем выдуманная сумма на деньги.</div>
+        <div class="demo-cap">Без курса конвертер не возвращает число → ветка расчёта гаснет и показывает плашку вместо суммы. Молчаливого курса «1 к 1» в коде нет: лучше пустое поле, чем выдуманная цифра на деньги.</div>
+      </div>
+    </div>
+
+    <!-- Г перекос -->
+    <div class="blk">
+      <h3>④ Перекос — когда профит разъехался</h3>
+      <p class="why">Формула делит сумму ровно — но контора принимает ставку <b>кратно своему шагу</b>, и округление сдвигает профит на исходах в разные стороны (налог добавляет своё). Решение: <b>замечать, когда вилка перестала быть ровной</b>. Калькулятор предупреждает, если перекос больше 3%. Переключи шаг ноги 2 — крупный шаг конторы разгоняет перекос.</p>
+      <div class="demo">
+        <div class="tgl" id="sk-step">
+          <button data-s="1" class="on">нога 2: шаг 1 € (ровно)</button>
+          <button data-s="50">нога 2: шаг 50 € (грубо)</button>
+        </div>
+        <div class="summary">Профит нога 1: <span class="pf" id="sk-p1">—</span> · нога 2: <span class="pf" id="sk-p2">—</span></div>
+        <div class="warn" id="sk-warn">⚠ Перекос исходов (округление/налог): <span id="sk-d">—</span></div>
+        <div class="demo-cap">Предупреждение зажигается, когда реальный процент перекоса профитов между исходами превышает 3%.</div>
+      </div>
+      <div class="honest"><b>Честно:</b> калькулятор перекос <b>показывает</b>, но сам его <b>не переливает</b> — авто-выравнивание маржи на одну ногу пока не сделано (в планах). Сейчас перекос — это сигнал вилочнику, решение остаётся за ним.</div>
+    </div>
+
+    <!-- Д lock -->
+    <div class="blk">
+      <h3>⑤ Lock — поставил ногу, защити её от сдвига</h3>
+      <p class="why">Поставил первую ногу — её сумма и кэф уже зафиксированы реальностью. Решение: <b>чтобы пересчёт второй ноги не трогал первую</b>. Lock держит поставленную ногу, вторую пересчитывает заново. Залочь ногу 1.</p>
+      <div class="demo">
+        <button class="lockbtn" id="lk-btn">🔒 Lock ногу 1</button>
+        <div class="calc">
+          <div class="leg"><div class="bk">bet365 · кэф 2.10</div><div class="fld"><label>ставка €</label><input type="number" id="lk-s1" value="476" step="10"></div></div>
+          <div class="leg"><div class="bk">pinnacle · кэф 1.95</div><div class="fld"><label>ставка €</label><input type="number" id="lk-s2" value="" readonly></div></div>
+        </div>
+        <div class="demo-cap">Lock: залоченная нога держит свою сумму, вторая пересчитывается равным профитом по своему кэфу — поставленная нога не сдвигается от пересчёта. В настройках есть переключатель режима фиксации (держать сумму или замораживать сумму вместе с кэфом).</div>
+      </div>
+    </div>
+
+    <!-- Е Odd History -->
+    <div class="blk">
+      <h3>⑥ Odd History — куда движется кэф</h3>
+      <p class="why">Прежде чем ставить — решение: <b>кэф растёт или падает прямо сейчас</b>. Если падает — вилка схлопывается, можно не успеть. Маленький график рисует траекторию кэфа по каждой ноге.</p>
+      <div class="demo">
+        <div class="spark"><span class="lbl">bet365</span><svg id="sp1" width="160" height="34"></svg><span class="dl up" id="dl1">↑ +0.06</span></div>
+        <div class="spark"><span class="lbl">pinnacle</span><svg id="sp2" width="160" height="34"></svg><span class="dl down" id="dl2">↓ −0.04</span></div>
+        <div class="demo-cap">Маленький график траектории кэфа на каждое плечо плюс последняя дельта и тренд; история хранит до 30 последних точек.</div>
+      </div>
+    </div>
+
+    <!-- Ж ALL BOOKS -->
+    <div class="blk">
+      <h3>⑦ All Books on this Market — все конторы на рынке</h3>
+      <p class="why">Решение: <b>не лучшая ли цена есть у другой конторы</b>, прежде чем ставить на эти две. Три режима: лучшие три / средняя / все. Переключи.</p>
+      <div class="demo">
+        <div class="tgl" id="ab-mode">
+          <button data-m="best" class="on">Лучшие 3</button>
+          <button data-m="avg">Средняя</button>
+          <button data-m="all">Все</button>
+        </div>
+        <table><thead><tr><th>Контора</th><th>Кэф (нога 1)</th></tr></thead><tbody id="ab-rows"></tbody></table>
+        <div class="demo-cap">Встроенный грид цен по рынку, три режима: лучшие три конторы, средняя по всем, все конторы.</div>
+      </div>
+      <div class="honest"><b>Честная граница:</b> сам грид и три режима готовы, но конторы в нём сейчас <b>синтетические</b> — реальный поток цен по рынку придёт отдельным каналом с бэкенда (он ещё не подключён). Механизм рабочий, наполнение реальными конторами — впереди.</div>
+    </div>
+  </section>
+
+  <!-- ============ ЧАСТЬ 2 — ЖИВОЙ КАЛЬКУЛЯТОР + ПОДСВЕТКА ============ -->
+  <section class="part">
+    <div class="part-head">
+      <h2>Часть 2 · Живой калькулятор</h2>
+      <div class="step">Всё вместе, как в работе. Введи сумму или поменяй кэф — справа подсветится, какое решение калькулятор сейчас обслуживает.</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 200px;gap:14px" id="p2grid">
+      <div class="demo">
+        <div class="row-total"><label>Сумма €</label><input type="number" id="p2-total" value="1000" step="50"></div>
+        <div class="calc">
+          <div class="leg"><div class="bk">bet365</div>
+            <div class="fld"><label>кэф</label><input type="number" id="p2-o1" value="2.10" step="0.05"></div>
+            <div class="fld"><label>ставка €</label><span class="stake" id="p2-s1">—</span></div></div>
+          <div class="leg"><div class="bk">pinnacle</div>
+            <div class="fld"><label>кэф</label><input type="number" id="p2-o2" value="1.95" step="0.05"></div>
+            <div class="fld"><label>ставка €</label><span class="stake" id="p2-s2">—</span></div></div>
+        </div>
+        <div class="summary">Профит при любом исходе: <span class="pf" id="p2-profit">—</span></div>
+        <div class="warn" id="p2-warn">⚠ Перекос исходов: <span id="p2-d">—</span></div>
+      </div>
+      <div class="legend-static">
+        <div class="item" id="lg-ep"><b>Равный профит</b><span>сумма разнесена по ногам поровну по выигрышу</span></div>
+        <div class="item" id="lg-step"><b>Шаг конторы</b><span>сумма кратна шагу в валюте БК</span></div>
+        <div class="item" id="lg-skew"><b>Перекос &gt;3%</b><span>профит разъехался — предупреждение</span></div>
+      </div>
+    </div>
+    <div class="demo-cap">Тот же equal-profit и порог перекоса 3%, что в коде. Меняй кэф ноги 2 в сторону — увидишь, как загорается «Перекос».</div>
+  </section>
+
+  <!-- ============ ЧАСТЬ 3 — КАК В БОЮ ============ -->
+  <section class="part">
+    <div class="part-head">
+      <h2>Часть 3 · Как в бою</h2>
+      <div class="step">Полный калькулятор без подсказок. Сумма, две ноги, профит, перекос, lock — так это выглядит в работе.</div>
+    </div>
+    <div class="demo">
+      <div class="row-total"><label>Сумма €</label><input type="number" id="p3-total" value="800" step="50"><button class="lockbtn" id="p3-lk">🔒 Lock 1</button></div>
+      <div class="calc">
+        <div class="leg"><div class="bk">betonline · 2.05</div><div class="fld"><label>€</label><input type="number" id="p3-s1" value="" ></div></div>
+        <div class="leg"><div class="bk">pinnacle · 2.02</div><div class="fld"><label>€</label><input type="number" id="p3-s2" value="" readonly></div></div>
+      </div>
+      <div class="summary">Профит: <span class="pf" id="p3-profit">—</span> <span id="p3-warn"></span></div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* ============================================================
+   Г5 «Калькулятор» — движок учебной главы.
+   Формулы/пороги — из кода форка (R-3), см. r3-registry-g5.md:
+     equal-profit: stake1 = total*o2/(o1+o2)         [calculator-stakes.ts:20,191]
+     округление к шагу в валюте купона                [roundStakeToBkStep :43]
+     нет курса → null → гаснет (молч. 1 нет, R-11)    [ConvertFn :33,142]
+     перекос: |profit1-profit2|/total*100 > 3%        [roundingImpact :245,252]
+     lock = drift-protection, frozen-нога держит stake [lockSemantic calculator.vue:45]
+     Odd History sparkline per-плечо                   [detail-history.vue:7]
+     All Books 3 режима BEST/AVERAGE/ALL               [detail-grid.vue:13,74]
+   Конкретные вилки/суммы — иллюстрация (синтетика). Math.random не используется.
+   ============================================================ */
+const round = (x, step) => Math.max(0, Math.round(x / step) * step);
+const eqStake1 = (total, o1, o2) => total * o2 / (o1 + o2);
+const profitOf = (s, o, total) => s * o - total;
+
+/* ① equal-profit */
+(function ep(){
+  const o1 = 2.10, o2 = 1.95;
+  const totalRow = document.getElementById('ep-total-row');
+  const tEl = document.getElementById('ep-total');
+  const s1El = document.getElementById('ep-s1'), s2El = document.getElementById('ep-s2');
+  const pEl = document.getElementById('ep-profit');
+  let mode = 'total';
+  function recompute(){
+    let s1, s2, total;
+    if(mode === 'total'){ total = +tEl.value||0; s1 = eqStake1(total,o1,o2); s2 = total - s1; }
+    else { s1 = +s1El.value||0; s2 = s1 * o1 / o2; total = s1 + s2; }   // от ноги 1: equal-profit hedge
+    s1El.value = s1.toFixed(0); s2El.value = s2.toFixed(0);
+    const p = Math.min(profitOf(s1,o1,total), profitOf(s2,o2,total));
+    pEl.textContent = (p>=0?'+':'') + p.toFixed(1) + ' € (≈' + (total>0?(p/total*100).toFixed(1):'0') + '%)';
+  }
+  document.querySelectorAll('#ep-mode button').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('#ep-mode button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+    mode = b.dataset.m;
+    totalRow.style.display = mode==='total'?'flex':'none';
+    s1El.readOnly = mode!=='leg1'; s2El.readOnly = true;
+    s1El.classList.toggle('locked', mode==='leg1');
+    if(mode==='leg1' && !(+s1El.value)) s1El.value = 476;
+    recompute();
+  }));
+  tEl.addEventListener('input', recompute);
+  s1El.addEventListener('input', ()=>{ if(mode==='leg1') recompute(); });
+  recompute();
+})();
+
+/* ② шаг в валюте конторы */
+(function step(){
+  const RATE = 97.3;             // EUR→RUB иллюстративный
+  const o1 = 2.10, o2 = 1.95, total = 1000;
+  const s1 = eqStake1(total,o1,o2), s2raw = total - s1;
+  const s1El = document.getElementById('st-s1'), s2El = document.getElementById('st-s2'), bk2 = document.getElementById('st-bk2');
+  function render(cur){
+    s1El.textContent = round(s1,1).toFixed(0) + ' €';
+    if(cur === 'EUR'){ s2El.textContent = round(s2raw,1).toFixed(0) + ' €'; bk2.textContent='pinnacle · EUR · шаг 1'; }
+    else { const rub = round(s2raw*RATE, 50); s2El.textContent = rub.toFixed(0) + ' ₽'; bk2.textContent='pinnacle · ₽ · шаг 50'; }
+  }
+  document.querySelectorAll('#step-cur button').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('#step-cur button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); render(b.dataset.c);
+  }));
+  render('EUR');
+})();
+
+/* ③ валюта гаснет — суммы заменяются на «—» (в коде расчёт гаснет: плашка вместо чисел, не затемнение) */
+(function rate(){
+  const btn = document.getElementById('rate-btn'), g = document.getElementById('rate-gasnet');
+  const s1El = document.getElementById('rt-s1'), s2El = document.getElementById('rt-s2');
+  const S1 = s1El.textContent, S2 = s2El.textContent;
+  let off = false;
+  btn.addEventListener('click', ()=>{
+    off = !off;
+    g.classList.toggle('show', off);
+    s1El.textContent = off ? '—' : S1;
+    s2El.textContent = off ? '—' : S2;
+    btn.textContent = off ? 'Вернуть курс' : 'Убрать курс EUR→₽';
+    btn.classList.toggle('on', off);
+  });
+})();
+
+/* ④ перекос — драйвер ШАГ конторы (перекос от округления к шагу, НЕ от величины кэфа) */
+(function skew(){
+  const o1 = 2.10, o2 = 1.95, total = 1000;
+  const p1El=document.getElementById('sk-p1'), p2El=document.getElementById('sk-p2');
+  const warn = document.getElementById('sk-warn'), dEl = document.getElementById('sk-d');
+  function recompute(step2){
+    let s1 = round(eqStake1(total,o1,o2),1);            // нога 1 — шаг 1 €
+    let s2 = round(total - s1, step2);                  // нога 2 — шаг step2: крупный шаг двигает профит
+    const p1 = profitOf(s1,o1,s1+s2), p2 = profitOf(s2,o2,s1+s2);
+    p1El.textContent = p1.toFixed(1)+' €'; p2El.textContent = p2.toFixed(1)+' €';
+    const distortion = Math.abs(p1-p2), pct = (s1+s2)>0 ? distortion/(s1+s2)*100 : 0;
+    if(pct > 3){ warn.classList.add('show'); dEl.textContent = distortion.toFixed(2)+' € ('+pct.toFixed(1)+'%)'; }
+    else warn.classList.remove('show');
+  }
+  document.querySelectorAll('#sk-step button').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('#sk-step button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); recompute(+b.dataset.s);
+  }));
+  recompute(1);   // старт: шаг 1 € — перекос мал, предупреждение НЕ горит; читатель жмёт «шаг 50» → загорается
+})();
+
+/* ⑤ lock */
+(function lock(){
+  const o1 = 2.10, o2 = 1.95;
+  const btn = document.getElementById('lk-btn'), s1El=document.getElementById('lk-s1'), s2El=document.getElementById('lk-s2');
+  let locked = false;
+  function hedge(){ const s1=+s1El.value||0; s2El.value = (s1*o1/o2).toFixed(0); }
+  btn.addEventListener('click', ()=>{
+    locked = !locked;
+    btn.classList.toggle('on', locked);
+    btn.textContent = locked ? '🔒 Нога 1 залочена — держит сумму' : '🔒 Lock ногу 1';
+    s1El.classList.toggle('locked', locked);
+    s1El.readOnly = locked;
+    hedge();
+  });
+  s1El.addEventListener('input', hedge); hedge();
+})();
+
+/* ⑥ Odd History sparkline (детерминированные траектории) */
+(function spark(){
+  function draw(id, pts, cls){
+    const svg = document.getElementById(id); const w=160,h=34,pad=3;
+    const min=Math.min(...pts), max=Math.max(...pts), rng=(max-min)||1;
+    const step=(w-2*pad)/(pts.length-1);
+    const d = pts.map((p,i)=>`${i?'L':'M'}${(pad+i*step).toFixed(1)},${(h-pad-(p-min)/rng*(h-2*pad)).toFixed(1)}`).join(' ');
+    const color = cls==='up'?'#1a8a2e':cls==='down'?'#cc2222':'#666';
+    svg.innerHTML = `<path d="${d}" fill="none" stroke="${color}" stroke-width="1.5"/>`;
+  }
+  draw('sp1',[2.00,2.01,2.03,2.04,2.07,2.10],'up');
+  draw('sp2',[1.99,1.99,1.98,1.97,1.96,1.95],'down');
+})();
+
+/* ⑦ All Books — 3 режима (синтетика, помечено в honest) */
+(function allbooks(){
+  const BOOKS = [['bet365',2.10],['pinnacle',2.07],['betonline',2.05],['1xbet',2.04],['betfair',2.12],['winline',2.02],['marathon',2.06]];
+  const tb = document.getElementById('ab-rows');
+  function render(mode){
+    let rows;
+    if(mode==='best'){ rows = [...BOOKS].sort((a,b)=>b[1]-a[1]).slice(0,3); }
+    else if(mode==='avg'){ const avg=(BOOKS.reduce((s,b)=>s+b[1],0)/BOOKS.length); rows=[['Средняя по '+BOOKS.length+' БК', +avg.toFixed(2)]]; }
+    else rows = BOOKS;
+    const best = Math.max(...BOOKS.map(b=>b[1]));
+    tb.innerHTML = rows.map(r=>`<tr><td>${r[0]}</td><td class="${r[1]===best?'best':''}">${r[1].toFixed(2)}</td></tr>`).join('');
+  }
+  document.querySelectorAll('#ab-mode button').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('#ab-mode button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); render(b.dataset.m);
+  }));
+  render('best');
+})();
+
+/* ЧАСТЬ 2 — живой калькулятор + подсветка легенды */
+(function live(){
+  const tEl=document.getElementById('p2-total'), o1El=document.getElementById('p2-o1'), o2El=document.getElementById('p2-o2');
+  const s1El=document.getElementById('p2-s1'), s2El=document.getElementById('p2-s2'), pEl=document.getElementById('p2-profit');
+  const warn=document.getElementById('p2-warn'), dEl=document.getElementById('p2-d');
+  function lit(id){ const e=document.getElementById(id); if(!e)return; e.classList.add('lit'); setTimeout(()=>e.classList.remove('lit'),1100); }
+  function recompute(){
+    const total=+tEl.value||0, o1=+o1El.value||2, o2=+o2El.value||2;
+    let s1=round(eqStake1(total,o1,o2),1), s2=round(total-s1,1);
+    s1El.textContent=s1.toFixed(0)+' €'; s2El.textContent=s2.toFixed(0)+' €';
+    const p1=profitOf(s1,o1,s1+s2), p2=profitOf(s2,o2,s1+s2);
+    pEl.textContent=(Math.min(p1,p2)>=0?'+':'')+Math.min(p1,p2).toFixed(1)+' €';
+    lit('lg-ep'); lit('lg-step');
+    const distortion=Math.abs(p1-p2), pct=(s1+s2)>0?distortion/(s1+s2)*100:0;
+    if(pct>3){ warn.classList.add('show'); dEl.textContent=distortion.toFixed(2)+' € ('+pct.toFixed(1)+'%)'; lit('lg-skew'); }
+    else warn.classList.remove('show');
+  }
+  [tEl,o1El,o2El].forEach(el=>el.addEventListener('input',recompute)); recompute();
+})();
+
+/* ЧАСТЬ 3 — плотный калькулятор */
+(function bout(){
+  const o1=2.05,o2=2.02;
+  const tEl=document.getElementById('p3-total'), s1El=document.getElementById('p3-s1'), s2El=document.getElementById('p3-s2');
+  const pEl=document.getElementById('p3-profit'), wEl=document.getElementById('p3-warn'), lk=document.getElementById('p3-lk');
+  let locked=false;
+  function recompute(fromS1){
+    let s1,s2,total;
+    if(locked){ s1=+s1El.value||0; s2=round(s1*o1/o2,1); s2El.value=s2.toFixed(0); total=s1+s2; }
+    else { total=+tEl.value||0; s1=round(eqStake1(total,o1,o2),1); s2=round(total-s1,1); s1El.value=s1.toFixed(0); s2El.value=s2.toFixed(0); }
+    const p1=profitOf(s1,o1,s1+s2), p2=profitOf(s2,o2,s1+s2);
+    pEl.textContent=(Math.min(p1,p2)>=0?'+':'')+Math.min(p1,p2).toFixed(1)+' €';
+    const pct=(s1+s2)>0?Math.abs(p1-p2)/(s1+s2)*100:0;
+    wEl.textContent = pct>3 ? ' · ⚠ перекос '+pct.toFixed(1)+'%' : '';
+  }
+  lk.addEventListener('click',()=>{ locked=!locked; lk.classList.toggle('on',locked); lk.textContent=locked?'🔒 Нога 1 залочена':'🔒 Lock 1';
+    s1El.readOnly=!locked; s1El.classList.toggle('locked',locked); tEl.disabled=locked; recompute(); });
+  tEl.addEventListener('input',()=>recompute()); s1El.addEventListener('input',()=>{ if(locked) recompute(true); });
+  recompute();
+})();
+</script>
+</body>
+</html>
