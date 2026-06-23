@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Фильтры детально — тонкая настройка потока (учебная глава, 3 части)</title>
+<style>
+  /* Цвета/формулы — из кода форка (R-3); привязки координат живут в r3-registry-g11.md рядом */
+  :root{
+    --bg:#fafafa; --panel:#ffffff; --border:#e0e0e0; --text:#1a1a1a; --text-secondary:#666;
+    --green:#1a8a2e; --red:#cc2222; --accent:#2563eb; --hl:rgba(37,99,235,.12);
+    --mono:ui-monospace,Menlo,monospace;
+    --surv-high:#16a34a; --surv-high-bg:rgba(22,163,74,.06);
+    --surv-med:#d97706;  --surv-med-bg:rgba(217,119,6,.06);
+    --surv-low:#dc2626;  --surv-low-bg:rgba(220,38,38,.06);
+    --bar:#93c5cf; --bar-cut:#e0e0e0; --pending:#bbb;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.55}
+  .wrap{max-width:780px;margin:0 auto;padding:28px 18px 80px}
+  h1{font-size:24px;margin:0 0 6px}
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin:0 0 4px}
+  h3{font-size:17px;margin:0 0 4px}
+  .lead{color:var(--text-secondary);font-size:15px;margin:0 0 8px}
+  .block-band{margin:22px 0 2px;font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--accent);font-weight:700;border-bottom:1px solid var(--border);padding-bottom:4px}
+  .block-band.pending{color:var(--text-secondary)}
+  .part{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px 20px 22px;margin:14px 0}
+  .part-head{border-left:3px solid var(--accent);padding-left:10px;margin-bottom:14px}
+  .part-head .step{font-size:12px;color:var(--text-secondary)}
+  .signal{border-top:1px solid var(--border);padding:16px 0 4px}
+  .signal:first-of-type{border-top:none;padding-top:4px}
+  .sig-why{color:var(--text-secondary);margin:2px 0 10px}
+  .demo{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px}
+  .demo-cap{font-size:11px;color:var(--text-secondary);margin:6px 2px 0}
+  .honest{background:#fff8e6;border:1px solid #f0d99a;border-radius:6px;padding:8px 10px;font-size:12.5px;color:#6b5418;margin-top:8px}
+  .honest b{color:#5a4510}
+  details.honest summary{cursor:pointer;font-weight:600;color:#5a4510}
+  details.honest[open] summary{margin-bottom:5px}
+  button{font-family:inherit}
+  .fo-section{border:1px solid var(--border);border-radius:7px;padding:9px 11px;background:var(--panel)}
+  .fo-title{font-family:var(--mono);font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--text-secondary);margin-bottom:7px}
+
+  /* гистограмма распределения + порог */
+  .histo{display:flex;align-items:flex-end;gap:2px;height:60px;margin:4px 0}
+  .histo .bar{flex:1;background:var(--bar);border-radius:2px 2px 0 0;min-height:2px;transition:background .2s}
+  .histo .bar.cut{background:var(--bar-cut)}
+  .histo-axis{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--text-secondary)}
+  .thr-row{display:flex;align-items:center;gap:8px;margin:6px 0;font-family:var(--mono);font-size:12px}
+  .thr-row input[type=range]{flex:1}
+  .thr-val{color:var(--accent);font-weight:700;min-width:54px;text-align:right}
+
+  /* чекбоксы фильтров */
+  .fo-checks{display:flex;flex-wrap:wrap;gap:4px 14px}
+  .fo-check{display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer}
+  .fo-check input{cursor:pointer}
+  .fo-check.disabled{color:var(--pending);cursor:not-allowed}
+  .fo-check.disabled input{cursor:not-allowed}
+
+  /* режим-переключатель white/black/show-all */
+  .mode-sw{display:inline-flex;border:1px solid var(--border);border-radius:3px;overflow:hidden;margin-bottom:6px}
+  .mode-sw button{padding:2px 10px;font-family:var(--mono);font-size:10px;background:transparent;border:none;color:var(--text-secondary);cursor:pointer}
+  .mode-sw button.on{background:var(--border);color:var(--text)}
+
+  /* market-tree */
+  .tree-group{border-bottom:1px solid var(--border);padding:3px 0}
+  .tree-parent{display:flex;align-items:center;gap:6px;font-size:13px}
+  .tree-expand{background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:11px}
+  .tree-kids{padding:3px 0 3px 22px;display:flex;flex-direction:column;gap:2px}
+  .tree-kid{font-size:12px;color:var(--text-secondary)}
+  .kid-badge{font-family:var(--mono);font-size:9px;color:var(--surv-low);margin-left:4px}
+
+  /* backend-pending вид */
+  .pending-box{opacity:.55}
+  .pending-tag{display:inline-block;font-family:var(--mono);font-size:9px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-secondary);border:1px dashed var(--pending);border-radius:3px;padding:1px 5px;margin-left:6px}
+
+  /* строки сканера (фон демо) */
+  table.scan{width:100%;border-collapse:collapse}
+  table.scan th{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-secondary);text-align:left;padding:4px 6px;border-bottom:1px solid var(--border)}
+  table.scan td{padding:5px 6px;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums}
+  table.scan.dense td{padding:2px 6px;font-size:13px}
+  .surv-high td:first-child{border-left:4px solid var(--surv-high)}
+  .surv-medium td:first-child{border-left:4px solid var(--surv-med)}
+  .surv-low td:first-child{border-left:4px solid var(--surv-low)}
+  .st-pct{font-weight:700} .st-odds{font-family:var(--mono);white-space:nowrap}
+  .badge{font-family:var(--mono);font-size:9px;padding:0 4px;border-radius:2px;margin-left:4px;background:rgba(220,38,38,.12);color:var(--surv-low)}
+
+  /* Часть 2 — легенда ПОД (правки-3: grid одна колонка) */
+  .part2-grid{display:grid;grid-template-columns:1fr;gap:14px;align-items:start}
+  .counter{font-family:var(--mono);font-size:13px;color:var(--accent);font-weight:700;margin:6px 0}
+  .legend-static .lg-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  @media(max-width:560px){.legend-static .lg-grid{grid-template-columns:1fr}}
+  .legend-static .item{padding:7px 9px;border-radius:7px;border:1px solid var(--border)}
+  .legend-static .item.lit{background:var(--hl);border-color:var(--accent)}
+  .legend-static .item b{display:block;font-size:13px;margin-bottom:1px}
+  .legend-static .item span{color:var(--text-secondary);font-size:12.5px}
+  .hint{font-size:12px;color:var(--text-secondary);margin-top:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Фильтры детально — тонкая настройка потока</h1>
+  <p class="lead">Решение, которое обслуживает эта функция: <b>«пресет дал грубый режим — теперь отрезать ровно то, на что охочусь сегодня»</b>. Пресет (соседняя глава) переключает весь профиль одним движением; детальные фильтры — это сами рычаги под ним: порог процента, возраст, типы рынка, лиги, рисковые. Здесь две части. Сначала — рычаги, что режут поток <b>уже сейчас</b>. Потом честно — рычаги, что стоят в панели, но <b>включатся с бэкендом</b>: их видно, чтобы не дёргать пустое.</p>
+
+  <!-- ============ ЧАСТЬ 1 — УЧЁБА ============ -->
+  <section class="part">
+    <div class="part-head">
+      <h2>Часть 1 · Учёба</h2>
+      <div class="step">Каждый рычаг по отдельности, со своим демо. Сначала рабочие — они режут поток прямо здесь; ниже отдельным блоком те, что ждут бэкенда.</div>
+    </div>
+
+    <div class="block-band">A · Рычаги, что режут поток сейчас</div>
+
+    <div class="signal">
+      <h3>① Параметры: процент, кэфы, возраст</h3>
+      <p class="sig-why">Над ползунком порога — гистограмма: где в потоке плотность вилок по проценту. Порог ставится не вслепую, а по картинке — видно, сколько вилок останется выше него. Так же по кэфам и по возрасту (отсечь стариков, что вот-вот труп, и совсем свежие, что ещё прыгают).</p>
+      <div class="demo">
+        <div class="fo-section">
+          <div class="fo-title">Распределение profit% · порог отсекает левее</div>
+          <div class="histo" id="d-histo"></div>
+          <div class="histo-axis"><span>0%</span><span>2%</span><span>4%</span><span>6%+</span></div>
+          <div class="thr-row"><span>Min %</span><input type="range" id="d-thr" min="0" max="60" value="15"><span class="thr-val" id="d-thr-val">1.5%</span></div>
+          <div class="counter" id="d-histo-left"></div>
+        </div>
+      </div>
+      <div class="demo-cap">Двигай порог — серым гаснут корзины ниже него, счётчик показывает, сколько вилок осталось. Возраст и кэфы — те же ползунки, своя гистограмма у кэфов.</div>
+      <details class="honest"><summary>Что такое «коридоры»</summary>Отдельная галочка. Коридор — пара overlap-линий (например Больше X и Меньше Y, где X&lt;Y): по проценту это минус, но при попадании счёта в зону между ними срабатывают обе ставки — двойная выплата. Рычаг показывает такие пары и ограничивает их ширину.</details>
+    </div>
+
+    <div class="signal">
+      <h3>② Спорт</h3>
+      <p class="sig-why">Самый грубый отрез — оставить свои спорты. Дальше внутри уже точечно по типам рынка и лигам.</p>
+      <div class="demo"><div class="fo-section"><div class="fo-title">Sport · All / None + по одному</div>
+        <div class="fo-checks" id="d-sport"></div></div></div>
+      <div class="demo-cap">Отметь спорт — поток в Части 2 оставит только его вилки.</div>
+    </div>
+
+    <div class="signal">
+      <h3>③ Типы рынка — дерево</h3>
+      <p class="sig-why">Не «весь футбол или ничего», а точечно: группа целиком (тоталы, форы, исходы) — и внутри неё отдельные подтипы. Раскрыл группу, снял лишний подтип — остальное в группе осталось.</p>
+      <div class="demo"><div class="fo-section">
+        <div class="mode-sw"><button class="on">show-all</button><button>black</button><button>white</button></div>
+        <div id="d-tree"></div>
+      </div></div>
+      <div class="demo-cap">▸ раскрывает группу до подтипов; снятый подтип помечается, у свёрнутой группы виден счётчик убранного (−N). Режим: показать всё / скрывать выбранные (black) / показывать только выбранные (white).</div>
+    </div>
+
+    <div class="signal">
+      <h3>④ Период, лиги, страны</h3>
+      <p class="sig-why">Ещё три отреза той же природы. Период — фазы матча (отдельная ось, не зависит от типа рынка). Лиги и страны — списки с тем же режимом: показать всё / скрыть выбранные / оставить только выбранные. Лиги показываются по уже выбранным спортам.</p>
+      <div class="demo"><div class="fo-section"><div class="fo-title">Период</div>
+        <div class="fo-checks" id="d-period"></div></div></div>
+      <div class="demo-cap">Лиги и страны устроены как дерево типов рынка — режим + список; на разведке новой ниши берут только экзотику (white), в проме режут её (black).</div>
+    </div>
+
+    <div class="signal">
+      <h3>⑤ Число исходов</h3>
+      <p class="sig-why">Два исхода (тотал, фора, победитель, спред) или три (1X2, типичны для футбола). Отрез по самой форме вилки.</p>
+      <div class="demo"><div class="fo-section"><div class="fo-checks">
+        <label class="fo-check"><input type="checkbox" checked> 2-way <span class="demo-cap" style="margin:0">(Total / Handicap / Match Winner / Spread)</span></label>
+        <label class="fo-check"><input type="checkbox" checked> 3-way <span class="demo-cap" style="margin:0">(1X2)</span></label>
+        <label class="fo-check disabled"><input type="checkbox" disabled> 4-way <span class="pending-tag">после бэкенда</span></label>
+      </div></div></div>
+      <div class="demo-cap">2-way и 3-way режут поток сейчас; 4-way появится, когда бэкенд начнёт собирать такие вилки.</div>
+    </div>
+
+    <div class="signal">
+      <h3>⑥ Safety — защитные отрезы</h3>
+      <p class="sig-why">Секция под девизом «отключать = сознательный риск». Часть отрезов прячет вилки с тревожными бейджами (те, что в главе про цвета и риски), часть чистит поток от мусора и неудобных контор. Не «оценить риск», а «убрать с глаз заранее, чтобы не цеплять».</p>
+      <div class="demo"><div class="fo-section">
+        <div class="fo-title">Safety · отключать = сознательный риск</div>
+        <div class="fo-checks" style="flex-direction:column">
+          <label class="fo-check"><input type="checkbox" id="sf-palp"> Hide Risky (PALP) — спрятать подозрительно высокий процент</label>
+          <label class="fo-check"><input type="checkbox" id="sf-sg"> Hide SAME GAME — спрятать вилки с параллельной на тот же матч</label>
+          <label class="fo-check"><input type="checkbox" id="sf-cf"> Hide CONFLICTING — спрятать перекрывающиеся исходы</label>
+          <label class="fo-check"><input type="checkbox" checked> Different Books only — только разные конторы (не две ноги на одной группе — бан-риск)</label>
+          <label class="fo-check"><input type="checkbox"> Min liquidity ($) — отсечь биржи с малой публичной ликвидностью (объём не закрыть)</label>
+          <label class="fo-check"><input type="checkbox" checked> Remove duplicates · Exclude impossible — технические чистки, включены сразу</label>
+          <label class="fo-check disabled"><input type="checkbox" disabled> Same Rules only — только совпадающие правила расчёта <span class="pending-tag">ждёт бэкенда</span></label>
+        </div>
+        <div class="counter" id="d-safety-cnt"></div></div></div>
+      <div class="demo-cap">Первые три (hide-бейджи) — отметь, строки с бейджем уходят из мини-потока (та же логика, что бейджи в главе «Цвета и риски»). Different Books и Min liquidity режут по конторам и ликвидности; две чистки включены по умолчанию. «Same Rules only» серый — это тоже защитный отрез, но ждёт бэкенда (см. блок B): признак совпадения правил пока не приходит в поток.</div>
+    </div>
+
+    <div class="block-band pending">B · Рычаги, что ждут бэкенда (видно, но пока пусто)</div>
+
+    <div class="signal">
+      <h3>⑦ Live / Prematch и фильтры по времени</h3>
+      <p class="sig-why">Целая секция рычагов: только live или только prematch, до перерыва, до начала матча, по равному счёту. Сейчас вся она неактивна — этих данных нет в потоке, они придут с расширением. Видеть её важно: рычаг существует, но дёргать его пока нечего.</p>
+      <div class="demo"><div class="fo-section pending-box">
+        <div class="fo-title">Live / Prematch <span class="pending-tag">ждёт бэкенда</span></div>
+        <div class="mode-sw"><button disabled>live</button><button disabled>prematch</button><button class="on" disabled>both</button></div>
+        <div class="fo-checks" style="flex-direction:column;margin-top:6px">
+          <label class="fo-check disabled"><input type="checkbox" disabled> Show breaks</label>
+          <label class="fo-check disabled"><input type="checkbox" disabled> Time till start (prematch)</label>
+          <label class="fo-check disabled"><input type="checkbox" disabled> Time since live start</label>
+          <label class="fo-check disabled"><input type="checkbox" disabled> Score is Draw (live)</label>
+          <label class="fo-check disabled"><input type="checkbox" disabled> Min till break</label>
+        </div>
+      </div></div>
+      <div class="demo-cap">Контролы серые и не нажимаются — каждый ждёт своё поле из потока (весь поток сейчас идёт как live, признака live/prematch ещё нет).</div>
+      <details class="honest"><summary>Почему пусто, а не убрано</summary>Рычаги стоят на месте намеренно: профи видит, что фильтр по времени матча задуман и появится с расширением — а не гадает, есть он или нет. Минимум till break, например, про «успеть поставить вторую ногу до заморозки маркета на перерыве» — рабочее решение, но оно требует поля «минут до перерыва», которого в потоке пока нет.</details>
+    </div>
+
+    <div class="signal">
+      <h3>⑧ Error probability — оценка надёжности вилки</h3>
+      <p class="sig-why">Будущий главный рычаг: отсев по предсказанной надёжности вилки. Сейчас неактивен — он появится, когда лаборатория формализует природу вилок на данных бота. До тех пор любая оценка была бы догадкой, а догадка про деньги хуже честного «пока нет».</p>
+      <div class="demo"><div class="fo-section pending-box">
+        <div class="fo-title">Error probability <span class="pending-tag">через лабораторию Tipsters</span></div>
+        <select disabled><option>— (через лабораторию Tipsters)</option></select>
+      </div></div>
+      <div class="demo-cap">Это и есть наш долгий моат: масштаб и тип ошибки, сколько вилка живёт — формализуется на 31 миллионе ставок бота, не эвристикой.</div>
+    </div>
+  </section>
+
+  <!-- ============ ЧАСТЬ 2 — В ЖИВОМ СКАНЕРЕ ============ -->
+  <section class="part">
+    <div class="part-head">
+      <h2>Часть 2 · В живом сканере</h2>
+      <div class="step">Рычаги слева, поток справа. Жми фильтр — поток режется, счётчик показывает «сколько осталось из всех». Легенда ниже не меняется, подсвечивает задетый рычаг.</div>
+    </div>
+    <div class="part2-grid">
+      <div class="demo" style="padding:8px">
+        <div class="fo-section" style="margin-bottom:8px">
+          <div class="fo-checks" id="p2-sport"></div>
+          <div class="thr-row"><span>Min %</span><input type="range" id="p2-thr" min="0" max="50" value="0"><span class="thr-val" id="p2-thr-val">0%</span></div>
+          <label class="fo-check"><input type="checkbox" id="p2-palp"> Hide Risky (PALP)</label>
+        </div>
+        <div class="counter" id="p2-counter"></div>
+        <table class="scan"><thead><tr><th>%</th><th>Спорт</th><th>Событие</th><th>БК 1</th><th>Кэф 1</th><th>БК 2</th><th>Кэф 2</th><th>Возр.</th></tr></thead><tbody id="p2rows"></tbody></table>
+      </div>
+      <div class="legend-static">
+        <div class="lg-grid">
+          <div class="item" id="lg-param"><b>Параметры</b><span>порог процента по гистограмме</span></div>
+          <div class="item" id="lg-sport"><b>Спорт</b><span>оставить свои виды</span></div>
+          <div class="item" id="lg-safety"><b>Safety</b><span>спрятать рисковые из ленты</span></div>
+          <div class="item"><b>Дерево/лиги</b><span>точечно по типам и лигам</span></div>
+        </div>
+        <div class="hint">Цветная полоса слева у строки — survival-уровень вилки (зелёная надёжнее, красная рискованнее), из главы «Цвета и риски».</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ЧАСТЬ 3 — КАК В БОЮ ============ -->
+  <section class="part">
+    <div class="part-head">
+      <h2>Часть 3 · Как в бою</h2>
+      <div class="step">Плотный поток под боевым набором фильтров — узкая воронка под конкретную охоту, без подсказок.</div>
+    </div>
+    <div class="demo" style="padding:6px">
+      <div class="counter" id="p3-counter"></div>
+      <table class="scan dense"><thead><tr><th>%</th><th>Спорт</th><th>Событие</th><th>БК 1</th><th>Кэф 1</th><th>БК 2</th><th>Кэф 2</th><th>Возр.</th></tr></thead><tbody id="p3rows"></tbody></table>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* ============================================================
+   Фильтры детально — движок учебной главы Г11.
+   Механизмы — из кода форка (R-3), см. r3-registry-g11.md:
+     Parameters histogram + Min/Max%: filter-tab-main.vue:332-409 (minArbPercent/maxArbPercent, minOdds/maxOdds)
+     возраст: filter-tab-main.vue:411-442 (maxAge 5-300, minAge 0-60); коридоры :361-381
+     Sport: filter-tab-main.vue:692-724 (enabledSports Set, SUPPORTED_SPORTS)
+     Market-tree: filter-market-tree.vue:85-178 (родитель→дети, MODES show-all/black/white)
+     Period: filter-tab-bettypes.vue:38-53 (enabledPeriods); Outcomes :726-779 (2/3-way, 4-way disabled)
+     Safety hide: filter-tab-main.vue:655-689 (hideRisky/hideSameGame/hideConflicting, interpretation.ts:60-127)
+     Live/Prematch backend-pending: filter-tab-main.vue:445-578 (backendFieldAvailable=false для всех)
+     Error probability disabled: filter-tab-main.vue:639-653 (через Tipsters, moat)
+     Same Rules only disabled: filter-tab-main.vue:588-595 (sameRules pending, helpers.ts:120-128); Safety рабочие: Different Books :596, Min liquidity :603, Remove dup :627, Exclude impossible :633
+   Процент вилки = (1 − 1/o1 − 1/o2)×100 (arbs.ts:209). Math.random не используется — seed.
+   Список вилок демо — синтетический; механизм фильтрации идентичен на любом потоке.
+   ============================================================ */
+const margin = (o1,o2) => (1 - 1/o1 - 1/o2) * 100;
+
+/* ① гистограмма распределения profit% + порог */
+(function histoDemo(){
+  const el = document.getElementById('d-histo'), thr = document.getElementById('d-thr');
+  const val = document.getElementById('d-thr-val'), left = document.getElementById('d-histo-left');
+  const buckets = [2,5,9,14,18,17,13,9,6,4,3,2,2,1,1,1]; // распределение по корзинам 0..6%+
+  const total = buckets.reduce((a,b)=>a+b,0), max = Math.max(...buckets);
+  function draw(){
+    const t = +thr.value; // 0..60 → 0..6%
+    const pct = (t/10).toFixed(1);
+    val.textContent = pct + '%';
+    const cutIdx = Math.round(t/60*buckets.length);
+    el.innerHTML = buckets.map((b,i)=>`<div class="bar ${i<cutIdx?'cut':''}" style="height:${(b/max*100).toFixed(0)}%"></div>`).join('');
+    const kept = buckets.slice(cutIdx).reduce((a,b)=>a+b,0);
+    left.textContent = `выше порога: ${kept} из ${total} вилок`;
+  }
+  thr.addEventListener('input', draw); draw();
+})();
+
+/* ② Sport чекбоксы */
+const SPORTS = ['Soccer','Tennis','Basketball','Hockey','Table Tennis','Volleyball'];
+(function sportDemo(){
+  document.getElementById('d-sport').innerHTML = SPORTS.map((s,i)=>
+    `<label class="fo-check"><input type="checkbox" ${i<3?'checked':''}> ${s}</label>`).join('');
+})();
+
+/* ③ market-tree (родитель→дети) */
+(function treeDemo(){
+  const tree = {'Totals':['Over/Under 2.5','Over/Under 3.5','Team Total'],'Handicap':['Asian -1','Asian +1','European'],'Match Winner':['1X2','Draw No Bet'],'Games / Sets':['Total Games','Set Winner']};
+  const el = document.getElementById('d-tree');
+  const open = {Totals:true};
+  function draw(){
+    el.innerHTML = Object.keys(tree).map(g=>{
+      const kids = tree[g], isOpen = open[g];
+      return `<div class="tree-group"><div class="tree-parent">`+
+        `<input type="checkbox" checked><b>${g}</b>`+
+        `<button class="tree-expand" data-g="${g}">${isOpen?'▾':'▸'}${!isOpen?` <span class="kid-badge">−1</span>`:''}</button></div>`+
+        (isOpen?`<div class="tree-kids">${kids.map((k,i)=>`<label class="tree-kid"><input type="checkbox" ${i===kids.length-1?'':'checked'}> ${k}</label>`).join('')}</div>`:'')+
+      `</div>`;
+    }).join('');
+    el.querySelectorAll('.tree-expand').forEach(b=>b.addEventListener('click',()=>{open[b.dataset.g]=!open[b.dataset.g];draw();}));
+  }
+  draw();
+})();
+
+/* ④ Period */
+(function periodDemo(){
+  const P = ['Матч','1-й тайм','2-й тайм','1-я четверть','Сет 1'];
+  document.getElementById('d-period').innerHTML = P.map((p,i)=>
+    `<label class="fo-check"><input type="checkbox" ${i<2?'checked':''}> ${p}</label>`).join('');
+})();
+
+/* поток вилок демо (синтетический, процент из кэфов) */
+function mkPool(){
+  // [спорт, событие, бк1, бк2, o1, o2, age, badge]
+  return [
+    ['Soccer','Real — Barca','Pinnacle','bet365',2.10,2.05,8,null],
+    ['Soccer','PSG — Bayern','1xbet','Smarkets',2.12,2.28,3,'PALP'],
+    ['Tennis','Alcaraz — Sinner','bet365','Pinnacle',1.95,2.18,22,null],
+    ['Basketball','Lakers — Celtics','betonline','bet365',2.20,1.98,14,'SAME GAME'],
+    ['Tennis','Swiatek — Gauff','Pinnacle','Unibet',2.05,2.10,5,null],
+    ['Hockey','CSKA — SKA','bet365','Betway',2.15,2.02,30,'CONFLICTING'],
+    ['Basketball','Heat — Bucks','Pinnacle','bet365',1.90,2.30,11,null],
+    ['Table Tennis','Dedek — Postelt','lottoland','bet365',2.08,2.12,18,null],
+  ];
+}
+const SURV = ['surv-high','surv-medium','surv-low'];
+function rowHtml(a,i){
+  const pct = margin(a[4],a[5]).toFixed(1);
+  const badge = a[7] ? `<span class="badge">${a[7]}</span>` : '';
+  return `<tr class="${SURV[i%3]}"><td class="st-pct">${pct}%</td><td>${a[0]}</td><td>${a[1]}${badge}</td><td>${a[2]}</td><td class="st-odds">${a[4].toFixed(2)}</td><td>${a[3]}</td><td class="st-odds">${a[5].toFixed(2)}</td><td>${a[6]}s</td></tr>`;
+}
+
+/* ⑥ Safety демо (по своему мини-потоку) */
+(function safetyDemo(){
+  const cnt = document.getElementById('d-safety-cnt');
+  const pool = mkPool();
+  function upd(){
+    const hp=document.getElementById('sf-palp').checked, hs=document.getElementById('sf-sg').checked, hc=document.getElementById('sf-cf').checked;
+    const hidden = pool.filter(a=> (hp&&a[7]==='PALP')||(hs&&a[7]==='SAME GAME')||(hc&&a[7]==='CONFLICTING')).length;
+    cnt.textContent = hidden? `скрыто рисковых: ${hidden} из ${pool.length}` : `показаны все ${pool.length}`;
+  }
+  ['sf-palp','sf-sg','sf-cf'].forEach(id=>document.getElementById(id).addEventListener('change',upd)); upd();
+})();
+
+/* Часть 2 — фильтры режут поток + счётчик N из M */
+(function part2(){
+  const pool = mkPool(), total = pool.length;
+  document.getElementById('p2-sport').innerHTML = SPORTS.slice(0,4).map((s)=>
+    `<label class="fo-check"><input type="checkbox" data-sport="${s}" checked> ${s}</label>`).join('');
+  const thr = document.getElementById('p2-thr'), thrVal = document.getElementById('p2-thr-val');
+  const palp = document.getElementById('p2-palp'), cnt = document.getElementById('p2-counter'), tb = document.getElementById('p2rows');
+  function activeSports(){ return new Set([...document.querySelectorAll('#p2-sport input:checked')].map(c=>c.dataset.sport)); }
+  function lit(id){ const e=document.getElementById(id); if(!e)return; e.classList.add('lit'); setTimeout(()=>e.classList.remove('lit'),900); }
+  function draw(src){
+    const sp = activeSports(), minPct = +thr.value/10, hideP = palp.checked;
+    thrVal.textContent = minPct.toFixed(1)+'%';
+    const shown = pool.filter(a=> sp.has(a[0]) && margin(a[4],a[5])>=minPct && !(hideP&&a[7]==='PALP'));
+    tb.innerHTML = shown.map((a,i)=>rowHtml(a,i)).join('');
+    cnt.textContent = `${shown.length} из ${total} вилок`;
+    if(src) lit(src);
+  }
+  document.querySelectorAll('#p2-sport input').forEach(c=>c.addEventListener('change',()=>draw('lg-sport')));
+  thr.addEventListener('input',()=>draw('lg-param'));
+  palp.addEventListener('change',()=>draw('lg-safety'));
+  draw();
+})();
+
+/* Часть 3 — боевая узкая воронка */
+(function part3(){
+  const pool = mkPool(), total = pool.length;
+  // боевой набор: только Soccer+Tennis, %≥1.5, без рисковых
+  const shown = pool.filter(a=> ['Soccer','Tennis'].includes(a[0]) && margin(a[4],a[5])>=1.5 && !a[7]);
+  document.getElementById('p3rows').innerHTML = shown.map((a,i)=>rowHtml(a,i)).join('');
+  document.getElementById('p3-counter').textContent = `${shown.length} из ${total} — воронка: Soccer+Tennis, ≥1.5%, без рисковых`;
+})();
+</script>
+</body>
+</html>
