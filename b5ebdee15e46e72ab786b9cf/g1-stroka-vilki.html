@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Строка вилки — анатомия (учебная глава, 3 части)</title>
+<style>
+  /* Цвета/форматы воссозданы из кода форка (R-3), см. r3-registry-g1.md:
+     index.css :root (--color-*) + arb-row.vue + display-utils.ts + scanner-table.vue CSS */
+  :root{
+    --bg:#fafafa; --panel:#ffffff; --surface2:#f4f4f5; --border:#e0e0e0;
+    --text:#1a1a1a; --text-secondary:#666;
+    --green:#1a8a2e; --red:#cc2222; --warning:#b45309;
+    --accent:#2563eb; --hl:rgba(37,99,235,.14);
+    --mono:ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.55}
+  .wrap{max-width:820px;margin:0 auto;padding:28px 18px 80px}
+  h1{font-size:24px;margin:0 0 6px}
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin:0 0 4px}
+  h3{font-size:17px;margin:0 0 4px}
+  .lead{color:var(--text-secondary);font-size:15px;margin:0 0 8px}
+  .part{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px 20px 22px;margin:18px 0}
+  .part-head{border-left:3px solid var(--accent);padding-left:10px;margin-bottom:14px}
+  .part-head .step{font-size:12px;color:var(--text-secondary)}
+  .signal{border-top:1px solid var(--border);padding:16px 0 4px}
+  .signal:first-of-type{border-top:none;padding-top:4px}
+  .sig-why{color:var(--text-secondary);margin:2px 0 10px}
+  .demo{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px}
+  .demo-cap{font-size:11px;color:var(--text-secondary);margin:6px 2px 0}
+  .honest{background:#fff8e6;border:1px solid #f0d99a;border-radius:6px;padding:8px 10px;font-size:12.5px;color:#6b5418;margin-top:8px}
+  .honest b{color:#5a4510}
+  .key{background:#eef4ff;border:1px solid #c5d8f5;border-radius:6px;padding:8px 10px;font-size:13px;margin-top:8px}
+  table{width:100%;border-collapse:collapse}
+  th{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-secondary);text-align:left;padding:4px 6px;border-bottom:1px solid var(--border)}
+  td{padding:5px 6px;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums;vertical-align:middle}
+  table.dense td{padding:2px 6px;font-size:13px}
+  table.dense th{padding:2px 6px}
+  tr.arb-row{cursor:default}
+  /* 9 ячеек — классы из кода форка */
+  .st-pct{font-weight:700}
+  .st-arb-good{color:var(--green)}            /* зелёный — нормальная вилка */
+  .st-arb-palp{color:var(--red)}              /* красный — PALP (подозрительно ошибочный кэф) */
+  .st-league{color:var(--text-secondary);font-size:11px}
+  .st-odds{font-family:var(--mono);white-space:nowrap}
+  .st-odds--soft{color:var(--text);font-weight:600}          /* soft: чёрный жирный — играем первой */
+  .st-odds--sharp{color:var(--text-secondary);font-weight:400}/* sharp: серый тонкий — anchor */
+  .bk-mark{color:var(--text-secondary);font-size:10px;margin-right:3px}  /* ◆ sharp/exchange */
+  .ex-badge{font-size:9px;color:var(--text-secondary);border:1px solid var(--border);border-radius:3px;padding:0 2px;margin-left:3px}
+  /* период-бейдж */
+  .st-period{display:inline-block;margin-left:6px;font-size:9px;font-weight:600;color:var(--text-secondary);background:var(--surface2);padding:0 3px;border:1px solid var(--border);line-height:14px;vertical-align:middle}
+  .st-period--late{color:#991b1b;background:#fff0f0;border-color:#e88a8a}  /* late-stage: красный бейдж (последние минуты) */
+  .st-age{font-family:var(--mono);font-size:12px;color:var(--text-secondary)}
+  .st-age--fresh{color:var(--green);font-weight:600}   /* <10s — свежая */
+  .st-age--alive{color:var(--warning)}                  /* 10-30s — живая */
+  .st-age--dying{color:var(--red);font-weight:600}      /* >30s — почти труп */
+  /* Часть 2 — подсветка колонки + статичная легенда */
+  .part2-grid{display:grid;grid-template-columns:1fr;gap:16px;align-items:start} /* правка приёмки (вёрстка part2-grid): легенда ПОД таблицу (таблица на полную ширину, все 9 колонок видны) */
+  @media(max-width:680px){.part2-grid{grid-template-columns:1fr}}
+  td.col-lit,th.col-lit{background:var(--hl);transition:background .3s}
+  .legend-static{font-size:12.5px}
+  .legend-static .item{padding:6px 9px;border-radius:7px;border:1px solid var(--border);margin-bottom:6px;transition:background .25s,border-color .25s}
+  .legend-static .item.lit{background:var(--hl);border-color:var(--accent)}
+  .legend-static .item b{display:block;font-size:12.5px;margin-bottom:1px}
+  .legend-static .item span{color:var(--text-secondary);font-size:11.5px}
+  .ctx-menu{display:inline-block;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:5px 0;font-size:13px;min-width:230px;box-shadow:0 4px 14px rgba(0,0,0,.08)}
+  .ctx-menu .mi{padding:5px 14px}
+  .ctx-menu .mi:hover{background:var(--surface2)}
+  .ctx-menu .sep{height:1px;background:var(--border);margin:4px 0}
+  .pace{font-size:11px;color:var(--text-secondary);margin:6px 2px 0}
+  .cell-emph{outline:2px solid var(--accent);outline-offset:-2px;border-radius:3px}
+  /* интерактив «жми → эффект» (механика эталона Г6) */
+  .ctl-row{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+  .ctl{font-size:12px;padding:4px 11px;border:1px solid var(--border);background:var(--panel);border-radius:5px;cursor:pointer;color:var(--text);font-family:inherit}
+  .ctl:hover{border-color:var(--accent);color:var(--accent)}
+  .ctl:active{background:var(--surface2)}
+  /* Часть 2 — подсветка под управлением читателя (наведи/нажми ячейку или подпись) */
+  #p2table td[data-c],#p2table th[data-col]{cursor:pointer}
+  .legend-static .item{cursor:pointer}
+  .legend-static .item.pinned,#p2table td.col-pin,#p2table th.col-pin{outline:2px solid var(--accent);outline-offset:-2px;border-radius:4px}
+  .p2-hint{font-size:11.5px;color:#1d4f7a;background:#eef4ff;border:1px solid #c5d8f5;border-radius:6px;padding:6px 9px;margin:0 0 10px}
+  .p2-hint b{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Строка вилки — анатомия</h1>
+  <p class="lead">Решение, которое обслуживает эта функция: <b>«что это за расхождение — вчитываться или листать дальше»</b>. На одну строку у вилочника примерно секунда. За эту секунду строка отвечает на девять вопросов сразу — насколько жирная, профильный ли спорт, что за событие, <b>на что и на какой период ставка</b>, в каких конторах две ноги и по какой цене, и давно ли вилка живёт. Глава учит читать все девять, чтобы решение «брать / мимо» приходило за ту самую секунду. Цвет фона и риски-бейджи — отдельная глава («Цвета и риски»); здесь — только структура строки.</p>
+
+  <p class="key"><b>Откуда берётся строка.</b> Вилку склеивает бэкенд: две ноги разных контор по одному и тому же событию сводятся в одну пару (гиперматч). Фронт только рисует готовое — поэтому самому расхождению можно доверять как факту, читать остаётся «стоит ли оно того».</p>
+
+  <!-- ============ ЧАСТЬ 1 — УЧЁБА ИЗОЛИРОВАННО ============ -->
+  <section class="part">
+    <div class="part-head">
+      <h2>Часть 1 · Учёба</h2>
+      <div class="step">Каждая ячейка по отдельности — что показывает и какое решение обслуживает. Под описанием маленькое демо: <b>жми кнопку — листай варианты ячейки</b> без шума остальных. Кусочки живые.</div>
+    </div>
+
+    <div class="signal">
+      <h3>① Arb % — насколько вилка жирная</h3>
+      <p class="sig-why">Первое, на что падает глаз — процент профита: гарантированная прибыль при закрытии обеих ног по показанным кэфам. Чем больше — тем интереснее задержаться. Обычно зелёный; красным становится у вилки с пометкой PALP (подозрительно ошибочный кэф) — но это уже про риск, отдельная глава.</p>
+      <details class="honest"><summary>Как считается процент</summary>Считается от <i>эффективных</i> кэфов — с учётом комиссии биржи, а не от номинала на табло. Поэтому показанный процент уже отражает реальную прибыль, которую можно забрать.</details>
+      <div class="demo"><table><tbody id="d1"></tbody></table>
+        <div class="ctl-row"><button class="ctl" id="d1-btn">Другое значение →</button></div>
+      </div>
+      <div class="demo-cap">Жми — один и тот же столбец Arb% с разными значениями: зелёные нормальные вилки и красная PALP (подозрительно ошибочный кэф).</div>
+    </div>
+
+    <div class="signal">
+      <h3>② Спорт и событие — профиль или мимо</h3>
+      <p class="sig-why">Спорт показан короткой аббревиатурой (SOC, BAS, TEN, HOC…), лига — серым после слэша. За полсекунды видно, попадает ли строка в профиль (нужные спорты/лиги в это окно работы) или её можно пролистать. Рядом — название матча; если у события несколько вилок, появляется значок ▶ с числом — раскрыть все вилки этого матча.</p>
+      <div class="demo"><table><tbody id="d2"></tbody></table>
+        <div class="ctl-row"><button class="ctl" id="d2-btn">Другой спорт →</button></div>
+      </div>
+      <div class="demo-cap">Жми — разные спорты и лиги. BSB (бейсбол) ≠ BAS (баскетбол): аббревиатуры заданы явно, чтобы не путались.</div>
+    </div>
+
+    <div class="signal">
+      <h3>③ Маркет и период — на ЧТО и на какой ОТРЕЗОК ставка <span style="color:var(--accent)">(самое важное)</span></h3>
+      <p class="sig-why">Самое частое место, где можно споткнуться, — разберём подробно. Колонка называется <b>Market</b> и отвечает на вопрос «на ЧТО ставка»: тотал, фора или исход. Рядом — <b>период</b>: маленький бейдж ВНУТРИ ячейки Market, отвечает на другой вопрос — «на какой ОТРЕЗОК матча». Если бейджа нет — ставка на весь матч.</p>
+      <details class="honest"><summary>Форматы Market по типу ставки и бейджи периода</summary>
+      <ul style="margin:6px 0 0">
+        <li><b>Тотал</b> → <code>TO 2.5: O/U</code> — линия 2.5 и O/U (Over/Under = больше/меньше). У тотала всегда две стороны вокруг линии.</li>
+        <li><b>Фора</b> → <code>HC -4.5</code> — знаковое число форы (минус у фаворита). Одно число со знаком, без «больше/меньше».</li>
+        <li><b>Исход</b> → <code>1X2: 1/X</code> (с ничьёй) или <code>MW: 1/2</code> (без ничьи).</li>
+        <li><b>Период</b> → бейдж <code>1H</code>, <code>2H</code>, <code>1Q</code>–<code>4Q</code>, <code>1P</code>–<code>3P</code>, <code>HT</code>… У футбольных таймов добавляется минута матча — <code>2H 78'</code>. В последние минуты бейдж краснеет (late-stage: кэфы дёргаются резко, контора правит быстро).</li>
+      </ul>
+      </details>
+      <div class="demo"><table><tbody id="d3"></tbody></table>
+        <div class="ctl-row"><button class="ctl" id="d3-btn">Другой тип ставки →</button></div>
+      </div>
+      <div class="demo-cap">Жми — одна ячейка Market меняет тип: тотал (2H 78') → фора (3Q) → исход с ничьёй (весь матч) → исход без ничьи. Следи за бейджем периода справа от текста.</div>
+      <div class="key"><b>Что это меняет в решении за секунду.</b> Сам тип рынка (тотал / фора / исход) решение «брать или мимо» не меняет — это просто <i>на что</i> ставка. А вот <b>период меняет</b>: красный late-stage бейдж = матч на последних минутах, кэфы дёргаются резко, контора правит линию почти мгновенно — закрыть обе ноги труднее. На такую вилку взгляд осторожнее, даже если процент жирный. Бейдж периода — это «сколько остаётся времени на перекрытие».</div>
+    </div>
+
+    <div class="signal">
+      <h3>④ Две ноги: где и почём (+ sharp / soft)</h3>
+      <p class="sig-why">Дальше — четыре ячейки про обе ноги вилки: контора-1 и её кэф, контора-2 и её кэф. Кэф показан в выбранном формате (десятичный / американский / дробный). Тонкость: кэфы двух ног выделены <b>по-разному по шрифту</b> — это подсказка, какой ногой ставить первой:</p>
+      <ul class="sig-why" style="margin-top:0">
+        <li><b>soft</b>-контора — кэф <b>чёрный жирный</b>: сюда ставят <b>первой ногой</b> (она щедрее, её надо успеть взять, пока контора не поправила линию);</li>
+        <li><b>sharp</b>-контора или биржа — кэф <span style="color:var(--text-secondary)">серый тонкий</span>, рядом ромбик <span class="bk-mark">◆</span>: это «якорь» (точная стабильная цена), её добивают второй.</li>
+      </ul>
+      <details class="honest"><summary>Зачем именно такой порядок ног</summary>Щедрую soft-ногу берут первой, пока контора корректирует линию: в ней больше EV-запаса, но держится он лишь пока контора не поправила. Если взять якорь первым — пока идёт переключение на щедрую, контора успеет её скорректировать, и запас утечёт: перекрытие дороже или одна нога без пары. Здесь — базово; подробно порядок ног — глава «Постановка и GO».</details>
+      <div class="demo"><table><tbody id="d4"></tbody></table></div>
+      <div class="demo-cap">Верх — обычная пара (обе soft, как сейчас в потоке). Низ — пара с sharp-конторой (◆, серый кэф): видно, какую ногу брать первой.</div>
+      <details class="honest"><summary>Почему ◆ и серый кэф пока не видны в потоке</summary>В текущем живом потоке sharp-контор и бирж нет — Pinnacle и биржи пока не подключены к парсингу. Все 8 контор сейчас обычные (soft), поэтому ромбик ◆ и серый кэф в ленте не появляются. Pinnacle в демо выше — иллюстрация механизма, а не живая контора. Выделение заработает, когда бэкенд начнёт отдавать sharp/биржи.</details>
+    </div>
+
+    <div class="signal">
+      <h3>⑤ Возраст — давно ли живёт</h3>
+      <p class="sig-why">Последняя ячейка — возраст вилки в секундах. Цвет подсказывает мгновенно: <span style="color:var(--green);font-weight:600">зелёный</span> &lt;10s — свежая, можно брать; <span style="color:var(--warning)">жёлтый</span> 10-30s — живая, надо успеть; <span style="color:var(--red);font-weight:600">красный</span> &gt;30s — почти труп, проверять. Вся строка ещё и бледнеет с возрастом (боковой сигнал старения).</p>
+      <div class="demo"><table><tbody id="d5"></tbody></table>
+        <div class="ctl-row"><button class="ctl" id="d5-btn">Старше →</button></div>
+      </div>
+      <div class="demo-cap">Жми — возраст растёт: свежая → живая → умирающая (цвет меняется).</div>
+      <div class="key"><b>Это мост в следующую главу.</b> Возраст — лишь первый из сигналов «жизни вилки во времени» (ещё вспышки, стрелки движения, серая stale-стрелка). Им посвящена отдельная глава «Жизнь вилки во времени» — здесь мы только отмечаем ячейку.</div>
+    </div>
+
+    <div class="signal">
+      <h3>⑥ Правый клик по строке — убрать лишнее</h3>
+      <p class="sig-why">Не ячейка, но часть строки: правый клик открывает меню из пяти действий — закрепить вилку наверх или убрать шум из потока (скрыть вилку, всё событие, или событие в конкретной конторе). Так лента чистится под рабочий ритм.</p>
+      <div class="demo" style="padding:12px">
+        <div class="ctx-menu">
+          <div class="mi">📌 Pin arb to top</div>
+          <div class="sep"></div>
+          <div class="mi">Hide arb</div>
+          <div class="mi">Hide event</div>
+          <div class="mi">Hide event in bet365.com</div>
+          <div class="mi">Hide event in bet365.com / betonline.ag</div>
+        </div>
+      </div>
+      <div class="demo-cap">Меню по правому клику на строке (статичный вид).</div>
+    </div>
+  </section>
+
+  <!-- ============ ЧАСТЬ 2 — ЖИВОЙ СКАНЕР + ПОДСВЕТКА СТАТИЧНОЙ ЛЕГЕНДЫ ============ -->
+  <section class="part">
+    <div class="part-head">
+      <h2>Часть 2 · В живом сканере</h2>
+      <div class="step">Те же девять ячеек вместе, как в реальном потоке. Легенда справа <b>не меняется</b> — <b>наведи (или нажми) ячейку в таблице</b>, и её подпись справа загорится; <b>наведи подпись</b> — загорится её колонка. Так каждая ячейка связывается с тем, что значит, пока чтение не станет автоматическим.</div>
+    </div>
+    <div class="p2-hint">👆 <b>Наведи или нажми</b> любую ячейку слева — или подпись справа — подсветятся обе разом (нажатие закрепляет, повторное снимает). Пока не трогаешь, подсветка идёт сама по кругу как подсказка.</div>
+    <div class="part2-grid">
+      <div class="demo" style="padding:6px;overflow-x:auto">
+        <table id="p2table">
+          <thead><tr>
+            <th data-col="pct">Arb%</th><th data-col="sport">Спорт</th><th data-col="event">Событие</th>
+            <th data-col="market">Market</th><th data-col="bk1">БК 1</th><th data-col="o1">Кэф 1</th>
+            <th data-col="bk2">БК 2</th><th data-col="o2">Кэф 2</th><th data-col="age">Возр.</th>
+          </tr></thead>
+          <tbody id="p2rows"></tbody>
+        </table>
+      </div>
+      <div class="legend-static">
+        <div class="item" data-lg="pct"><b>Arb % <span></span></b><span>профит вилки; зелёный — норм</span></div>
+        <div class="item" data-lg="sport"><b>Спорт / лига <span></span></b><span>профиль или мимо</span></div>
+        <div class="item" data-lg="event"><b>Событие <span></span></b><span>матч; ▶ = ещё вилки события</span></div>
+        <div class="item" data-lg="market"><b>Market + период <span></span></b><span>на ЧТО (тотал/фора/исход) и на какой отрезок (бейдж)</span></div>
+        <div class="item" data-lg="bk1"><b>БК 1 <span></span></b><span>первая контора (◆ = sharp — в потоке сейчас нет)</span></div>
+        <div class="item" data-lg="o1"><b>Кэф 1 <span></span></b><span>чёрный жирный = soft, первой ногой (сейчас все такие)</span></div>
+        <div class="item" data-lg="bk2"><b>БК 2 <span></span></b><span>вторая контора</span></div>
+        <div class="item" data-lg="o2"><b>Кэф 2 <span></span></b><span>серый тонкий = sharp, anchor (появится с sharp-конторами)</span></div>
+        <div class="item" data-lg="age"><b>Возраст <span></span></b><span>давно ли живёт; цвет = свежесть</span></div>
+      </div>
+    </div>
+    <div class="key" style="margin-top:12px">🎯 <b>Проверь себя:</b> наведи на колонку Market и найди в потоке вилку с <b>бейджем периода</b> внутри (ставка на отрезок матча) — и вилку <b>без</b> бейджа (ставка на весь матч). Это ядро строки: на ЧТО и на какой ОТРЕЗОК.</div>
+    <div class="pace">Поток замедлен для учёбы; реальный темп выше. Сейчас все конторы — soft (sharp в потоке пока нет), поэтому ◆ не появляется.</div>
+  </section>
+
+  <!-- ============ ЧАСТЬ 3 — РЕАЛЬНЫЙ СКАНЕР БЕЗ ПОДСКАЗОК ============ -->
+  <section class="part">
+    <div class="part-head">
+      <h2>Часть 3 · Как в бою</h2>
+      <div class="step">Плотный поток, без подсказок и подсветки. Так строка выглядит в работе — все девять ячеек узнаются сами.</div>
+    </div>
+    <div class="demo" style="padding:4px;overflow-x:auto">
+      <table class="dense">
+        <thead><tr><th>Arb%</th><th>Спорт</th><th>Событие</th><th>Market</th><th>БК 1</th><th>Кэф 1</th><th>БК 2</th><th>Кэф 2</th><th>Возр.</th></tr></thead>
+        <tbody id="p3rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* ============================================================
+   Строка вилки — движок учебной главы (слой 1, Г1).
+   Форматы/пороги — из кода форка (R-3), см. r3-registry-g1.md:
+     marketAbbr  [display-utils.ts:142-167] — категорийный форматтер
+     periodBadge [display-utils.ts:209-237] — бейдж периода (+минута)
+     sportAbbr   [display-utils.ts:70-97]
+     odds soft/sharp [scanner-table.vue:1037-1050]
+     age цвет fresh/alive/dying [display-utils.ts:306-314]
+   Имена контор — canon enum [bookmakers.ts:71-94]; sharp Pinnacle вне эфира,
+   только как иллюстрация в Части 1. Math.random не используется (детерминир. seed).
+   ============================================================ */
+
+// ── sportAbbr (display-utils.ts:70-97) ──
+const SPORT_ABBR = {Soccer:"SOC",Basketball:"BAS",Tennis:"TEN",Hockey:"HOC",eSports:"ESP",
+  Baseball:"BSB",Volleyball:"VOL",Handball:"HAN","Table Tennis":"TT","American Football":"AMF"};
+function sportAbbr(s){ return SPORT_ABBR[s] || s.substring(0,3).toUpperCase(); }
+// ── leagueAbbr (display-utils.ts:99-118) ── реальный сканер сокращает лигу
+const LEAGUE_ABBR={"Premier League":"EPL","La Liga":"LAL",Bundesliga:"BUN","Serie A":"SER","Ligue 1":"L1","Champions League":"UCL",NBA:"NBA",EuroLeague:"EUL","ATP Roland Garros":"RG","WTA Wimbledon":"WIM",NHL:"NHL",KHL:"KHL","CS2 Major":"CS2","Dota 2 TI":"TI","LoL Worlds":"LOL"};
+function leagueAbbr(l){ return LEAGUE_ABBR[l] || l.substring(0,3).toUpperCase(); }
+
+// ── shortSel + marketAbbr (display-utils.ts:122-167) ──
+function shortSel(sel){
+  if(sel.startsWith("1 ")) return "1";
+  if(sel.startsWith("2 ")) return "2";
+  if(sel.startsWith("X ")) return "X";
+  if(sel.startsWith("Over")) return "O";
+  if(sel.startsWith("Under")) return "U";
+  return sel.substring(0,4);
+}
+function marketAbbr(a){
+  const cat = a.cat;
+  if(cat==="1X2") return `1X2: ${shortSel(a.sel1)}/${shortSel(a.sel2)}`;
+  if(cat==="Total"){
+    const m = a.sel1.match(/\(([\d.]+)\)/); const num = m ? m[1] : (a.sel1.match(/[\d.]+/)?.[0] ?? "");
+    return `TO ${num}: O/U`;
+  }
+  if(cat==="Handicap"){
+    const m = a.sel1.match(/\(([+-]?[\d.]+)\)/); const num = m ? m[1] : (a.sel1.match(/[+-]?[\d.]+/)?.[0] ?? "");
+    return `HC ${num}`;
+  }
+  if(cat==="Match Result") return "MW: 1/2";
+  return a.market || "";
+}
+
+// ── periodBadge (display-utils.ts:173-237) ──
+const PERIOD_MAP = {"1st Half":"1H","2nd Half":"2H","Half Time":"HT","1st Quarter":"1Q",
+  "2nd Quarter":"2Q","3rd Quarter":"3Q","4th Quarter":"4Q","1st Period":"1P","2nd Period":"2P",
+  "3rd Period":"3P","Set 2":"S2","Set 3":"S3","Map 2":"M2","Game 3":"G3",Set:"S",Game:"G",Map:"M",Period:"P"};
+function periodBadge(period, minute){
+  const base = PERIOD_MAP[period] || null;
+  if(base===null) return null;
+  if(minute===undefined || minute===null) return base;
+  if(base[0]==="Q"){ const m=Math.floor(minute/60), s=Math.floor(minute%60); return `${base} ${m}:${s.toString().padStart(2,"0")}`; }
+  if(base==="1H"||base==="2H") return `${base} ${Math.round(minute)}'`;
+  if(base[0]==="P") return `${base} ${Math.round(minute)}'`;
+  return base;
+}
+// late-stage: грубо — soccer >75', hockey P >17', basket <120s remaining (для демо)
+function isLate(a){
+  if(a.minute==null) return false;
+  const b = PERIOD_MAP[a.period]||"";
+  if(b==="2H") return a.minute>75;
+  if(b[0]==="P") return a.minute>17;
+  if(b[0]==="Q") return a.minute<120 && b==="4Q";
+  return false;
+}
+
+// ── формат возраста + цвет (display-utils.ts:291-314) ──
+function fmtAge(s){ const r=Math.round(s); return r<60 ? `${r}s` : `${Math.floor(r/60)}m`; }
+function ageCls(s){ return s<10 ? "st-age--fresh" : (s<30 ? "st-age--alive" : "st-age--dying"); }
+
+// ── одна строка: 9 ячеек ──
+function rowHtml(a, withCols){
+  const c = withCols ? (k)=>` data-c="${k}"` : ()=>"";
+  const arbCls = a.palp ? "st-arb-palp" : "st-arb-good";
+  const sportCell = `${sportAbbr(a.sport)}<span class="st-league">/${leagueAbbr(a.league)}</span>`;
+  const grp = a.group ? ` <span style="color:var(--text-secondary)">▶ (${a.group})</span>` : "";
+  const pb = periodBadge(a.period, a.minute);
+  const pbHtml = pb ? `<span class="st-period${isLate(a)?" st-period--late":""}">${pb}</span>` : "";
+  const o1cls = a.bk1sharp ? "st-odds--sharp" : "st-odds--soft";
+  const o2cls = a.bk2sharp ? "st-odds--sharp" : "st-odds--soft";
+  const bk1 = (a.bk1sharp?'<span class="bk-mark">◆</span>':"") + a.bk1;
+  const bk2 = (a.bk2sharp?'<span class="bk-mark">◆</span>':"") + a.bk2;
+  const op = (a.age!=null) ? (0.55 + Math.max(0,Math.min(1,1 - a.age/40))*0.45).toFixed(2) : 1;
+  return `<tr class="arb-row" style="opacity:${op}">`+
+    `<td${c("pct")} class="st-pct ${arbCls}">${a.pct.toFixed(2)}%</td>`+
+    `<td${c("sport")}>${sportCell}</td>`+
+    `<td${c("event")}>${a.event}${grp}</td>`+
+    `<td${c("market")}>${marketAbbr(a)}${pbHtml}</td>`+
+    `<td${c("bk1")}>${bk1}</td>`+
+    `<td${c("o1")} class="st-odds ${o1cls}">${a.o1.toFixed(2)}</td>`+
+    `<td${c("bk2")}>${bk2}</td>`+
+    `<td${c("o2")} class="st-odds ${o2cls}">${a.o2.toFixed(2)}</td>`+
+    `<td${c("age")} class="st-age ${ageCls(a.age)}">${fmtAge(a.age)}</td>`+
+  `</tr>`;
+}
+
+/* ---------- ЧАСТЬ 1 — изолированные демо (вариант по кругу) ---------- */
+// ① Arb%: значение меняется по кругу (зелёный good)
+(function(){ const el=document.getElementById("d1");
+  const vals=[{pct:3.20,palp:false},{pct:1.15,palp:false},{pct:4.85,palp:false},{pct:8.40,palp:true}]; let i=0;
+  function step(){ const v=vals[i]; const a={pct:v.pct,sport:"Soccer",league:"EPL",event:"Man City — Arsenal",
+    cat:"Total",sel1:"Over (2.5)",sel2:"Under (2.5)",period:"",minute:null,
+    bk1:"bet365.com",o1:1.95,bk2:"betonline.ag",o2:2.02,age:6,palp:v.palp};
+    el.innerHTML=rowHtml(a); i=(i+1)%vals.length; }
+  step(); document.getElementById("d1-btn").onclick=step;
+})();
+// ② Спорт/событие: по кругу
+(function(){ const el=document.getElementById("d2");
+  const pool=[["Soccer","EPL","Man City — Arsenal"],["Basketball","NBA","Lakers — Celtics"],
+    ["Tennis","ATP","Alcaraz — Sinner"],["Hockey","NHL","Rangers — Bruins"],["Baseball","MLB","Yankees — Red Sox"]];
+  let i=0; function step(){ const p=pool[i]; const a={pct:2.8,sport:p[0],league:p[1],event:p[2],
+    cat:"Match Result",sel1:"1 (A)",sel2:"2 (B)",period:"",minute:null,
+    bk1:"bet365.com",o1:1.90,bk2:"vbet.co.uk",o2:2.15,age:8,palp:false};
+    el.innerHTML=rowHtml(a); i=(i+1)%pool.length; }
+  step(); document.getElementById("d2-btn").onclick=step;
+})();
+// ③ Market+период: тип ставки меняется по кругу (ЯДРО)
+(function(){ const el=document.getElementById("d3");
+  const variants=[
+    {cat:"Total",sel1:"Over (2.5)",sel2:"Under (2.5)",sport:"Soccer",league:"EPL",event:"Man City — Arsenal",period:"2nd Half",minute:78},
+    {cat:"Handicap",sel1:"Lakers (-4.5)",sel2:"Celtics (+4.5)",sport:"Basketball",league:"NBA",event:"Lakers — Celtics",period:"3rd Quarter",minute:320},
+    {cat:"1X2",sel1:"1 (Real)",sel2:"X (Draw)",sport:"Soccer",league:"La Liga",event:"Real — Barca",period:"",minute:null},
+    {cat:"Match Result",sel1:"1 (Alcaraz)",sel2:"2 (Sinner)",sport:"Tennis",league:"ATP",event:"Alcaraz — Sinner",period:"",minute:null}
+  ];
+  let i=0; function step(){ const v=variants[i]; const a={pct:3.1,...v,bk1:"bet365.com",o1:1.95,bk2:"betonline.ag",o2:2.05,age:7,palp:false};
+    el.innerHTML=rowHtml(a); i=(i+1)%variants.length; }
+  step(); document.getElementById("d3-btn").onclick=step;
+})();
+// ④ sharp/soft: статичные две строки
+(function(){ const el=document.getElementById("d4");
+  const soft={pct:2.6,sport:"Soccer",league:"EPL",event:"Man City — Arsenal",cat:"Total",sel1:"Over (2.5)",sel2:"Under (2.5)",
+    period:"",minute:null,bk1:"bet365.com",o1:1.98,bk2:"betonline.ag",o2:2.00,age:6,palp:false,bk1sharp:false,bk2sharp:false};
+  const sharp={pct:3.4,sport:"Tennis",league:"ATP",event:"Alcaraz — Sinner",cat:"Match Result",sel1:"1 (Alcaraz)",sel2:"2 (Sinner)",
+    period:"",minute:null,bk1:"bet365.com",o1:1.92,bk2:"Pinnacle",o2:2.18,age:5,palp:false,bk1sharp:false,bk2sharp:true};
+  el.innerHTML=rowHtml(soft)+rowHtml(sharp);
+})();
+// ⑤ Возраст: по кругу свежая→живая→умирающая
+(function(){ const el=document.getElementById("d5");
+  const ages=[4,18,42,27]; let i=0;
+  function step(){ const a={pct:3.0,sport:"Hockey",league:"NHL",event:"Rangers — Bruins",cat:"Total",sel1:"Over (5.5)",sel2:"Under (5.5)",
+    period:"2nd Period",minute:12,bk1:"bet365.com",o1:1.90,bk2:"fon.bet",o2:2.10,age:ages[i],palp:false};
+    el.innerHTML=rowHtml(a); i=(i+1)%ages.length; }
+  step(); document.getElementById("d5-btn").onclick=step;
+})();
+
+/* ---------- общий POOL боевых частей (canon-конторы, все soft) ---------- */
+const POOL=[
+  {sport:"Soccer",league:"EPL",event:"Man City — Arsenal",cat:"Total",sel1:"Over (2.5)",sel2:"Under (2.5)",period:"2nd Half",minute:78,bk1:"bet365.com",bk2:"betonline.ag"},
+  {sport:"Basketball",league:"NBA",event:"Lakers — Celtics",cat:"Handicap",sel1:"Lakers (-4.5)",sel2:"Celtics (+4.5)",period:"3rd Quarter",minute:300,bk1:"vbet.co.uk",bk2:"bet365.com"},
+  {sport:"Tennis",league:"ATP",event:"Alcaraz — Sinner",cat:"Match Result",sel1:"1 (Alcaraz)",sel2:"2 (Sinner)",period:"",minute:null,bk1:"lottoland.co.uk",bk2:"bet365.com"},
+  {sport:"Hockey",league:"NHL",event:"Rangers — Bruins",cat:"Total",sel1:"Over (5.5)",sel2:"Under (5.5)",period:"2nd Period",minute:12,bk1:"betonline.ag",bk2:"fon.bet"},
+  {sport:"Soccer",league:"La Liga",event:"Real — Barca",cat:"1X2",sel1:"1 (Real)",sel2:"X (Draw)",period:"",minute:null,bk1:"bet365.com",bk2:"virginbet.com"},
+  {sport:"Basketball",league:"EuroLeague",event:"CSKA — Real",cat:"Handicap",sel1:"CSKA (+3.5)",sel2:"Real (-3.5)",period:"4th Quarter",minute:90,bk1:"livescorebet.com",bk2:"betonline.ag"},
+  {sport:"Tennis",league:"WTA",event:"Swiatek — Gauff",cat:"Total",sel1:"Over (21.5)",sel2:"Under (21.5)",period:"Set 2",minute:null,bk1:"bet365.com",bk2:"silverglow58.xyz"},
+  {sport:"Soccer",league:"Serie A",event:"Inter — Milan",cat:"Total",sel1:"Over (1.5)",sel2:"Under (1.5)",period:"1st Half",minute:32,bk1:"vbet.co.uk",bk2:"betonline.ag"}
+];
+function mkArb(seedRnd, idx, group){
+  const p=POOL[idx%POOL.length];
+  const o1=+(1.6+seedRnd()*1.2).toFixed(2), o2=+(1.6+seedRnd()*1.2).toFixed(2);
+  return {...p,pct:+(1+seedRnd()*4).toFixed(2),o1,o2,age:Math.floor(seedRnd()*9),
+    bk1sharp:false,bk2sharp:false,palp:false,group:group||0};
+}
+
+/* ---------- ЧАСТЬ 2 — живой поток + СИНХРОННАЯ подсветка под управлением читателя (П11) ----------
+   Привод подсветки — рука читателя: наведи/нажми ячейку → загорается её колонка И парная подпись;
+   наведи/нажми подпись → загорается её колонка (двусторонняя связь). Пока никто не трогает —
+   медленный автокруг как подсказка; при наведении он молчит (перехват). Клик закрепляет (pin). */
+(function(){
+  let seed=7; const rnd=()=>{ seed=(seed*1103515245+12345)&0x7fffffff; return seed/0x7fffffff; };
+  let arbs=Array.from({length:6},(_,i)=>mkArb(rnd,i, i===1?3:0));
+  const tb=document.getElementById("p2rows"), table=document.getElementById("p2table");
+  const legend=document.querySelector(".legend-static");
+  const COLS=["pct","sport","event","market","bk1","o1","bk2","o2","age"];
+  let ci=0, active="pct", pinned=null, hovering=false;
+
+  function applyLit(){
+    table.querySelectorAll(".col-lit,.col-pin").forEach(e=>e.classList.remove("col-lit","col-pin"));
+    legend.querySelectorAll(".item").forEach(e=>e.classList.remove("lit","pinned"));
+    if(!active) return;
+    const isPin=(active===pinned);
+    table.querySelectorAll(`[data-col="${active}"],[data-c="${active}"]`).forEach(e=>{ e.classList.add("col-lit"); if(isPin)e.classList.add("col-pin"); });
+    const lg=legend.querySelector(`.item[data-lg="${active}"]`); if(lg){ lg.classList.add("lit"); if(isPin)lg.classList.add("pinned"); }
+  }
+  function setActive(col){ active=col; applyLit(); }
+  function render(){ tb.innerHTML=arbs.map(a=>rowHtml(a,true)).join(""); applyLit(); }      // подсветка переживает пересоздание строк
+  function tick(){ arbs.forEach(a=>{ a.age++; }); arbs=arbs.map((a,i)=> a.age>34 ? mkArb(rnd, i+90) : a); render(); }
+  function tour(){ if(hovering||pinned) return; ci=(ci+1)%COLS.length; setActive(COLS[ci]); }  // читатель рулит — автокруг молчит
+
+  // делегирование на контейнеры — переживает render(), который пересоздаёт ячейки
+  const colOf=el=>{ const c=el&&el.closest("[data-c],[data-col]"); return c?(c.dataset.c||c.dataset.col):null; };
+  const lgOf =el=>{ const it=el&&el.closest(".item"); return it?it.dataset.lg:null; };
+  table.addEventListener("mouseover",e=>{ const col=colOf(e.target); if(col){ hovering=true; if(!pinned) setActive(col); } });
+  table.addEventListener("mouseout", e=>{ if(!table.contains(e.relatedTarget)){ hovering=false; if(!pinned) setActive(COLS[ci]); } });
+  table.addEventListener("click",    e=>{ const col=colOf(e.target); if(col){ pinned=(pinned===col)?null:col; setActive(pinned||col); } });
+  legend.addEventListener("mouseover",e=>{ const col=lgOf(e.target); if(col){ hovering=true; if(!pinned) setActive(col); } });
+  legend.addEventListener("mouseout", e=>{ if(!legend.contains(e.relatedTarget)){ hovering=false; if(!pinned) setActive(COLS[ci]); } });
+  legend.addEventListener("click",    e=>{ const col=lgOf(e.target); if(col){ pinned=(pinned===col)?null:col; setActive(pinned||col); } });
+
+  render(); setActive(COLS[0]); setInterval(tick,1900); setInterval(tour,1600);
+})();
+
+/* ---------- ЧАСТЬ 3 — плотный реальный сканер, без подсказок ---------- */
+(function(){
+  let seed=31; const rnd=()=>{ seed=(seed*1103515245+12345)&0x7fffffff; return seed/0x7fffffff; };
+  let arbs=Array.from({length:9},(_,i)=>mkArb(rnd,i, i===0?2:(i===4?4:0)));
+  const tb=document.getElementById("p3rows");
+  function tick(){ arbs.forEach(a=>{a.age++;}); arbs=arbs.map((a,i)=> a.age>36 ? mkArb(rnd,i+50) : a); tb.innerHTML=arbs.map(a=>rowHtml(a,false)).join(""); }
+  tick(); setInterval(tick,1400);
+})();
+</script>
+</body>
+</html>
