@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recovery — нога слетела (учебная глава, 3 части)</title>
+<style>
+  /* Цвета/значения воссозданы из кода форка (R-3), координаты в r3-registry-g7.md:
+     токены темы + панель Recovery (триггер/заголовок) + ядро findAlternativeLegs
+     (break-even по эфф. кэфам, ранжир по надёжности, топ-3, предупреждения словами)
+     + коэффициенты надёжности и список быстро-режущих контор. */
+  :root{
+    --bg:#fafafa; --panel:#ffffff; --surface2:#f4f4f5; --border:#e0e0e0; --border-subtle:#ebebeb;
+    --text:#1a1a1a; --text-secondary:#666666; --text-tertiary:#8a8a8a; --text-inverse:#ffffff;
+    --accent:#2563eb; --hl:rgba(37,99,235,.12);
+    --green:#1a8a2e;                                   /* index.css --color-accent-green */
+    --red:#cc2222;                                     /* index.css --color-accent-red */
+    --amber:#b8860b;
+    --info-bg:#e8f1fb; --info-border:#c8ddf0; --info-text:#1d4f7a;
+    --danger-bg:#fff0f0; --danger-border:#e88a8a; --danger-text:#991b1b;
+    --mono:ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.55}
+  .wrap{max-width:760px;margin:0 auto;padding:28px 18px 80px}
+  h1{font-size:24px;margin:0 0 6px}
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin:0 0 4px}
+  h3{font-size:17px;margin:0 0 4px}
+  .lead{color:var(--text-secondary);font-size:15px;margin:0 0 8px}
+  .border-note{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:9px 12px;font-size:13px;color:var(--text-secondary);margin:10px 0 0}
+  .border-note b{color:var(--text)}
+  .part{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px 20px 22px;margin:18px 0}
+  .part-head{border-left:3px solid var(--accent);padding-left:10px;margin-bottom:14px}
+  .part-head .step{font-size:12px;color:var(--text-secondary)}
+  .signal{border-top:1px solid var(--border);padding:16px 0 4px}
+  .signal:first-of-type{border-top:none;padding-top:4px}
+  .sig-why{color:var(--text-secondary);margin:2px 0 10px}
+  .demo{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px}
+  .demo-cap{font-size:11px;color:var(--text-secondary);margin:8px 2px 0}
+  .honest{background:#fff8e6;border:1px solid #f0d99a;border-radius:6px;padding:8px 10px;font-size:12.5px;color:#6b5418;margin-top:8px}
+  .honest b{color:#5a4510}
+  .btn-row{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+  .ctl{font-size:12px;padding:4px 10px;border:1px solid var(--border);background:var(--panel);border-radius:5px;cursor:pointer;color:var(--text)}
+  .ctl:hover{border-color:var(--accent);color:var(--accent)}
+  code{font-family:var(--mono);font-size:12px;background:var(--surface2);padding:0 3px;border-radius:3px}
+
+  /* ── Поставленная нога 1 (контекст аварии) ── */
+  .leg1-box{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:9px 11px;margin-bottom:10px}
+  .leg1-box .tag{font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.04em}
+  .leg1-box .dead{color:var(--red)}
+  .leg1-line{font-family:var(--mono);font-size:12px;margin-top:3px}
+
+  /* ── Recovery panel — вид панели и рендер одного варианта воссозданы из реального сканера (координаты в реестре) ── */
+  .rec{background:var(--panel);border:1px solid var(--danger-border);border-radius:8px;padding:11px}
+  .rec-header{font-size:12px;color:var(--danger-text);font-weight:600;margin-bottom:9px;line-height:1.4}
+  .rec-empty{font-size:12px;color:var(--text-tertiary);font-style:italic;padding:6px 0}
+  .rec-opt{border:1px solid var(--border);border-radius:7px;padding:8px 10px;margin-bottom:7px;background:var(--bg)}
+  .rec-opt:last-child{margin-bottom:0}
+  .rec-opt-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .rec-opt-num{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;font-family:var(--mono);font-size:10px;font-weight:700;border-radius:50%;background:var(--surface2);color:var(--text-secondary);flex-shrink:0}
+  .rec-opt-bk{font-size:12.5px;font-weight:600}
+  /* бейдж надёжности: HIGHEST зелёный (sharp) — HIGH синий (биржа) — MEDIUM серый (обычная) */
+  .rel{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:1px 5px;border-radius:3px;margin-left:auto}
+  .rel--highest{background:rgba(26,138,46,.13);color:var(--green);border:1px solid rgba(26,138,46,.3)}
+  .rel--high{background:var(--info-bg);color:var(--info-text);border:1px solid var(--info-border)}
+  .rel--medium{background:var(--surface2);color:var(--text-secondary);border:1px solid var(--border)}
+  .rel-reason{font-size:11px;color:var(--text-tertiary);margin-top:2px}
+  .rec-opt-stake{font-family:var(--mono);font-size:12px;margin-top:5px}
+  .rec-opt-stake strong{font-size:13px}
+  .rec-pnl{display:flex;gap:14px;font-family:var(--mono);font-size:11px;margin-top:4px}
+  .pnl-pos{color:var(--green)} .pnl-neg{color:var(--red)} .pnl-zero{color:var(--text-secondary)}
+  .rec-risk{font-size:11.5px;color:var(--danger-text);background:var(--danger-bg);border:1px solid var(--danger-border);border-radius:5px;padding:4px 7px;margin-top:5px}
+  .rec-alts{font-size:11px;color:var(--text-secondary);margin-top:4px}
+  .rec-alts summary{cursor:pointer;color:var(--accent)}
+  .rec-prob{font-size:11px;color:var(--text-tertiary);margin-top:3px}
+
+  /* Часть 2 — статичная подсвечиваемая легенда */
+  .part2-grid{display:grid;grid-template-columns:1fr;gap:16px;align-items:start} /* правка приёмки (вёрстка part2-grid): легенда ПОД таблицу (таблица на полную ширину, все 9 колонок видны) */
+  @media(max-width:640px){.part2-grid{grid-template-columns:1fr}}
+  .legend-static{font-size:12.5px}
+  .legend-static .item{padding:7px 9px;border-radius:7px;border:1px solid var(--border);margin-bottom:7px;transition:background .25s,border-color .25s}
+  .legend-static .item.lit{background:var(--hl);border-color:var(--accent)}
+  .legend-static .item b{display:block;font-size:13px;margin-bottom:1px}
+  .legend-static .item span{color:var(--text-secondary)}
+  .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--text-secondary);margin-left:6px;vertical-align:middle;opacity:.25;transition:opacity .25s}
+  .item.lit .dot{opacity:1;background:var(--accent)}
+  .pace{font-size:11px;color:var(--text-secondary);margin:8px 2px 0}
+
+  /* Часть 3 — плотный «как в бою» */
+  .dense .rec-opt{padding:5px 8px;margin-bottom:5px}
+  .dense .rec-opt-stake{margin-top:3px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Recovery — нога слетела</h1>
+  <p class="lead">Решение, которое обслуживает эта функция: <b>«первую ногу я поставил, а вторая ушла, пока я перекрывал — деньги висят в одну сторону без перекрытия. Чем закрыть сейчас, чтобы потеря была минимальной?»</b>. Это момент паники. Сканер отвечает панелью <b>Recovery</b>: находит, чем перекрыть слетевший исход у других контор события, и выкладывает <b>три</b> лучших варианта — отсортированных так, чтобы перекрытие <b>наверняка прошло</b>.</p>
+
+  <div class="border-note"><b>Граница главы.</b> Здесь — что делать, <i>когда нога уже слетела</i>. <i>Сколько</i> ставить для равного профита (пока обе ноги живы) — это калькулятор, отдельная глава. <i>Как</i> пометить контору активной/резервной и что значат звезда/глаз/крестик — это «Мои конторы», тоже отдельная глава.</div>
+
+  <!-- ============ ЧАСТЬ 1 — УЧЁБА ИЗОЛИРОВАННО ============ -->
+  <section class="part">
+    <div class="part-head">
+      <h2>Часть 1 · Учёба</h2>
+      <div class="step">Каждый элемент Recovery по отдельности. Под описанием — своё демо, где работает <i>только этот</i> элемент. Кнопки живые — жми.</div>
+    </div>
+
+    <!-- ① Когда появляется панель -->
+    <div class="signal">
+      <h3>① Когда появляется — «вторая нога умерла»</h3>
+      <p class="sig-why">Панель Recovery не висит постоянно — она возникает <b>только в аварии</b>: пока обе ноги живы, её нет; она появляется в момент, когда первая нога уже стоит, а вторая стала непроставляемой (вызвать вручную — клавиша <b>R</b>). Заголовок сразу напоминает <b>реальную</b> позицию: сколько и по какому кэфу уже поставлено на ногу 1. Жми — из спокойного состояния пара «ломается» и появляется панель.</p>
+      <div class="demo">
+        <div id="d1-leg1"></div>
+        <div id="d1-panel"></div>
+        <div class="btn-row"><button class="ctl" id="d1-toggle">Сломать вторую ногу</button></div>
+      </div>
+      <div class="demo-cap">Пока обе ноги живы — панели нет. Нога 2 умерла → появляется Recovery с реальной позицией в заголовке.</div>
+      <details class="honest"><summary>Тонкость, которую легко упустить — от какого кэфа считается перекрытие</summary>Recovery считает от кэфа <b>реально поставленной</b> ноги 1 — замороженного снимка постановки, а <b>не</b> от живого кэфа уже мёртвой пары. Иначе перекрытие считалось бы на «фантомную» позицию, которой на руках нет.</details>
+    </div>
+
+    <!-- ② Ранжир по надёжности -->
+    <div class="signal">
+      <h3>② Три варианта, отсортированных по НАДЁЖНОСТИ</h3>
+      <p class="sig-why">Сканер перебирает вилки <b>того же события</b> в потоке и находит, чем перекрыть слетевший исход у <i>другой</i> конторы. Из найденного показывает <b>топ-3</b>, и порядок здесь — <b>не по прибыли</b>, а по надёжности конторы: <b>Sharp → Exchange → Regular</b>. Жми «Показать варианты» — наверху окажется не самый выгодный, а самый надёжный.</p>
+      <div class="demo">
+        <div id="d2-panel"></div>
+        <div class="btn-row"><button class="ctl" id="d2-show">Показать варианты</button><button class="ctl" id="d2-sort">Что было бы при сортировке по прибыли</button></div>
+      </div>
+      <div class="demo-cap">HIGHEST (sharp) стоит первым, даже если его денежный результат хуже. Regular с лучшим P&L — внизу.</div>
+      <details class="honest"><summary>Почему надёжность важнее копейки (это в коде, не лозунг)</summary>В аварии уже висит незакрытая позиция. Главное — чтобы перекрытие <b>прошло</b> и контора его приняла; sharp-контора стабильнее, обычная чаще режет/тормозит. Поэтому P&L — лишь тай-брейк <i>внутри</i> одного уровня надёжности («лучший P&L при выигрыше первой ноги»), а не главный критерий.</details>
+    </div>
+
+    <!-- ③ Сумма перекрытия и break-even -->
+    <div class="signal">
+      <h3>③ Сколько ставить — break-even по честному кэфу</h3>
+      <p class="sig-why">Для каждого варианта сканер считает сумму перекрытия так, чтобы на исходе слетевшей ноги результат был <b>ровно ноль</b>. Считает по <b>эффективному</b> кэфу — с учётом комиссии биржи, не по сырому (иначе биржа давала бы ложный «+0.00»). Второе число — что будет, <b>если выиграет первый исход</b>: тут возможен минус, потому что чистый арб уже распался. Жми — появятся обе суммы.</p>
+      <div class="demo">
+        <div id="d3-panel"></div>
+        <div class="btn-row"><button class="ctl" id="d3-show">Посчитать суммы</button></div>
+      </div>
+      <div class="demo-cap">«перекрыть €N» — сумма второй ноги. Ниже два исхода: на слетевшем — ноль (ровное перекрытие), на первом — реальный результат.</div>
+      <details class="honest"><summary>Что Recovery честно НЕ обещает</summary>Это спасение позиции, не гарантированный профит. Ровное перекрытие закрывает <b>один</b> исход в ноль; на другом результат зависит от того, насколько кэф уже ушёл, — нередко это небольшой минус. Задача Recovery — минимизировать потерю, а не «снова сделать вилку».</details>
+    </div>
+
+    <!-- ④ Обогащение -->
+    <div class="signal">
+      <h3>④ Что ещё подсказывает каждый вариант</h3>
+      <p class="sig-why">Под каждой опцией — три подсказки из данных: <b>оценка вероятности</b>, что перекрытие выиграет, прибитая надёжностью конторы; <b>запасные конторы</b> на тот же исход (топ-2), если основная не сработает; и <b>предупреждение словами</b>, где вариант приводит к потере, плюс отметка, если контора из тех, что быстро режут лимиты. Раскрой «запасные» и посмотри предупреждение.</p>
+      <div class="demo">
+        <div id="d4-panel"></div>
+      </div>
+      <div class="demo-cap">⚠️ красным — где вариант теряет и почему. «Вероятность» — оценка с поправкой на тип конторы. «Запасные» — другие конторы того же исхода.</div>
+      <details class="honest"><summary>Честно про «вероятность» — это пока эвристика, не модель</summary>Коэффициенты надёжности (Sharp 0.95 / Exchange 0.92 / Regular 0.85) — это пока <b>набросок-эвристика</b>, не точная модель. Настоящая модель выживаемости строится на 31&nbsp;млн ставок бота в Tipsters. Поэтому «вероятность» — ориентир, а не гарантия; в коде это помечено прямо.</details>
+    </div>
+  </section>
+
+  <!-- ============ ЧАСТЬ 2 — В ЖИВОМ СКАНЕРЕ ============ -->
+  <section class="part">
+    <div class="part-head">
+      <h2>Часть 2 · В живом сканере</h2>
+      <div class="step">Как это в работе: пара живёт, кэфы дёргаются — и вдруг вторая нога умирает. Следи, как появляется панель, а легенда справа подсвечивает, на что смотреть в первую очередь.</div>
+    </div>
+    <div class="part2-grid">
+      <div class="demo">
+        <div id="p2-leg1"></div>
+        <div id="p2-panel"></div>
+        <div class="btn-row"><button class="ctl" id="p2-break">Нога 2 слетела</button><button class="ctl" id="p2-reset">Сброс</button></div>
+      </div>
+      <div class="legend-static">
+        <div class="item" id="lg-trigger"><b>Авария <span class="dot"></span></b><span>нога 2 умерла → панель появилась</span></div>
+        <div class="item" id="lg-rank"><b>Сначала надёжность <span class="dot"></span></b><span>наверху sharp/exchange, не лучший P&L</span></div>
+        <div class="item" id="lg-be"><b>Break-even <span class="dot"></span></b><span>сумма перекрытия → ноль на слетевшем исходе</span></div>
+        <div class="item" id="lg-risk"><b>Предупреждение <span class="dot"></span></b><span>где вариант теряет и какая контора режет лимит</span></div>
+      </div>
+    </div>
+    <div class="pace">Поток замедлен для учёбы. В реальном сканере панель появляется в момент аварии, и решать надо за секунды — поэтому варианты уже отсортированы заранее.</div>
+  </section>
+
+  <!-- ============ ЧАСТЬ 3 — КАК В БОЮ ============ -->
+  <section class="part">
+    <div class="part-head">
+      <h2>Часть 3 · Как в бою</h2>
+      <div class="step">Плотная панель Recovery без подсказок и легенд — так она выглядит в работе, когда нога слетела и решать надо быстро.</div>
+    </div>
+    <div class="demo dense">
+      <div id="p3-leg1"></div>
+      <div id="p3-panel"></div>
+    </div>
+  </section>
+
+  <details class="honest" style="margin-top:18px">
+    <summary>Честно про границы: клик, «свои конторы», демо</summary>
+    <b>Про клик:</b> варианты в панели сейчас <b>показываются, но не кликабельны</b> — перекрытие по варианту ставится руками, как обычная нога. Сделать опции кликабельными — известная доработка, она в списке для программиста, не в этой главе.
+    <br><br>
+    <b>Про «свои конторы»:</b> Recovery перебирает конторы события <b>из текущего потока</b> — отдельного фильтра «только там, где есть депозит» в самом механизме нет. Поэтому держать резервные конторы с депозитом наготове — задача настройки контор (в «Моих конторах»). Принцип DNA: €20 за депозит на резервную контору лучше, чем €500 потери на зависшей ноге — но это про настройку контор, не про сам Recovery.
+    <br><br>
+    <b>Про демо:</b> здесь показан <b>принцип</b> расчёта на синтетических данных. Реальная панель работает на живом потоке вилок события; цифры и логика тут воспроизводят код, а не берут живой поток.
+  </details>
+
+</div>
+
+<script>
+/* ============================================================
+   Recovery — движок учебной главы.
+   Формулы/значения — из кода форка (R-3), см. r3-registry-g7.md:
+     эфф. кэф:      commission>0 ? 1+(odds-1)*(1-commission) : odds   [arbs.ts effectiveOdds]
+     altStake:      leg1Stake/(effAltOdds-1)                          [interpretation.ts:326]
+     outcome1Pnl:   leg1Stake*(effOdds1-1) - altStake                 [:327]
+     outcome2Pnl:   altStake*(effAltOdds-1) - leg1Stake  (≡0)         [:328,430-434]
+     надёжность:    Sharp HIGHEST/0.95, Exchange HIGH/0.92, иначе MEDIUM/0.85  [:330-345; survival-config.ts:12-16]
+     сортировка:    reliabilityRank первично, тай-брейк outcome1Pnl DESC, slice(0,3)  [:424-438]
+     impliedProb:   baseProb*reliabilityFactor, baseProb=(1/altOdds)/((1/altOdds)+(1/odds1))  [:352-353]
+     riskExpl:      outcome1Pnl<-0.01 → «Если выиграет {sel1} — потеряем €{loss}»; fast-fix warning  [:391-407]
+     fast-fix:      bet365.com, Betsson, BetSafe  [survival-config.ts:44]
+   Опции НЕ кликабельны (как в коде, #27 — баг отложен). Math.random не используется.
+   ============================================================ */
+
+const RELIABILITY = { SHARP:0.95, EXCHANGE:0.92, REGULAR:0.85 };   // survival-config.ts:12-16
+const FAST_FIX = ['bet365.com','Betsson','BetSafe'];               // survival-config.ts:44
+const SHARP_BKS = ['pinnacle'];                                     // sharp-кластер (демо)
+const EXCHANGE_BKS = ['betfair'];                                   // биржа (демо)
+
+function effOdds(odds, commission){ return commission > 0 ? 1 + (odds - 1) * (1 - commission) : odds; }
+function isSharp(bk){ return SHARP_BKS.includes(bk); }
+function isExchange(bk){ return EXCHANGE_BKS.includes(bk); }
+function isFastFix(bk){ return FAST_FIX.includes(bk); }
+
+// Точная реплика findAlternativeLegs для слетевшего исхода selection1Dead (interpretation.ts:274-438).
+// deadLeg1: {stake, odds1Placed, sel1}  — реально поставленная нога 1.
+// candidates: [{bk, odds, commission, sel}]  — альтернативы перекрыть мёртвый исход.
+function findAlternatives(deadLeg1, candidates){
+  const effOdds1 = effOdds(deadLeg1.odds1Placed, 0);             // нога 1 — soft БК, комиссии нет
+  const out = [];
+  for (const c of candidates){
+    const effAlt = effOdds(c.odds, c.commission);
+    if (effAlt <= 1) continue;
+    const altStake = deadLeg1.stake / (effAlt - 1);              // :326
+    const outcome1Pnl = deadLeg1.stake * (effOdds1 - 1) - altStake;  // :327
+    const outcome2Pnl = altStake * (effAlt - 1) - deadLeg1.stake;    // :328 (≡0)
+    // reliabilityReason — РЕАЛЬНОЕ поле кода (interpretation.ts:335,339,343),
+    // рендерится в calc-recovery-option-reliability-reason (calculator-pair-tracking.vue:209-211).
+    let reliability, factor, reliabilityReason;
+    if (isSharp(c.bk)){ reliability='HIGHEST'; factor=RELIABILITY.SHARP; reliabilityReason='Sharp БК '+c.bk; }
+    else if (isExchange(c.bk)){ reliability='HIGH'; factor=RELIABILITY.EXCHANGE; reliabilityReason='Exchange '+c.bk; }
+    else { reliability='MEDIUM'; factor=RELIABILITY.REGULAR; reliabilityReason='Regular BK '+c.bk; }
+    const baseProb = (1/c.odds) / ((1/c.odds) + (1/deadLeg1.odds1Placed));   // :352
+    const impliedProbability = baseProb * factor;                           // :353
+    let risk = null;                                                        // :391-407
+    if (outcome1Pnl < -0.01){
+      risk = `Если выиграет ${deadLeg1.sel1} — потеряем €${Math.abs(outcome1Pnl).toFixed(2)}`;
+      if (isFastFix(c.bk)) risk += `. Также: ${c.bk} — БК с быстрым fix лимитов.`;
+    } else if (isFastFix(c.bk)){
+      risk = `Риск: ${c.bk} — БК с быстрым fix, может зарезать лимит до постановки.`;
+    }
+    out.push({ bk:c.bk, odds:c.odds, sel:c.sel, altStake, outcome1Pnl, outcome2Pnl,
+               reliability, reliabilityReason, impliedProbability, alts:c.alts||[], risk });
+  }
+  const rank = { HIGHEST:0, HIGH:1, MEDIUM:2 };                  // :424
+  out.sort((a,b)=>{ const r = rank[a.reliability]-rank[b.reliability]; return r!==0 ? r : b.outcome1Pnl - a.outcome1Pnl; }); // :425-435
+  return out.slice(0,3);                                        // :438
+}
+
+function relClass(r){ return r==='HIGHEST'?'rel--highest':r==='HIGH'?'rel--high':'rel--medium'; }
+function pnlClass(v){ return Math.abs(v)<0.01?'pnl-zero':(v>0?'pnl-pos':'pnl-neg'); }
+// формат PnL 1-в-1 с реальным рендером (calculator-pair-tracking.vue:196,200): «+12.00 EUR» / «-5.00 EUR»
+function pnlFmt(v){ return (v>=0?'+':'')+v.toFixed(2)+' EUR'; }
+
+// рендер одной опции recovery — ВИД 1-в-1 с реальным сканером (calculator-pair-tracking.vue:163-211):
+// Option N · {bk} @ {odds} · ★ {reliability} • Implied {prob}% · Selection · Place {stake} EUR — break-even · PnL
+// · reliabilityReason «Sharp БК / Exchange / Regular BK {bk}» (последний — РЕАЛЬНОЕ поле кода
+// interpretation.ts:335,339,343, рендер calc-recovery-option-reliability-reason :209-211, идёт В КОНЦЕ варианта).
+function optHtml(o, idx, opts){
+  opts = opts || {};
+  const alts = (o.alts.length && opts.showAlts)
+    ? `<details class="rec-alts"><summary>Альтернативные БК (${o.alts.length})</summary>${o.alts.map(a=>`${a.bk} @ ${a.odds.toFixed(2)}`).join(' · ')}</details>` : '';
+  const risk = (opts.showRisk && o.risk) ? `<div class="rec-risk">⚠️ ${o.risk}</div>` : '';
+  const stake = opts.showStake ? `<div class="rec-opt-stake">Place <strong>${o.altStake.toFixed(0)} EUR</strong> — break-even на outcome 2</div>
+      <div class="rec-pnl"><span class="${pnlClass(o.outcome1Pnl)}">Если Leg 1 wins: ${pnlFmt(o.outcome1Pnl)}</span> · <span class="${pnlClass(o.outcome2Pnl)}">Если alt-Leg wins: ${pnlFmt(o.outcome2Pnl)}</span></div>` : '';
+  return `<div class="rec-opt">
+    <div class="rec-opt-head">
+      <span class="rec-opt-num">Option ${idx+1}</span>
+      <span class="rec-opt-bk">${o.bk} @ ${o.odds.toFixed(2)}</span>
+      <span class="rel ${relClass(o.reliability)}">★ ${o.reliability} • Implied ${(o.impliedProbability*100).toFixed(1)}%</span>
+    </div>
+    <div class="rec-opt-selection">Selection: ${o.sel}</div>
+    ${stake}${alts}${risk}
+    <div class="rel-reason">${o.reliabilityReason}</div>
+  </div>`;
+}
+
+function panelHtml(opts, header, list){
+  const body = list.length ? list.map((o,i)=>optHtml(o,i,opts)).join('') : `<div class="rec-empty">нет вариантов перекрытия в потоке</div>`;
+  return `<div class="rec"><div class="rec-header">${header}</div>${body}</div>`;
+}
+
+function leg1Html(state){
+  // state: 'alive' | 'dead'
+  const tag = state==='dead' ? `<span class="tag dead">● Leg 2 dead</span>` : `<span class="tag">● пара жива</span>`;
+  return `<div class="leg1-box">${tag}
+    <div class="leg1-line">Leg 1: bet365 €500 @ 1.95 → ТБ 2.5 &nbsp; <span style="color:var(--text-tertiary)">(поставлена)</span></div>
+    <div class="leg1-line">Leg 2: ${state==='dead'?'<span style="color:var(--red)">ТМ 2.5 — ушла, не проставить</span>':'ТМ 2.5 @ 2.06 (ещё живо)'}</div>
+  </div>`;
+}
+
+// Синтетический сценарий аварии (реальные числа прогоняются через findAlternatives)
+const DEAD = { stake:500, odds1Placed:1.95, sel1:'ТБ 2.5' };
+const CANDS = [
+  { bk:'pinnacle',  odds:2.02, commission:0,    sel:'ТМ 2.5', alts:[{bk:'betonline',odds:1.98}] }, // sharp → HIGHEST
+  { bk:'betfair',   odds:2.10, commission:0.05, sel:'ТМ 2.5', alts:[{bk:'matchbook',odds:2.04}] }, // exchange (5%) → HIGH
+  { bk:'bet365.com',odds:2.08, commission:0,    sel:'ТМ 2.5', alts:[] }                            // regular + fast-fix → MEDIUM: лучший P&L, но внизу по надёжности + warning (edge-case :404)
+];
+const HEADER = '⚠️ Leg 2 dead. Recovery options for 500 EUR на Leg 1 (bet365 @ 1.95 → ТБ 2.5):';
+const RESULT = findAlternatives(DEAD, CANDS);   // топ-3 по надёжности
+
+/* ---------- ① Когда появляется ---------- */
+(function trigger(){
+  const l1 = document.getElementById('d1-leg1'), pan = document.getElementById('d1-panel'), btn = document.getElementById('d1-toggle');
+  let dead = false;
+  function draw(){
+    l1.innerHTML = leg1Html(dead ? 'dead' : 'alive');
+    pan.innerHTML = dead ? panelHtml({}, HEADER, RESULT) : '';   // без деталей — только факт появления
+    btn.textContent = dead ? 'Вернуть «пара жива»' : 'Сломать вторую ногу';
+  }
+  draw(); btn.onclick = ()=>{ dead = !dead; draw(); };
+})();
+
+/* ---------- ② Ранжир по надёжности ---------- */
+(function rank(){
+  const pan = document.getElementById('d2-panel');
+  const byProfit = [...RESULT].sort((a,b)=>b.outcome1Pnl - a.outcome1Pnl);  // контр-пример: «если бы по прибыли»
+  let mode = null;
+  document.getElementById('d2-show').onclick = ()=>{ mode='rel'; pan.innerHTML = panelHtml({}, 'По надёжности (как в сканере):', RESULT); };
+  document.getElementById('d2-sort').onclick = ()=>{ mode='profit'; pan.innerHTML = panelHtml({showStake:true}, 'Если бы сортировали по прибыли (так НЕ делается):', byProfit); };
+})();
+
+/* ---------- ③ Суммы и break-even ---------- */
+(function stakes(){
+  const pan = document.getElementById('d3-panel');
+  document.getElementById('d3-show').onclick = ()=>{ pan.innerHTML = panelHtml({showStake:true}, HEADER, RESULT); };
+})();
+
+/* ---------- ④ Обогащение ---------- */
+(function enrich(){
+  document.getElementById('d4-panel').innerHTML = panelHtml({showStake:true, showProb:true, showAlts:true, showRisk:true}, HEADER, RESULT);
+})();
+
+/* ---------- Часть 2 — авария в живом потоке + подсветка легенды ---------- */
+(function live(){
+  const l1 = document.getElementById('p2-leg1'), pan = document.getElementById('p2-panel');
+  const bBreak = document.getElementById('p2-break'), bReset = document.getElementById('p2-reset');
+  function lit(id){ const e=document.getElementById(id); if(!e)return; e.classList.add('lit'); setTimeout(()=>e.classList.remove('lit'),1300); }
+  function alive(){ l1.innerHTML = leg1Html('alive'); pan.innerHTML=''; }
+  alive();
+  bBreak.onclick = ()=>{
+    l1.innerHTML = leg1Html('dead');
+    pan.innerHTML = panelHtml({showStake:true, showProb:true, showRisk:true}, HEADER, RESULT);
+    lit('lg-trigger');
+    setTimeout(()=>lit('lg-rank'),700);
+    setTimeout(()=>lit('lg-be'),1500);
+    setTimeout(()=>lit('lg-risk'),2300);
+  };
+  bReset.onclick = alive;
+})();
+
+/* ---------- Часть 3 — плотный «как в бою» ---------- */
+(function boy(){
+  document.getElementById('p3-leg1').innerHTML = leg1Html('dead');
+  document.getElementById('p3-panel').innerHTML = panelHtml({showStake:true, showRisk:true}, HEADER, RESULT);
+})();
+</script>
+</body>
+</html>
