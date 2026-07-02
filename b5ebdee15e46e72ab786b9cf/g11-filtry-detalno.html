@@ -14,27 +14,39 @@
     --surv-med:#d97706;  --surv-med-bg:rgba(217,119,6,.06);
     --surv-low:#dc2626;  --surv-low-bg:rgba(220,38,38,.06);
     --bar:#93c5cf; --bar-cut:#e0e0e0; --pending:#bbb;
+    /* слой-2 (каркас страницы + учебные плашки) — дизайн-система учебника */
+    --ink:#14161a;
+    --paper:#f7f7f5;
+    --hairline:#e7e7e4;
+    --note-bg:#fff8e6; --note-border:#f0d99a; --note-text:#6b5418;
+    --shadow-1:0 1px 2px rgba(20,22,26,.05);
+    --shadow-2:0 4px 16px rgba(20,22,26,.06);
+    --r-panel:12px; --r-block:8px;
+    --font-display:"Avenir Next","Segoe UI",system-ui,sans-serif;
   }
   *{box-sizing:border-box}
-  body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.55}
+  html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+  body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--paper);color:var(--text);font-size:15px;line-height:1.6}
   .wrap{max-width:780px;margin:0 auto;padding:28px 18px 80px}
-  h1{font-size:24px;margin:0 0 6px}
-  h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin:0 0 4px}
-  h3{font-size:17px;margin:0 0 4px}
-  .lead{color:var(--text-secondary);font-size:15px;margin:0 0 8px}
+  h1{font-size:28px;margin:0 0 6px;font-family:var(--font-display);font-weight:700;letter-spacing:-0.01em;text-wrap:balance}
+  h1::after{content:"";display:block;width:120px;height:3px;margin-top:10px;border-radius:2px;background:linear-gradient(90deg,var(--surv-high) 0 33%,var(--surv-med) 33% 66%,var(--surv-low) 66% 100%)} /* risk-ribbon */
+  h2{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink);font-weight:700;margin:0 0 4px}
+  h3{font-size:18px;margin:0 0 4px;font-family:var(--font-display);font-weight:600;text-wrap:balance}
+  .lead{color:var(--text-secondary);font-size:16px;margin:0 0 8px;text-wrap:pretty}
   .block-band{margin:22px 0 2px;font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--accent);font-weight:700;border-bottom:1px solid var(--border);padding-bottom:4px}
   .block-band.pending{color:var(--text-secondary)}
-  .part{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px 20px 22px;margin:14px 0}
+  .part{background:var(--panel);border:1px solid var(--hairline);border-radius:var(--r-panel);padding:20px 20px 22px;margin:14px 0;box-shadow:var(--shadow-1),var(--shadow-2)}
   .part-head{border-left:3px solid var(--accent);padding-left:10px;margin-bottom:14px}
+  .part-head{border-image:linear-gradient(180deg,var(--surv-high),var(--surv-med),var(--surv-low)) 1} /* risk-ribbon */
   .part-head .step{font-size:12px;color:var(--text-secondary)}
   .signal{border-top:1px solid var(--border);padding:16px 0 4px}
   .signal:first-of-type{border-top:none;padding-top:4px}
-  .sig-why{color:var(--text-secondary);margin:2px 0 10px}
-  .demo{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px}
+  .sig-why{color:var(--text-secondary);font-size:14px;margin:2px 0 10px;text-wrap:pretty}
+  .demo{background:var(--paper);border:1px solid var(--border);border-radius:var(--r-block);padding:10px;overflow-x:auto} /* mobile: клип колонки возраста — таблица скроллится, не режется краем экрана */
   .demo-cap{font-size:11px;color:var(--text-secondary);margin:6px 2px 0}
-  .honest{background:#fff8e6;border:1px solid #f0d99a;border-radius:6px;padding:8px 10px;font-size:12.5px;color:#6b5418;margin-top:8px}
-  .honest b{color:#5a4510}
-  details.honest summary{cursor:pointer;font-weight:600;color:#5a4510}
+  .honest{background:var(--note-bg);border:1px solid var(--note-border);border-radius:var(--r-block);padding:8px 10px;font-size:12.5px;color:var(--note-text);margin-top:8px}
+  .honest b{color:var(--note-text)}
+  details.honest summary{cursor:pointer;font-weight:600;color:var(--note-text)}
   details.honest[open] summary{margin-bottom:5px}
   button{font-family:inherit}
   .fo-section{border:1px solid var(--border);border-radius:7px;padding:9px 11px;background:var(--panel)}
@@ -76,7 +88,7 @@
   /* строки сканера (фон демо) */
   table.scan{width:100%;border-collapse:collapse}
   table.scan th{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-secondary);text-align:left;padding:4px 6px;border-bottom:1px solid var(--border)}
-  table.scan td{padding:5px 6px;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums}
+  table.scan td{padding:5px 6px;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums;font-size:14px}
   table.scan.dense td{padding:2px 6px;font-size:13px}
   .surv-high td:first-child{border-left:4px solid var(--surv-high)}
   .surv-medium td:first-child{border-left:4px solid var(--surv-med)}
@@ -100,13 +112,13 @@
 <div class="wrap">
 
   <h1>Фильтры детально — тонкая настройка потока</h1>
-  <p class="lead">Решение, которое обслуживает эта функция: <b>«пресет дал грубый режим — теперь отрезать ровно то, на что охочусь сегодня»</b>. Пресет (соседняя глава) переключает весь профиль одним движением; детальные фильтры — это сами рычаги под ним: порог процента, возраст, типы рынка, лиги, рисковые. Здесь две части. Сначала — рычаги, что режут поток <b>уже сейчас</b>. Потом честно — рычаги, что стоят в панели, но <b>включатся с бэкендом</b>: их видно, чтобы не дёргать пустое.</p>
+  <p class="lead">Решение, которое обслуживает эта функция: <b>«пресет дал грубый режим — теперь отрезать ровно то, на что охочусь сегодня»</b>. Пресет (соседняя глава) переключает весь профиль одним движением; детальные фильтры — это сами рычаги под ним: порог процента, возраст, типы рынка, лиги, рисковые. Здесь две части. Сначала — рычаги, что режут поток <b>уже сейчас</b>. Потом честно — рычаги, что стоят в панели, но <b>включатся с живыми данными</b>: их видно, чтобы не дёргать пустое.</p>
 
   <!-- ============ ЧАСТЬ 1 — УЧЁБА ============ -->
   <section class="part">
     <div class="part-head">
       <h2>Часть 1 · Учёба</h2>
-      <div class="step">Каждый рычаг по отдельности, со своим демо. Сначала рабочие — они режут поток прямо здесь; ниже отдельным блоком те, что ждут бэкенда.</div>
+      <div class="step">Каждый рычаг по отдельности, со своим демо. Сначала рабочие — они режут поток прямо здесь; ниже отдельным блоком те, что ждут живых данных.</div>
     </div>
 
     <div class="block-band">A · Рычаги, что режут поток сейчас</div>
@@ -159,9 +171,9 @@
       <div class="demo"><div class="fo-section"><div class="fo-checks">
         <label class="fo-check"><input type="checkbox" checked> 2-way <span class="demo-cap" style="margin:0">(Total / Handicap / Match Winner / Spread)</span></label>
         <label class="fo-check"><input type="checkbox" checked> 3-way <span class="demo-cap" style="margin:0">(1X2)</span></label>
-        <label class="fo-check disabled"><input type="checkbox" disabled> 4-way <span class="pending-tag">после бэкенда</span></label>
+        <label class="fo-check disabled"><input type="checkbox" disabled> 4-way <span class="pending-tag">после подключения живых данных</span></label>
       </div></div></div>
-      <div class="demo-cap">2-way и 3-way режут поток сейчас; 4-way появится, когда бэкенд начнёт собирать такие вилки.</div>
+      <div class="demo-cap">2-way и 3-way режут поток сейчас; 4-way появится, когда сервер начнёт собирать такие вилки.</div>
     </div>
 
     <div class="signal">
@@ -176,19 +188,19 @@
           <label class="fo-check"><input type="checkbox" checked> Different Books only — только разные конторы (не две ноги на одной группе — бан-риск)</label>
           <label class="fo-check"><input type="checkbox"> Min liquidity ($) — отсечь биржи с малой публичной ликвидностью (объём не закрыть)</label>
           <label class="fo-check"><input type="checkbox" checked> Remove duplicates · Exclude impossible — технические чистки, включены сразу</label>
-          <label class="fo-check disabled"><input type="checkbox" disabled> Same Rules only — только совпадающие правила расчёта <span class="pending-tag">ждёт бэкенда</span></label>
+          <label class="fo-check disabled"><input type="checkbox" disabled> Same Rules only — только совпадающие правила расчёта <span class="pending-tag">ждёт живых данных</span></label>
         </div>
         <div class="counter" id="d-safety-cnt"></div></div></div>
-      <div class="demo-cap">Первые три (hide-бейджи) — отметь, строки с бейджем уходят из мини-потока (та же логика, что бейджи в главе «Цвета и риски»). Different Books и Min liquidity режут по конторам и ликвидности; две чистки включены по умолчанию. «Same Rules only» серый — это тоже защитный отрез, но ждёт бэкенда (см. блок B): признак совпадения правил пока не приходит в поток.</div>
+      <div class="demo-cap">Первые три (hide-бейджи) — отметь, строки с бейджем уходят из мини-потока (та же логика, что бейджи в главе «Цвета и риски»). Different Books и Min liquidity режут по конторам и ликвидности; две чистки включены по умолчанию. «Same Rules only» серый — это тоже защитный отрез, но ждёт живых данных (см. блок B): признак совпадения правил пока не приходит в поток.</div>
     </div>
 
-    <div class="block-band pending">B · Рычаги, что ждут бэкенда (видно, но пока пусто)</div>
+    <div class="block-band pending">B · Рычаги, что ждут живых данных (видно, но пока пусто)</div>
 
     <div class="signal">
       <h3>⑦ Live / Prematch и фильтры по времени</h3>
       <p class="sig-why">Целая секция рычагов: только live или только prematch, до перерыва, до начала матча, по равному счёту. Сейчас вся она неактивна — этих данных нет в потоке, они придут с расширением. Видеть её важно: рычаг существует, но дёргать его пока нечего.</p>
       <div class="demo"><div class="fo-section pending-box">
-        <div class="fo-title">Live / Prematch <span class="pending-tag">ждёт бэкенда</span></div>
+        <div class="fo-title">Live / Prematch <span class="pending-tag">ждёт живых данных</span></div>
         <div class="mode-sw"><button disabled>live</button><button disabled>prematch</button><button class="on" disabled>both</button></div>
         <div class="fo-checks" style="flex-direction:column;margin-top:6px">
           <label class="fo-check disabled"><input type="checkbox" disabled> Show breaks</label>
