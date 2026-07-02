@@ -94,6 +94,7 @@
   /* легенда части 2 */
   .part2-grid{display:grid;grid-template-columns:1fr;gap:16px;align-items:start} /* правка приёмки (вёрстка part2-grid): легенда ПОД таблицу (таблица на полную ширину, все 9 колонок видны) */
   @media(max-width:680px){.part2-grid{grid-template-columns:1fr}}
+  #p2table td{padding:5px 4px} #p2table th{padding:4px 4px} /* десктоп-клип возраста Части 2: бейджи раздували событие, таблица 754px не влезала в 740 — паддинги компактнее, возраст виден в покое (санкция «лечится разметкой») */
   .legend-static{font-size:12.5px;display:grid;grid-template-columns:1fr 1fr;gap:6px} /* карточки легенды сжаты в 2 колонки (огрех qa-log пилота P2) */
   @media(max-width:560px){.legend-static{grid-template-columns:1fr}}
   .legend-static .item{padding:6px 9px;border-radius:7px;border:1px solid var(--border);margin-bottom:0;transition:background .25s,border-color .25s}
