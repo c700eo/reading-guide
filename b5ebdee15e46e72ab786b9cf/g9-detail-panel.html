@@ -15,26 +15,35 @@
     --surv-med:#d97706;  --surv-med-bg:rgba(217,119,6,.06);
     --surv-low:#dc2626;  --surv-low-bg:rgba(220,38,38,.06);
     --warn-conflict:#b45309; --warn-samegame:#7c3aed;
+    /* слой-2 (каркас учебника) — значения СОБСТВЕННЫЕ для g9, источник вместо россыпи */
+    --ink:#14161a; --paper:#f7f7f5; --hairline:#e7e7e4;
+    --note-bg:#fff8e6; --note-border:#f0d99a; --note-text:#6b5418;
+    --shadow-1:0 1px 2px rgba(20,22,26,.05); --shadow-2:0 4px 16px rgba(20,22,26,.06);
+    --r-panel:12px; --r-block:8px;
+    --font-display:"Avenir Next","Segoe UI",system-ui,sans-serif;
   }
   *{box-sizing:border-box}
-  body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.55}
+  html{font-size:15px;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+  body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--paper);color:var(--text);font-size:15px;line-height:1.6}
   .wrap{max-width:780px;margin:0 auto;padding:28px 18px 80px}
-  h1{font-size:24px;margin:0 0 6px}
-  h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin:0 0 4px}
-  h3{font-size:17px;margin:0 0 4px}
-  .lead{color:var(--text-secondary);font-size:15px;margin:0 0 8px}
-  .block-band{margin:22px 0 2px;font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--accent);font-weight:700;border-bottom:1px solid var(--border);padding-bottom:4px}
-  .part{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px 20px 22px;margin:14px 0}
+  h1{font-size:28px;margin:0 0 6px;font-weight:700;font-family:var(--font-display);letter-spacing:-0.01em;text-wrap:balance}
+  h1::after{content:"";display:block;width:120px;height:3px;margin-top:10px;border-radius:2px;background:linear-gradient(90deg,var(--surv-high) 0 33%,var(--surv-med) 33% 66%,var(--surv-low) 66% 100%)} /* risk-ribbon */
+  h2{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink);margin:0 0 4px;font-weight:700}
+  h3{font-size:18px;margin:0 0 4px;font-weight:600;font-family:var(--font-display);text-wrap:balance}
+  .lead{color:var(--text-secondary);font-size:16px;margin:0 0 8px;text-wrap:pretty}
+  .block-band{margin:22px 0 2px;font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink);font-weight:700;border-bottom:1px solid var(--border);padding-bottom:4px}
+  .part{background:var(--panel);border:1px solid var(--hairline);border-radius:var(--r-panel);padding:20px 20px 22px;margin:14px 0;box-shadow:var(--shadow-1),var(--shadow-2)}
   .part-head{border-left:3px solid var(--accent);padding-left:10px;margin-bottom:14px}
+  .part-head{border-image:linear-gradient(180deg,var(--surv-high),var(--surv-med),var(--surv-low)) 1} /* risk-ribbon */
   .part-head .step{font-size:12px;color:var(--text-secondary)}
   .signal{border-top:1px solid var(--border);padding:16px 0 4px}
   .signal:first-of-type{border-top:none;padding-top:4px}
-  .sig-why{color:var(--text-secondary);margin:2px 0 10px}
-  .demo{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px}
+  .sig-why{color:var(--text-secondary);margin:2px 0 10px;font-size:14px;text-wrap:pretty}
+  .demo{background:var(--paper);border:1px solid var(--border);border-radius:var(--r-block);padding:10px;overflow-x:auto} /* mobile: клип колонки возраста — таблица скроллится, не режется краем экрана */
   .demo-cap{font-size:11px;color:var(--text-secondary);margin:6px 2px 0}
-  .honest{background:#fff8e6;border:1px solid #f0d99a;border-radius:6px;padding:8px 10px;font-size:12.5px;color:#6b5418;margin-top:8px}
-  .honest b{color:#5a4510}
-  details.honest summary{cursor:pointer;font-weight:600;color:#5a4510}
+  .honest{background:var(--note-bg);border:1px solid var(--note-border);border-radius:var(--r-block);padding:8px 10px;font-size:12.5px;color:var(--note-text);margin-top:8px}
+  .honest b{color:var(--note-text)}
+  details.honest summary{cursor:pointer;font-weight:600;color:var(--note-text)}
   details.honest[open] summary{margin-bottom:5px}
   button{font-family:inherit}
 
@@ -102,7 +111,7 @@
   /* строки сканера (фон демо) — survival-границы из форка */
   table.scan{width:100%;border-collapse:collapse}
   table.scan th{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-secondary);text-align:left;padding:4px 6px;border-bottom:1px solid var(--border)}
-  table.scan td{padding:5px 6px;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums}
+  table.scan td{padding:5px 6px;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums;font-size:14px}
   table.scan.dense td{padding:2px 6px;font-size:13px}
   .scan tr.row{cursor:pointer}
   .scan tr.row.sel{background:var(--hl)}
@@ -190,7 +199,7 @@
         <div class="grid-foot" id="d-grid-foot"></div>
       </div></div></div>
       <div class="demo-cap">Переключай вкладки: BEST — три лучшие конторы по каждому исходу; AVERAGE — отклонение каждой от среднего (зелёное = выгоднее); ALL — весь список. ★ = sharp/fair-ориентир (Pinnacle), EX = биржа (цена после комиссии).</div>
-      <details class="honest"><summary>Что здесь наше, а что придёт с бэкенда</summary>Вкладки, подсветка лучшей цены и расчёт отклонения от среднего работают <b>уже сейчас</b> — это формула, она одинакова на любом списке. Сам список контор по конкретному рынку пока берётся из синтетического набора: реальный поток «все книги этого события» подключается на стороне бэкенда. То есть механизм наш и живой, а конкретные конторы в списке — после интеграции.</details>
+      <details class="honest"><summary>Что здесь наше, а что придёт с сервера</summary>Вкладки, подсветка лучшей цены и расчёт отклонения от среднего работают <b>уже сейчас</b> — это формула, она одинакова на любом списке. Сам список контор по конкретному рынку пока берётся из синтетического набора: реальный поток «все книги этого события» подключается на стороне сервера. То есть механизм наш и живой, а конкретные конторы в списке — после интеграции.</details>
     </div>
 
     <div class="signal">
