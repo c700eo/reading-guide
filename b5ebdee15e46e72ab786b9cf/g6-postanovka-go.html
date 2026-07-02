@@ -15,26 +15,37 @@
     --info-bg:#e8f1fb; --info-border:#c8ddf0; --info-text:#1d4f7a;   /* index.css info (купон) */
     --danger-bg:#fff0f0; --danger-border:#e88a8a; --danger-text:#991b1b; /* index.css danger (suspended) */
     --mono:ui-monospace,Menlo,monospace;
+    /* слой-1 survival-триада (значения продукта) — под risk-ribbon */
+    --surv-high:#16a34a; --surv-med:#ca8a04; --surv-low:#dc2626;
+    /* слой-2 — каркас страницы + учебные плашки (перенос дизайн-паттерна) */
+    --ink:#14161a; --paper:#f7f7f5; --hairline:#e7e7e4;
+    --note-bg:#fff8e6; --note-border:#f0d99a; --note-text:#6b5418;   /* honest-семейство: СОБСТВЕННЫЕ hex g6 (было россыпью в .honest) */
+    --shadow-1:0 1px 2px rgba(20,22,26,.05); --shadow-2:0 4px 16px rgba(20,22,26,.06);
+    --r-panel:12px; --r-block:8px;
+    --font-display:"Avenir Next","Segoe UI",system-ui,sans-serif;
   }
   *{box-sizing:border-box}
-  body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.55}
+  html{font-size:15px;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+  body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--paper);color:var(--text);font-size:15px;line-height:1.6}
   .wrap{max-width:760px;margin:0 auto;padding:28px 18px 80px}
-  h1{font-size:24px;margin:0 0 6px}
-  h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin:0 0 4px}
-  h3{font-size:17px;margin:0 0 4px}
-  .lead{color:var(--text-secondary);font-size:15px;margin:0 0 8px}
-  .border-note{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:9px 12px;font-size:13px;color:var(--text-secondary);margin:10px 0 0}
+  h1{font-size:28px;margin:0 0 6px;font-family:var(--font-display);font-weight:700;letter-spacing:-0.01em;text-wrap:balance}
+  h1::after{content:"";display:block;width:120px;height:3px;margin-top:10px;border-radius:2px;background:linear-gradient(90deg,var(--surv-high) 0 33%,var(--surv-med) 33% 66%,var(--surv-low) 66% 100%)} /* risk-ribbon */
+  h2{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink);margin:0 0 4px;font-weight:700}
+  h3{font-size:18px;margin:0 0 4px;font-family:var(--font-display);font-weight:600;text-wrap:balance}
+  .lead{color:var(--text-secondary);font-size:16px;margin:0 0 8px;text-wrap:pretty}
+  .border-note{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-block);padding:9px 12px;font-size:13px;color:var(--text-secondary);margin:10px 0 0}
   .border-note b{color:var(--text)}
-  .part{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px 20px 22px;margin:18px 0}
+  .part{background:var(--panel);border:1px solid var(--hairline);border-radius:var(--r-panel);padding:20px 20px 22px;margin:18px 0;box-shadow:var(--shadow-1),var(--shadow-2)}
   .part-head{border-left:3px solid var(--accent);padding-left:10px;margin-bottom:14px}
+  .part-head{border-image:linear-gradient(180deg,var(--surv-high),var(--surv-med),var(--surv-low)) 1} /* risk-ribbon */
   .part-head .step{font-size:12px;color:var(--text-secondary)}
   .signal{border-top:1px solid var(--border);padding:16px 0 4px}
   .signal:first-of-type{border-top:none;padding-top:4px}
-  .sig-why{color:var(--text-secondary);margin:2px 0 10px}
-  .demo{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px}
+  .sig-why{color:var(--text-secondary);margin:2px 0 10px;font-size:14px;text-wrap:pretty}
+  .demo{background:var(--paper);border:1px solid var(--hairline);border-radius:var(--r-block);padding:12px;overflow-x:auto} /* mobile: клип колонки возраста — таблица скроллится, не режется краем экрана */
   .demo-cap{font-size:11px;color:var(--text-secondary);margin:8px 2px 0}
-  .honest{background:#fff8e6;border:1px solid #f0d99a;border-radius:6px;padding:8px 10px;font-size:12.5px;color:#6b5418;margin-top:8px}
-  .honest b{color:#5a4510}
+  .honest{background:var(--note-bg);border:1px solid var(--note-border);border-radius:var(--r-block);padding:8px 10px;font-size:12.5px;color:var(--note-text);margin-top:8px}
+  .honest b{color:var(--note-text)}
   .btn-row{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
   .ctl{font-size:12px;padding:4px 10px;border:1px solid var(--border);background:var(--panel);border-radius:5px;cursor:pointer;color:var(--text)}
   .ctl:hover{border-color:var(--accent);color:var(--accent)}
@@ -81,8 +92,9 @@
   /* Часть 2 — статичная подсвечиваемая легенда (как в эталоне survival) */
   .part2-grid{display:grid;grid-template-columns:1fr;gap:16px;align-items:start} /* правка приёмки (вёрстка part2-grid): легенда ПОД таблицу (таблица на полную ширину, все 9 колонок видны) */
   @media(max-width:640px){.part2-grid{grid-template-columns:1fr}}
-  .legend-static{font-size:12.5px}
-  .legend-static .item{padding:7px 9px;border-radius:7px;border:1px solid var(--border);margin-bottom:7px;transition:background .25s,border-color .25s}
+  .legend-static{font-size:12.5px;display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  @media(max-width:560px){.legend-static{grid-template-columns:1fr}}
+  .legend-static .item{padding:7px 9px;border-radius:7px;border:1px solid var(--border);transition:background .25s,border-color .25s}
   .legend-static .item.lit{background:var(--hl);border-color:var(--accent)}
   .legend-static .item b{display:block;font-size:13px;margin-bottom:1px}
   .legend-static .item span{color:var(--text-secondary)}
@@ -202,7 +214,7 @@
   <details class="honest" style="margin-top:18px"><summary>Честно про «уникальность» и про демо</summary>
     <b>Про «уникальность»:</b> двусторонний путь — расширение кладёт исход в купон и читает купон обратно — <b>не</b> «такого нет ни у кого». Похожий путь у конкурентов есть (например arbhelp у BetBurger). Уникальность не заявляется. Что точно по коду: GO несёт только событие и букмекера, без суммы; сумму и финальный приём ставят вручную.
     <br><br>
-    <b>Про демо:</b> здесь показан <b>принцип</b>. Сам путь GO→купон работает только когда установлено расширение в антидетект-браузере с залогиненными БК (frontend → backend → расширение). Без этой связки кнопка ничего не отправит — в коде на этот случай честный отказ («ставка НЕ отправлена»). Кнопки в этой главе воспроизводят логику, а не шлют реальный gRPC.
+    <b>Про демо:</b> здесь показан <b>принцип</b>. Сам путь GO→купон работает только когда установлено расширение в антидетект-браузере с залогиненными БК (сканер → сервер → расширение). Без этой связки кнопка ничего не отправит — в коде на этот случай честный отказ («ставка НЕ отправлена»). Кнопки в этой главе воспроизводят логику, а не шлют реальную команду на сервер.
   </details>
 
 </div>
