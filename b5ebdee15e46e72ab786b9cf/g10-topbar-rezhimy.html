@@ -303,7 +303,8 @@ function formatOdds(dec, fmt){
 // ── Процент вилки = функция кэфов (R-3: воспроизведено из data/arbs.ts:209 → const value = (1 - 1/o1 - 1/o2) * 100) ──
 // Кэф первичен, процент — следствие: дёргаются кэфы → процент пересчитывается из них (правка-3 приёмки).
 function arbPct(o1,o2){ return (1 - 1/o1 - 1/o2) * 100; }
-// ── Survival-уровень по надёжности контор (survival-config.ts: SHARP 0.95 > EXCHANGE 0.92 > REGULAR 0.85) ──
+// ── Survival-уровень строки = прогноз выживаемости (computeSurvivalLevel: сигналы движения кэфов/маржи/типа контор пары).
+//    Числа 0.95/0.92/0.85 (RELIABILITY_FACTORS) — веса recovery-перекрытия, в цвете границы НЕ участвуют (правка П-14). ──
 function survLevel(bk1,bk2){
   const sharp=['pinnacle','betonline'], weak=['1xbet','lottoland'];
   if(weak.includes(bk1)||weak.includes(bk2)) return 'low';    // слабая/скам нога (1xbet/lottoland) → низкая выживаемость (красная граница)
