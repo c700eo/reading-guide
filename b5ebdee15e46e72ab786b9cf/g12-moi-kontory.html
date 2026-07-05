@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Г12 · Мои конторы</title>
+<style>
+  :root{
+    /* слой-2: каркас страницы (дизайн-паттерн учебника, пилот Г2 2026-07-02) */
+    --ink:#14161a; --paper:#f7f7f5; --hairline:#e7e7e4;
+    --panel:#ffffff; --surface2:#f4f4f5; --border:#e0e0e0;
+    --text:#1a1a1a; --text-secondary:#666; --text-tertiary:#8a8a8a;
+    --accent:#2563eb; --hl:rgba(37,99,235,.08);
+    --green:#1a8a2e; --green-bg:rgba(26,138,46,.10);
+    --amber:#b45309; --amber-bg:#fff7ed; --amber-border:#e0b070;
+    --shadow-1:0 1px 2px rgba(20,22,26,.05); --shadow-2:0 4px 16px rgba(20,22,26,.06);
+    --r-panel:12px; --r-block:8px;
+    --font-display:"Avenir Next","Segoe UI",system-ui,sans-serif;
+    --mono:ui-monospace,Menlo,monospace;
+    /* слой-1 (цвета продукта): survival-триада + терминал */
+    --surv-high:#16a34a; --surv-med:#ca8a04; --surv-low:#dc2626;
+    --t-bg:#111418; --t-row:#171b21; --t-border:#242a33; --t-text:#e8eaed; --t-dim:#9aa3ad;
+    --t-amber:#f0b429; --t-green:#3fb950; --t-red:#f85149; --t-blue:#58a6ff;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-font-smoothing:antialiased}
+  body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--paper);color:var(--text);font-size:15px;line-height:1.6}
+  .wrap{max-width:840px;margin:0 auto;padding:28px 18px 80px}
+  h1{font-family:var(--font-display);font-size:28px;font-weight:700;letter-spacing:-0.01em;margin:0 0 4px;text-wrap:balance}
+  h1::after{content:"";display:block;width:120px;height:3px;margin-top:10px;border-radius:2px;background:linear-gradient(90deg,var(--surv-high) 0 33%,var(--surv-med) 33% 66%,var(--surv-low) 66% 100%)} /* risk-ribbon */
+  .lead{color:var(--text-secondary);font-size:16px;margin:0 0 18px;text-wrap:pretty}
+  h2.part{font-family:var(--font-display);font-size:13px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--ink);margin:34px 0 6px;border-bottom:1px solid var(--hairline);padding-bottom:6px}
+  .part-sub{font-size:13px;color:var(--text-secondary);margin:0 0 14px}
+  .blk{background:var(--panel);border:1px solid var(--hairline);border-radius:var(--r-panel);box-shadow:var(--shadow-1);padding:16px 18px;margin:0 0 14px}
+  .blk h3{font-size:16px;margin:0 0 6px;font-weight:650}
+  .sig-why{font-size:13.5px;color:var(--text-secondary);margin:0 0 10px;text-wrap:pretty}
+  .sig-why b{color:var(--text)}
+  .demo{background:var(--t-bg);border-radius:var(--r-block);padding:12px;overflow-x:auto}
+  .demo,.demo *{font-family:var(--mono);font-size:12.5px;color:var(--t-text)}
+  .btn{display:inline-block;background:#1f2630;border:1px solid var(--t-border);border-radius:6px;color:var(--t-text);padding:5px 12px;cursor:pointer;user-select:none;font-size:12px}
+  .btn:hover{border-color:var(--t-blue)}
+  .btn--on{border-color:var(--t-green);color:var(--t-green)}
+  .btn[disabled]{opacity:.45;cursor:not-allowed}
+  .btn[disabled]:hover{border-color:var(--t-border)}
+  .note{margin:10px 0 0;font-size:12.5px;color:var(--text-secondary)}
+  details{margin:10px 0 0;font-size:13px;color:var(--text-secondary)}
+  details summary{cursor:pointer;color:var(--text);font-weight:600;font-size:13px}
+  .honest{margin:12px 0 0;padding:9px 12px;border-left:3px solid var(--amber-border);background:var(--amber-bg);border-radius:0 var(--r-block) var(--r-block) 0;font-size:12.5px;color:var(--amber)}
+  /* строка конторы в фильтре (как fo-bk-item реального сканера) */
+  .bkrow{display:flex;align-items:center;gap:7px;padding:4px 8px;border-bottom:1px solid var(--t-border)}
+  .bkrow:last-child{border-bottom:0}
+  .bkrow .nm{flex:1 1 auto}
+  .bkrow input[type=checkbox]{accent-color:var(--t-green)}
+  .bkrow.is-x .nm{color:var(--t-dim);text-decoration:line-through}
+  .bkrow.is-h .nm{color:var(--t-dim);font-style:italic}
+  .sbtn{background:none;border:1px solid var(--t-border);border-radius:4px;color:var(--t-dim);padding:1px 7px;cursor:pointer;font-size:12px;line-height:1.5}
+  .sbtn:hover{border-color:var(--t-blue)}
+  .sbtn.on-star{border-color:var(--t-amber);color:var(--t-amber)}
+  .sbtn.on-eye{border-color:var(--t-blue);color:var(--t-blue)}
+  .sbtn.on-x{border-color:var(--t-red);color:var(--t-red)}
+  .sbtn[disabled]{opacity:.35;cursor:not-allowed}
+  /* строка вилки мини-потока */
+  .srow{display:grid;grid-template-columns:52px 60px 1fr 108px 52px;gap:8px;align-items:center;padding:6px 8px;background:var(--t-row);border:1px solid var(--t-border);border-left-width:3px;border-radius:6px;margin:6px 0}
+  .srow .pct{font-weight:700;color:var(--t-green)}
+  .srow .bks{color:var(--t-dim)}
+  .srow--low{border-left-color:var(--surv-low)}
+  .srow--med{border-left-color:var(--surv-med)}
+  .cnt{font-size:11px;color:var(--t-dim);margin:6px 0 2px}
+  .warnbk{margin:6px 0;padding:6px 9px;border:1px solid var(--t-amber);border-radius:6px;color:var(--t-amber);font-size:12px}
+  /* каталог настроек */
+  .cat{width:100%;border-collapse:collapse}
+  .cat th{font-size:10px;text-transform:uppercase;letter-spacing:.4px;color:var(--t-dim);text-align:left;padding:4px 8px;border-bottom:1px solid var(--t-border)}
+  .cat td{padding:5px 8px;border-bottom:1px solid var(--t-border);white-space:nowrap}
+  .cat tr:last-child td{border-bottom:0}
+  .type-tag{font-size:10px;padding:1px 6px;border:1px solid var(--t-border);border-radius:3px;color:var(--t-dim);text-transform:uppercase;letter-spacing:.3px}
+  .type-tag--sharp{border-color:var(--t-green);color:var(--t-green)}
+  .type-tag--exchange{border-color:var(--t-blue);color:var(--t-blue)}
+  .chip{font-size:11px;padding:1px 6px;background:#1f2630;border-radius:3px;margin-right:4px}
+  .gear{color:var(--t-dim)}
+  .ff{color:var(--t-amber);font-size:11px}
+  /* мини-модалка конфига */
+  .modal{background:var(--t-row);border:1px solid var(--t-border);border-radius:8px;padding:10px 12px;max-width:340px}
+  .modal .mrow{display:flex;align-items:center;gap:8px;margin:7px 0}
+  .modal .mlab{flex:0 0 76px;color:var(--t-dim);font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+  .modal select,.modal input[type=number]{background:#0d1014;border:1px solid var(--t-border);border-radius:4px;color:var(--t-text);padding:3px 6px;font-size:12px}
+  .modal input[type=number]{width:64px;text-align:right}
+  .modal .radio{display:inline-flex;align-items:center;gap:4px;margin-right:10px;font-size:12px}
+  .calcline{margin-top:8px;padding:7px 9px;background:#0d1014;border-radius:6px;font-size:12px}
+  .calcline b{color:var(--t-green)}
+  /* карта статусов (таблица-легенда блока ③) */
+  .map3{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+  .map3 th{font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text-tertiary);text-align:left;padding:5px 8px;border-bottom:1px solid var(--hairline)}
+  .map3 td{padding:6px 8px;border-bottom:1px solid var(--hairline);vertical-align:top}
+  .map3 tr:last-child td{border-bottom:0}
+  .map3 .st{white-space:nowrap;font-weight:600}
+  /* Часть 2 */
+  .part2-grid{display:grid;grid-template-columns:1fr;gap:10px}
+  .legend2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .legend2 .card{background:var(--panel);border:1px solid var(--hairline);border-radius:var(--r-block);padding:8px 11px;font-size:12.5px}
+  .legend2 .card b{display:block;font-size:12.5px;margin-bottom:2px}
+  .legend2 .card span{color:var(--text-secondary);font-size:12px}
+  .legend2 .card.lit{border-color:var(--accent);background:var(--hl)}
+  /* Часть 3 */
+  .battle{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:640px){.battle{grid-template-columns:1fr}.legend2{grid-template-columns:1fr}}
+  .kbd{display:inline-block;border:1px solid var(--t-border);border-bottom-width:2px;border-radius:4px;padding:0 5px;font-size:11px;color:var(--t-dim)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Мои конторы</h1>
+<p class="lead">Сканер работает не «со всеми букмекерами вообще», а с конкретным парком контор — и должен знать про каждую четыре вещи: <b>сканировать ли её пары, обязательна ли она в каждой вилке, держать ли её в резерве на аварию, и какие у неё деньги-правила</b> (валюта, налог, шаг ставки). Первые три живут в фильтрах, четвёртая — в настройках. Эта глава сводит обе половины в одну картину.</p>
+
+<!-- ЧАСТЬ 1 -->
+<h2 class="part">Часть 1 · Учёба — каждый рычаг отдельно</h2>
+<p class="part-sub">Семь рычагов управления парком контор. У каждого — своё живое демо на реальных конторах потока. Жми — подписи и поведение как в сканере.</p>
+
+<div class="blk">
+  <h3>① Галка у конторы — что сервер вообще сканирует</h3>
+  <p class="sig-why">Решение: <b>включить в работу только те конторы, где есть аккаунт и деньги</b>. Вилка — это пара контор, и сервер сканирует именно пары: восемь включённых контор дают 28 пар для поиска расхождений. Снятая галка выводит контору из расчёта — её пары не сканируются, вилки с ней не приходят вовсе. Осталась одна контора — сканировать нечего: для вилки нужны две разные ноги.</p>
+  <div class="demo" id="d1">
+    <div id="d1-list"></div>
+    <div class="cnt" id="d1-cnt"></div>
+    <div class="warnbk" id="d1-warn" style="display:none">⚠ Need ≥2 bookmakers — вилке нужны разные конторы на двух ногах.</div>
+  </div>
+  <p class="note">Снятие галки — не мелочь интерфейса: сервер реально перестаёт сканировать пары этой конторы. Меньше контор — меньше пар — меньше вилок в ленте.</p>
+  <details><summary>Почему список контор фиксированный, а не «кто сейчас в потоке»</summary>
+    Список в фильтре строится из полного набора поддерживаемых контор, а не из живых вилок момента — иначе галки мигали бы при пропадании последней вилки конторы. Сейчас поддерживаемых контор восемь; список растёт на стороне сервера по мере подключения новых.</details>
+</div>
+
+<div class="blk">
+  <h3>② Три статуса: ★ обязательная · обычная · ✕ никогда</h3>
+  <p class="sig-why">Решение: <b>задать конторе роль в потоке, а не просто вкл/выкл</b>. Звезда ★ — «показывай только вилки с её участием»: минимум на одной ноге каждой вилки в ленте стоит эта контора. Крестик ✕ — «никогда»: скам или бан, контора уходит и из ленты, и из расчёта — её пары сервер не сканирует. Без звезды и крестика контора обычная. Тот же выбор доступен правым кликом по конторе: меню ⭐ Required / · Optional / ✕ Excluded.</p>
+  <div class="demo" id="d2">
+    <div class="bkrow" id="d2-row"></div>
+    <div style="padding:6px 8px 2px" id="d2-explain">Статус: <b>обычная</b> — в расчёте наравне со всеми.</div>
+  </div>
+  <p class="note">Статусы связаны защитами: звезда сама включает галку и снимает скрытие (обязательная контора не может быть невидимой — лента была бы пустой); крестик снимает звезду и скрытие. У помеченной ★ конторы галку снять нельзя, пока не снята звезда.</p>
+  <details><summary>Зачем звезде нужна принудительная галка</summary>
+    Если бы обязательную контору можно было выключить из расчёта, лента гарантированно опустела бы молча: вилки с ней отсекает выключенная галка, вилки без неё — правило «минимум на одной ноге». Сканер запрещает это состояние на уровне интерфейса, а кнопка None рядом со списком снимает и галки, и звёзды разом — по той же причине.</details>
+</div>
+
+<div class="blk">
+  <h3>③ Глаз 👁 — резервная контора: не в ленте, но в расчёте</h3>
+  <p class="sig-why">Решение: <b>убрать контору с глаз, не убирая из работы</b>. Скрытая глазом контора не показывает свои строки в ленте — но её пары сервер продолжает сканировать, и когда слетает вторая нога, панель перекрытия видит её варианты. Это и есть резервная контора: дорогой аккаунт или сложный депозит, который держат на крайний случай. В панике про неё не вспомнить — сканер вспомнит сам. Скрытие мгновенное и обратимое: поток не передёргивается.</p>
+  <div class="demo" id="d3">
+    <div id="d3-bkline" style="padding:2px 8px 6px"></div>
+    <div id="d3-flow"></div>
+    <div style="padding:6px 8px 2px">
+      <span class="btn" id="d3-break">Нога слетела — показать варианты перекрытия</span>
+    </div>
+    <div id="d3-rec" style="display:none;padding:4px 8px 6px"></div>
+  </div>
+  <p class="note">Сравни с крестиком: ✕ убирает контору и из ленты, и из расчёта — вариантов перекрытия от неё не будет никогда. Глаз убирает только из ленты.</p>
+  <table class="map3">
+    <tr><th>Уровень парка</th><th>В ленте</th><th>В расчёте</th><th>Как задать</th></tr>
+    <tr><td class="st">Активная</td><td>да</td><td>да</td><td>галка включена</td></tr>
+    <tr><td class="st">Резервная</td><td>нет</td><td>да — перекрытие её видит</td><td>галка + 👁</td></tr>
+    <tr><td class="st">Никогда</td><td>нет</td><td>нет — пары не сканируются</td><td>✕</td></tr>
+  </table>
+  <details><summary>Почему глаз недоступен у обязательной и у выключенной конторы</summary>
+    У конторы со звездой скрытие запрещено — сначала снимается звезда, это осознанный шаг (обязательная и невидимая одновременно = пустая выдача). У конторы с крестиком глаз не нужен: она и так вне ленты. Глаз работает только на обычных конторах.</details>
+</div>
+
+<div class="blk">
+  <h3>④ Bookmakers и My Bookmakers — в чём разница</h3>
+  <p class="sig-why">Решение: <b>один раз отметить «где у меня аккаунты» — и не настраивать это заново в каждом пресете</b>. Секция Bookmakers — это статусы контор в текущем пресете: галки, звёзды, крестики живут внутри режима работы и переключаются вместе с ним. My Bookmakers — сквозной личный список контор, где реально есть аккаунты. Он работает дважды: новый пресет при первом входе автоматически сужается до этого списка, а кнопка Apply to filters в любой момент включает ровно эти конторы.</p>
+  <div class="demo" id="d4">
+    <div style="padding:2px 8px 4px;color:var(--t-dim)">My Bookmakers — отметь свои конторы:</div>
+    <div id="d4-list"></div>
+    <div style="padding:6px 8px 4px"><span class="btn" id="d4-apply">Apply to filters</span></div>
+    <div class="cnt" id="d4-result"></div>
+  </div>
+  <p class="note">Пока список пуст, секция показывает одну кнопку Select your books. Сохранённые фильтры пресета список не перетирает — сужение работает только при первом входе в пресет, осознанно выбранные конторы не урезаются.</p>
+</div>
+
+<div class="blk">
+  <h3>⑤ Кнопки Mode — наборы контор под режим работы</h3>
+  <p class="sig-why">Решение: <b>включить целый набор контор одним нажатием под ритм смены</b> — европейский вечер, ночная Азия, острые линии. Кнопка Mode заменяет галки на свой набор (обязательные ★ конторы при этом остаются). Задумка та же, что у пресетов: режим работы переключается одним движением, а не десятком кликов.</p>
+  <div class="demo">
+    <div style="padding:2px 8px 6px"><span style="color:var(--t-dim)">Mode:</span>
+      <span class="btn" disabled title="EU Prime: none in current stream">EU Prime <span style="color:var(--t-dim)">0</span></span>
+      <span class="btn" disabled title="Sharp Lines: none in current stream">Sharp Lines <span style="color:var(--t-dim)">0</span></span>
+      <span class="btn" disabled title="Asian Night: none in current stream">Asian Night <span style="color:var(--t-dim)">0</span></span>
+    </div>
+  </div>
+  <div class="honest">Сейчас все три кнопки серые — это не поломка демо, так в живом сканере. Составы наборов записаны под конторы, которых в текущем потоке нет (наборы собирались до подключения живого списка из восьми контор, под другие имена). Кнопки оживут, когда составы обновят под живой парк. Механизм готов — наполнение ждёт.</div>
+</div>
+
+<div class="blk">
+  <h3>⑥ Каталог в настройках: тип конторы и метка ⚡</h3>
+  <p class="sig-why">Решение: <b>видеть характер каждой конторы — кто эталон, кто биржа, кто быстро чинит линии</b>. Кнопка Settings в топбаре открывает каталог: у каждой конторы тип (Sharp — эталонная линия / Exchange — биржа с комиссией / Regular — обычная) и метка ⚡ у контор с быстрой командой risk — их вилки живут короче, строка в ленте получает красную границу. Тип задаёт сканер по своим справочникам, руками он не настраивается. Поиск и фильтр по типу помогают, когда контор станет много.</p>
+  <div class="demo" style="padding:8px">
+    <table class="cat">
+      <tr><th>Bookmaker</th><th>Type</th><th>User config</th><th></th></tr>
+      <tr><td>bet365.com <span class="ff" title="Fast-fix БК">⚡</span></td><td><span class="type-tag">Regular</span></td><td><span style="color:var(--t-dim);font-style:italic">default</span></td><td><span class="gear">⚙</span></td></tr>
+      <tr><td>fon.bet</td><td><span class="type-tag">Regular</span></td><td><span class="chip">Tax 5%</span><span class="chip">Round 50</span></td><td><span class="gear">⚙</span></td></tr>
+      <tr><td>lottoland.co.uk</td><td><span class="type-tag">Regular</span></td><td><span class="chip">GBP</span></td><td><span class="gear">⚙</span></td></tr>
+      <tr><td>betonline.ag</td><td><span class="type-tag">Regular</span></td><td><span style="color:var(--t-dim);font-style:italic">default</span></td><td><span class="gear">⚙</span></td></tr>
+    </table>
+    <div class="cnt" style="margin-top:8px">Как выглядят все три типа, когда такие конторы появятся в потоке:
+      <span class="type-tag type-tag--sharp" style="margin-left:6px">Sharp</span>
+      <span class="type-tag type-tag--exchange">Exchange</span>
+      <span class="type-tag">Regular</span></div>
+  </div>
+  <div class="honest">У всех восьми живых контор тип сейчас Regular — и это честно. Справочники Sharp и Exchange заполнены под конторы, которые ждут подключения (эталонная линия, биржи с комиссией): в живом потоке их пока нет, поэтому зелёный тег SHARP и синий EXCHANGE в каталоге не встречаются. Метка ⚡ из живых стоит только у bet365.com.</div>
+  <details><summary>Как каталог пополняется</summary>
+    Каталог накопительный: контора попадает в него при первом появлении в потоке и уже не исчезает — даже когда её вилок в моменте нет, настройки остаются доступными. С переходом на полный серверный список контор накопление станет не нужно.</details>
+</div>
+
+<div class="blk">
+  <h3>⑦ Деньги-правила конторы: валюта, налог, шаг ставки</h3>
+  <p class="sig-why">Решение: <b>научить калькулятор считать деньги так, как их реально принимает и выплачивает конкретная контора</b>. Шестерёнка ⚙ у конторы открывает три поля. Tax — налог конторы на выигрыш: чистый профит ноги считается с его учётом. Rounding — шаг ставки в валюте конторы: если контора принимает суммы кратно 50, калькулятор округлит до кратной суммы именно в её валюте, а не в евро до конвертации. Currency — в какой валюте показывать чистый профит. Всё это применяется к расчётам сразу, без перезапусков.</p>
+  <div class="demo" id="d7">
+    <div class="modal">
+      <div style="font-weight:700;margin-bottom:2px">fon.bet</div>
+      <div class="mrow"><span class="mlab">Currency</span>
+        <select id="d7-cur"><option value="">— как у конторы</option><option>EUR</option><option>USD</option><option>GBP</option><option>PLN</option><option>RUB</option><option>JPY</option><option>BTC</option><option>USDT</option></select>
+      </div>
+      <div class="mrow"><span class="mlab">Tax</span>
+        <span class="radio"><input type="radio" name="d7tax" id="d7-tax-none" checked> NoTax</span>
+        <span class="radio"><input type="radio" name="d7tax" id="d7-tax-pct"> Percent</span>
+        <input type="number" id="d7-rate" value="5" min="0" max="100" style="display:none">
+      </div>
+      <div class="mrow"><span class="mlab">Rounding</span>
+        <input type="number" id="d7-round" value="" placeholder="—" min="0">
+      </div>
+      <div class="calcline" id="d7-out"></div>
+    </div>
+  </div>
+  <p class="note">Настройки хранятся локально в браузере и помечаются чипами в каталоге — видно, у каких контор правила уже заданы. Кнопка сброса в той же карточке возвращает контору к умолчаниям.</p>
+  <details><summary>Почему шаг ставки — в валюте конторы, а не в евро</summary>
+    Кратность живёт там, куда уходит купон. Рублёвая контора принимает суммы кратно 50 ₽: округление «красивых» 50 € до конвертации дало бы в купоне 4 865 ₽ — контора такую сумму не примет. Поэтому калькулятор сначала конвертирует, потом округляет по шагу в валюте купона.</details>
+</div>
+
+<!-- ЧАСТЬ 2 -->
+<h2 class="part">Часть 2 · В живом сканере</h2>
+<p class="part-sub">Секция контор и лента рядом. Управляй парком — лента, счётчик пар и варианты перекрытия отвечают. Легенда под таблицей подсвечивает, что сработало.</p>
+
+<div class="part2-grid">
+  <div class="demo" id="p2">
+    <div style="padding:2px 8px 4px;color:var(--t-dim)">Bookmakers</div>
+    <div id="p2-bks"></div>
+    <div class="cnt" id="p2-cnt"></div>
+    <div class="warnbk" id="p2-warn" style="display:none">⚠ Need ≥2 bookmakers — вилке нужны разные конторы на двух ногах.</div>
+    <div style="padding:6px 8px 2px;color:var(--t-dim);border-top:1px solid var(--t-border);margin-top:6px">Лента</div>
+    <div id="p2-flow"></div>
+    <div style="padding:6px 8px 4px">
+      <span class="btn" id="p2-break">Нога слетела на выбранной вилке</span>
+      <span id="p2-recwrap" style="display:none"> → варианты перекрытия: <span id="p2-rec"></span></span>
+    </div>
+  </div>
+  <div class="legend2" id="p2-legend">
+    <div class="card" data-k="calc"><b>Галка — в расчёте</b><span>пары конторы сканируются сервером; снятая галка убирает и вилки, и пары</span></div>
+    <div class="card" data-k="star"><b>★ Обязательная</b><span>в ленте только вилки с её участием; галку у неё не снять</span></div>
+    <div class="card" data-k="eye"><b>👁 Резервная</b><span>строк в ленте нет, но контора в расчёте — перекрытие её видит</span></div>
+    <div class="card" data-k="x"><b>✕ Никогда</b><span>скам или бан: вне ленты и вне расчёта, пары не сканируются</span></div>
+  </div>
+</div>
+
+<!-- ЧАСТЬ 3 -->
+<h2 class="part">Часть 3 · Как в бою</h2>
+<p class="part-sub">Плотный вид без подсказок: слева — секция контор с рабочими статусами, справа — каталог с деньги-правилами.</p>
+
+<div class="battle">
+  <div class="demo">
+    <div style="padding:2px 8px 4px;color:var(--t-dim)">Bookmakers · <span style="color:var(--t-text)">Mode:</span> <span class="btn" disabled style="padding:1px 7px;font-size:10px">EU Prime 0</span></div>
+    <div class="bkrow"><input type="checkbox" checked disabled><span class="nm">bet365.com</span><span class="sbtn on-star">★</span><span class="sbtn">👁</span><span class="sbtn">✕</span></div>
+    <div class="bkrow"><input type="checkbox" checked disabled><span class="nm">fon.bet</span><span class="sbtn">★</span><span class="sbtn">👁</span><span class="sbtn">✕</span></div>
+    <div class="bkrow is-h"><input type="checkbox" checked disabled><span class="nm">lottoland.co.uk</span><span class="sbtn">★</span><span class="sbtn on-eye">👁</span><span class="sbtn">✕</span></div>
+    <div class="bkrow"><input type="checkbox" checked disabled><span class="nm">vbet.co.uk</span><span class="sbtn">★</span><span class="sbtn">👁</span><span class="sbtn">✕</span></div>
+    <div class="bkrow"><input type="checkbox" disabled><span class="nm">virginbet.com</span><span class="sbtn">★</span><span class="sbtn">👁</span><span class="sbtn">✕</span></div>
+    <div class="bkrow"><input type="checkbox" checked disabled><span class="nm">livescorebet.com</span><span class="sbtn">★</span><span class="sbtn">👁</span><span class="sbtn">✕</span></div>
+    <div class="bkrow is-x"><input type="checkbox" disabled><span class="nm">silverglow58.xyz</span><span class="sbtn">★</span><span class="sbtn">👁</span><span class="sbtn on-x">✕</span></div>
+    <div class="bkrow"><input type="checkbox" checked disabled><span class="nm">betonline.ag</span><span class="sbtn">★</span><span class="sbtn">👁</span><span class="sbtn">✕</span></div>
+    <div class="cnt">👁 Скрыто из ленты: 1 (конторы остаются в расчёте)</div>
+  </div>
+  <div class="demo" style="padding:8px">
+    <table class="cat">
+      <tr><th>Bookmaker</th><th>Type</th><th>User config</th><th></th></tr>
+      <tr><td>bet365.com <span class="ff">⚡</span></td><td><span class="type-tag">Regular</span></td><td><span style="color:var(--t-dim);font-style:italic">default</span></td><td><span class="gear">⚙</span></td></tr>
+      <tr><td>fon.bet</td><td><span class="type-tag">Regular</span></td><td><span class="chip">Tax 5%</span><span class="chip">Round 50</span></td><td><span class="gear">⚙</span></td></tr>
+      <tr><td>livescorebet.com</td><td><span class="type-tag">Regular</span></td><td><span style="color:var(--t-dim);font-style:italic">default</span></td><td><span class="gear">⚙</span></td></tr>
+      <tr><td>lottoland.co.uk</td><td><span class="type-tag">Regular</span></td><td><span class="chip">GBP</span></td><td><span class="gear">⚙</span></td></tr>
+      <tr><td>vbet.co.uk</td><td><span class="type-tag">Regular</span></td><td><span style="color:var(--t-dim);font-style:italic">default</span></td><td><span class="gear">⚙</span></td></tr>
+      <tr><td>betonline.ag</td><td><span class="type-tag">Regular</span></td><td><span style="color:var(--t-dim);font-style:italic">default</span></td><td><span class="gear">⚙</span></td></tr>
+    </table>
+    <div class="cnt" style="margin-top:6px">Customized: 2 · Per-BK config применяется к расчётам сразу</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  /* Демо-движок Г12. Данные и правила — по живому коду сканера (реестр r3-registry-g12.md).
+     Процент вилки везде считается из кэфов: arb% = (1 − 1/o1 − 1/o2)·100. */
+  var BKS = ["bet365.com","fon.bet","lottoland.co.uk","vbet.co.uk","virginbet.com","livescorebet.com","silverglow58.xyz","betonline.ag"];
+  var FASTFIX = {"bet365.com":true};
+  function pct(o1,o2){ return (1 - 1/o1 - 1/o2) * 100; }
+  function fmt(x){ return x.toFixed(2) + "%"; }
+  function pairs(n){ return n*(n-1)/2; }
+
+  /* Мини-поток: пары живых контор, кэфы первичны, процент — следствие. */
+  var FLOW = [
+    {ev:"Osasuna – Girona",  mkt:"Total 2.5", o1:2.10, o2:2.05, b1:"bet365.com",      b2:"fon.bet"},
+    {ev:"Alavés – Getafe",   mkt:"Handicap",  o1:1.95, o2:2.18, b1:"lottoland.co.uk", b2:"vbet.co.uk"},
+    {ev:"Lecce – Torino",    mkt:"1X2",       o1:2.32, o2:1.88, b1:"virginbet.com",   b2:"betonline.ag"},
+    {ev:"Metz – Nantes",     mkt:"Total 3.0", o1:2.02, o2:2.12, b1:"fon.bet",         b2:"livescorebet.com"},
+    {ev:"Elche – Levante",   mkt:"Total 2.0", o1:2.24, o2:1.92, b1:"bet365.com",      b2:"silverglow58.xyz"},
+    {ev:"Brescia – Como",    mkt:"Handicap",  o1:2.07, o2:2.06, b1:"vbet.co.uk",      b2:"betonline.ag"},
+    {ev:"Gent – Brugge",     mkt:"1X2",       o1:1.90, o2:2.28, b1:"lottoland.co.uk", b2:"livescorebet.com"},
+    {ev:"Nancy – Caen",      mkt:"Total 2.5", o1:2.15, o2:2.01, b1:"virginbet.com",   b2:"fon.bet"}
+  ];
+  function rowHtml(a, sel){
+    var lvl = (FASTFIX[a.b1] || FASTFIX[a.b2]) ? "low" : "med"; /* fast-fix нога без стабильной sharp-пары → LOW */
+    return '<div class="srow srow--'+lvl+'"'+(sel?' style="outline:1px solid var(--t-blue)"':'')+'>'
+      + '<span class="pct">'+fmt(pct(a.o1,a.o2))+'</span><span>'+a.mkt.split(" ")[0]+'</span>'
+      + '<span>'+a.ev+'</span><span class="bks">'+a.b1+' · '+a.b2+'</span>'
+      + '<span>'+a.o1.toFixed(2)+'/'+a.o2.toFixed(2)+'</span></div>';
+  }
+
+  /* ── ① галки и пары подписки ── */
+  var d1on = {}; BKS.forEach(function(b){ d1on[b] = true; });
+  function d1render(){
+    var list = document.getElementById("d1-list"), html = "";
+    BKS.forEach(function(b){
+      html += '<div class="bkrow"><input type="checkbox" data-bk="'+b+'"'+(d1on[b]?" checked":"")
+        + ' title="'+(d1on[b]?"В расчёте — пары конторы сканируются сервером (поток, перекрытие, альтернативы)":"Вне расчёта — пары конторы не сканируются. Включи, чтобы сканировать")+'">'
+        + '<span class="nm">'+b+'</span></div>';
+    });
+    list.innerHTML = html;
+    var n = BKS.filter(function(b){ return d1on[b]; }).length;
+    document.getElementById("d1-cnt").textContent = "Включено контор: " + n + " → сервер сканирует " + pairs(n) + " пар";
+    document.getElementById("d1-warn").style.display = n < 2 ? "" : "none";
+    list.querySelectorAll("input").forEach(function(cb){
+      cb.addEventListener("change", function(){ d1on[cb.dataset.bk] = cb.checked; d1render(); });
+    });
+  }
+  d1render();
+
+  /* ── ② один ряд с тремя статусами ── */
+  var d2 = { state:"optional", enabled:true, hidden:false };
+  function d2render(){
+    var r = document.getElementById("d2-row");
+    r.className = "bkrow" + (d2.state==="excluded" ? " is-x" : (d2.hidden ? " is-h" : ""));
+    r.innerHTML = '<input type="checkbox" id="d2-cb"'+(d2.enabled?" checked":"")
+      + (d2.state==="excluded" || (d2.state==="required" && d2.enabled) ? " disabled" : "") + '>'
+      + '<span class="nm">fon.bet</span>'
+      + '<button class="sbtn'+(d2.state==="required"?" on-star":"")+'" id="d2-star" title="'+(d2.state==="required"?"Required (минимум на одной ноге вилки)":"Mark as Required")+'"'+(d2.state==="excluded"?" disabled":"")+'>★</button>'
+      + '<button class="sbtn'+(d2.hidden?" on-eye":"")+'" id="d2-eye"'+(d2.state!=="optional"?" disabled":"")+' title="'+(d2.state==="required"?"Сними ★ Required, чтобы скрыть из ленты":(d2.state==="excluded"?"Недоступно: контора в Никогда (✕) — и так вне ленты":"Скрыть из ленты — контора остаётся в расчёте"))+'">👁</button>'
+      + '<button class="sbtn'+(d2.state==="excluded"?" on-x":"")+'" id="d2-x" title="Никогда (скам/бан) — вне расчёта и вне ленты: пары конторы не сканируются">✕</button>';
+    var ex = document.getElementById("d2-explain");
+    if (d2.state==="required") { ex.innerHTML = "Статус: <b>★ обязательная</b> — в ленте только вилки с fon.bet; галка заблокирована, скрытие снято автоматически."; }
+    else if (d2.state==="excluded") { ex.innerHTML = "Статус: <b>✕ никогда</b> — вне ленты и вне расчёта; пары не сканируются, звезда и скрытие сняты."; }
+    else if (d2.hidden) { ex.innerHTML = "Статус: <b>обычная, скрыта 👁</b> — строк в ленте нет, но контора в расчёте."; }
+    else { ex.innerHTML = "Статус: <b>обычная</b> — в расчёте наравне со всеми."; }
+    document.getElementById("d2-star").addEventListener("click", function(){
+      if (d2.state==="required") { d2.state="optional"; }
+      else { d2.state="required"; d2.enabled=true; d2.hidden=false; }
+      d2render();
+    });
+    document.getElementById("d2-eye").addEventListener("click", function(){ d2.hidden = !d2.hidden; d2render(); });
+    document.getElementById("d2-x").addEventListener("click", function(){
+      if (d2.state==="excluded") { d2.state="optional"; }
+      else { d2.state="excluded"; d2.hidden=false; }
+      d2render();
+    });
+    var cb = document.getElementById("d2-cb");
+    if (cb && !cb.disabled) { cb.addEventListener("change", function(){ d2.enabled = cb.checked; d2render(); }); }
+  }
+  d2render();
+
+  /* ── ③ глаз и перекрытие ── */
+  var d3hidden = false;
+  var D3 = [FLOW[3], FLOW[6], FLOW[1]]; /* fon.bet+livescorebet / lottoland+livescorebet / lottoland+vbet */
+  function d3render(){
+    document.getElementById("d3-bkline").innerHTML =
+      'lottoland.co.uk — <button class="sbtn'+(d3hidden?" on-eye":"")+'" id="d3-eye" title="'
+      + (d3hidden ? "Скрыта из ленты, но В РАСЧЁТЕ (перекрытие и альтернативы видят). Клик: показать"
+                  : "Скрыть из ленты — контора остаётся в расчёте (подписка, перекрытие). Поток не дёргается")
+      + '">👁</button>' + (d3hidden ? ' <span style="color:var(--t-dim)">скрыта из ленты, осталась в расчёте</span>' : "");
+    var vis = D3.filter(function(a){ return !d3hidden || (a.b1!=="lottoland.co.uk" && a.b2!=="lottoland.co.uk"); });
+    document.getElementById("d3-flow").innerHTML = vis.map(function(a){ return rowHtml(a); }).join("")
+      + '<div class="cnt">В ленте: ' + vis.length + ' из ' + D3.length + '</div>';
+    document.getElementById("d3-eye").addEventListener("click", function(){
+      d3hidden = !d3hidden;
+      document.getElementById("d3-rec").style.display = "none";
+      d3render();
+    });
+  }
+  d3render();
+  document.getElementById("d3-break").addEventListener("click", function(){
+    /* Перекрытие ищет варианты того же события среди контор В РАСЧЁТЕ — скрытая глазом участвует. */
+    var box = document.getElementById("d3-rec");
+    box.style.display = "";
+    box.innerHTML = 'Вилка Gent – Brugge, нога livescorebet.com слетела. Варианты того же события из контор в расчёте:'
+      + '<div class="srow"><span class="pct">Option 1</span><span></span><span>lottoland.co.uk @ 2.28'
+      + (d3hidden ? ' <span style="color:var(--t-blue)">— резервная: в ленте скрыта, в расчёте есть</span>' : "")
+      + '</span><span class="bks">перекрыть исходом Меньше</span><span></span></div>'
+      + '<div class="cnt">С крестиком ✕ этого варианта не существовало бы: пары конторы не сканируются.</div>';
+  });
+
+  /* ── ④ My Bookmakers ── */
+  var d4my = {}; BKS.forEach(function(b){ d4my[b] = false; });
+  d4my["fon.bet"] = true; d4my["vbet.co.uk"] = true; d4my["betonline.ag"] = true;
+  function d4render(){
+    var html = "";
+    BKS.forEach(function(b){
+      html += '<div class="bkrow"><input type="checkbox" data-bk="'+b+'"'+(d4my[b]?" checked":"")+'><span class="nm">'+b+'</span></div>';
+    });
+    var list = document.getElementById("d4-list");
+    list.innerHTML = html;
+    list.querySelectorAll("input").forEach(function(cb){
+      cb.addEventListener("change", function(){ d4my[cb.dataset.bk] = cb.checked; d4render(); });
+    });
+    var n = BKS.filter(function(b){ return d4my[b]; }).length;
+    document.getElementById("d4-result").textContent = "В списке: " + n + " контор. Новый пресет при первом входе сузится до них; Apply включит ровно их (плюс обязательные ★).";
+  }
+  d4render();
+  document.getElementById("d4-apply").addEventListener("click", function(){
+    var mine = BKS.filter(function(b){ return d4my[b]; });
+    document.getElementById("d4-result").textContent = "Применено: в расчёте теперь " + (mine.length ? mine.join(", ") : "ничего — список пуст") + ".";
+  });
+
+  /* ── ⑦ деньги-правила ── */
+  function d7render(){
+    var taxPct = document.getElementById("d7-tax-pct").checked;
+    var rateEl = document.getElementById("d7-rate");
+    rateEl.style.display = taxPct ? "" : "none";
+    var rate = taxPct ? Math.min(100, Math.max(0, parseFloat(rateEl.value) || 0)) : 0;
+    var step = parseFloat(document.getElementById("d7-round").value) || 0;
+    var cur = document.getElementById("d7-cur").value || "EUR";
+    var stake = 476.19;
+    var stakeR = step > 0 ? Math.round(stake / step) * step : stake;
+    var profit = 36.00;
+    var profitNet = profit * (1 - rate/100);
+    document.getElementById("d7-out").innerHTML =
+      "Нога fon.bet: ставка " + stake.toFixed(2) + " → " + (step > 0 ? "по шагу " + step + " в валюте конторы → <b>" + stakeR.toFixed(2) + "</b>" : "<b>без округления</b>")
+      + " · профит 36.00 → " + (rate > 0 ? "после налога " + rate + "% → <b>" + profitNet.toFixed(2) + " " + cur + "</b>" : "<b>36.00 " + cur + "</b>");
+  }
+  ["d7-tax-none","d7-tax-pct","d7-cur"].forEach(function(id){
+    document.getElementById(id).addEventListener("change", d7render);
+  });
+  document.getElementById("d7-rate").addEventListener("change", d7render);
+  document.getElementById("d7-round").addEventListener("change", d7render);
+  d7render();
+
+  /* ── Часть 2: полный движок ── */
+  var P2 = { st:{}, on:{}, hid:{} };
+  BKS.forEach(function(b){ P2.st[b]="optional"; P2.on[b]=true; P2.hid[b]=false; });
+  var p2sel = 0;
+  function lit(k){
+    var lg = document.getElementById("p2-legend");
+    lg.querySelectorAll(".card").forEach(function(c){ c.classList.toggle("lit", c.dataset.k===k); });
+  }
+  function p2calcSet(){
+    return BKS.filter(function(b){ return P2.on[b] && P2.st[b]!=="excluded"; });
+  }
+  function p2render(){
+    var box = document.getElementById("p2-bks"), html = "";
+    BKS.forEach(function(b){
+      var st = P2.st[b], hid = P2.hid[b];
+      html += '<div class="bkrow'+(st==="excluded"?" is-x":(hid?" is-h":""))+'">'
+        + '<input type="checkbox" data-bk="'+b+'"'+(P2.on[b]?" checked":"")+(st==="excluded"||(st==="required"&&P2.on[b])?" disabled":"")
+        + ' title="'+(st==="excluded"?"Вне расчёта, пока Никогда (✕): пары конторы не сканируются":(st==="required"?"В расчёте, закреплена ★ Required: галка снимается только после снятия ★ (иначе пустая лента)":(P2.on[b]?"В расчёте — пары конторы сканируются сервером (поток, перекрытие, альтернативы)":"Вне расчёта — пары конторы не сканируются. Включи, чтобы сканировать")))+'">'
+        + '<span class="nm">'+b+'</span>'
+        + '<button class="sbtn'+(st==="required"?" on-star":"")+'" data-a="star" data-bk="'+b+'"'+(st==="excluded"?" disabled":"")+' title="'+(st==="required"?"Required (минимум на одной ноге вилки)":"Mark as Required")+'">★</button>'
+        + '<button class="sbtn'+(hid?" on-eye":"")+'" data-a="eye" data-bk="'+b+'"'+(st!=="optional"?" disabled":"")+' title="'+(st==="required"?"Сними ★ Required, чтобы скрыть из ленты":(st==="excluded"?"Недоступно: контора в Никогда (✕) — и так вне ленты":(hid?"Скрыта из ленты, но В РАСЧЁТЕ (перекрытие и альтернативы видят). Клик: показать":"Скрыть из ленты — контора остаётся в расчёте (подписка, перекрытие). Поток не дёргается")))+'">👁</button>'
+        + '<button class="sbtn'+(st==="excluded"?" on-x":"")+'" data-a="x" data-bk="'+b+'" title="Никогда (скам/бан) — вне расчёта и вне ленты: пары конторы не сканируются">✕</button>'
+        + '</div>';
+    });
+    box.innerHTML = html;
+    box.querySelectorAll("input[type=checkbox]").forEach(function(cb){
+      cb.addEventListener("change", function(){ P2.on[cb.dataset.bk] = cb.checked; lit("calc"); p2render(); });
+    });
+    box.querySelectorAll("button[data-a]").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        var b = btn.dataset.bk, a = btn.dataset.a;
+        if (a==="star") {
+          if (P2.st[b]==="required") { P2.st[b]="optional"; }
+          else { P2.st[b]="required"; P2.on[b]=true; P2.hid[b]=false; }
+          lit("star");
+        } else if (a==="eye") {
+          P2.hid[b] = !P2.hid[b]; lit("eye");
+        } else {
+          if (P2.st[b]==="excluded") { P2.st[b]="optional"; }
+          else { P2.st[b]="excluded"; P2.hid[b]=false; if (P2.st[b]==="required") { P2.st[b]="excluded"; } }
+          lit("x");
+        }
+        p2render();
+      });
+    });
+
+    var calc = p2calcSet();
+    var req = BKS.filter(function(b){ return P2.st[b]==="required"; });
+    var visible = FLOW.filter(function(a){
+      if (calc.indexOf(a.b1)<0 || calc.indexOf(a.b2)<0) { return false; }
+      if (req.length && req.indexOf(a.b1)<0 && req.indexOf(a.b2)<0) { return false; }
+      if (P2.hid[a.b1] || P2.hid[a.b2]) { return false; }
+      return true;
+    });
+    var hidCount = BKS.filter(function(b){ return P2.hid[b] && calc.indexOf(b)>=0; }).length;
+    document.getElementById("p2-cnt").textContent = "В расчёте: " + calc.length + " контор → " + pairs(calc.length) + " пар"
+      + (hidCount ? " · 👁 скрыто из ленты: " + hidCount + " (остаются в расчёте)" : "");
+    document.getElementById("p2-warn").style.display = calc.length < 2 ? "" : "none";
+    if (p2sel >= visible.length) { p2sel = 0; }
+    document.getElementById("p2-flow").innerHTML = visible.length
+      ? visible.map(function(a,i){ return rowHtml(a, i===p2sel); }).join("") + '<div class="cnt">В ленте: '+visible.length+' из '+FLOW.length+' (клик по строке — выбрать)</div>'
+      : '<div class="cnt">Лента пуста — проверь галки, звёзды и крестики.</div>';
+    var rows = document.getElementById("p2-flow").querySelectorAll(".srow");
+    rows.forEach(function(r,i){ r.addEventListener("click", function(){ p2sel = i; p2render(); }); });
+    document.getElementById("p2-recwrap").style.display = "none";
+    /* recovery по выбранной вилке */
+    document.getElementById("p2-break").onclick = function(){
+      if (!visible.length) { return; }
+      var dead = visible[p2sel];
+      var opts = FLOW.filter(function(a){
+        if (a===dead) { return false; }
+        if (a.ev!==dead.ev) { return false; }
+        return calc.indexOf(a.b1)>=0 && calc.indexOf(a.b2)>=0;
+      });
+      var alts = [];
+      FLOW.forEach(function(a){
+        if (a.ev===dead.ev && a!==dead) { alts.push(a); }
+      });
+      /* в демо событие уникально в ленте — показываем принцип списком контор в расчёте, скрытые помечаем */
+      var cands = calc.filter(function(b){ return b!==dead.b1 && b!==dead.b2; }).slice(0,3);
+      document.getElementById("p2-recwrap").style.display = "";
+      document.getElementById("p2-rec").innerHTML = cands.length
+        ? cands.map(function(b){ return b + (P2.hid[b] ? ' <span style="color:var(--t-blue)">(резервная 👁)</span>' : ""); }).join(", ")
+        : "нет контор в расчёте помимо ног пары";
+      void opts; void alts;
+    };
+  }
+  p2render();
+})();
+</script>
+
+</body>
+</html>
