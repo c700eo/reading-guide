@@ -180,43 +180,43 @@
 
     <!-- Д lock -->
     <div class="blk">
-      <h3>⑤ Lock — поставил ногу, защити её от сдвига</h3>
-      <p class="why">Поставил первую ногу — её сумма и кэф уже зафиксированы реальностью. Решение: <b>чтобы пересчёт второй ноги не трогал первую</b>. Lock держит поставленную ногу, вторую пересчитывает заново. Залочь ногу 1.</p>
+      <h3>⑤ «Поставлено» — кружок у GO, который держит поставленную ногу</h3>
+      <p class="why">Поставил первую ногу — её сумма и кэф уже зафиксированы реальностью. Решение: <b>чтобы пересчёт второй ноги не трогал первую</b>. В сканере это <b>маленький кружок рядом с кнопкой GO</b>: пустой ○ — нога свободна, отметил постановку — в кружке появляется галочка ✓, ставка и кэф ноги бетонируются, вторая пересчитывается заново. Если кэф в потоке после этого уезжает — над ногой загорается плашка сдвига, но числа держатся. Отметь ногу 1.</p>
       <div class="demo">
-        <button class="lockbtn" id="lk-btn">🔒 Lock ногу 1</button>
+        <button class="lockbtn" id="lk-btn">○ Поставлено · нога 1</button>
         <div class="calc">
           <div class="leg"><div class="bk">bet365 · кэф 2.10</div><div class="fld"><label>ставка €</label><input type="number" id="lk-s1" value="476" step="10"></div></div>
           <div class="leg"><div class="bk">pinnacle · кэф 1.95</div><div class="fld"><label>ставка €</label><input type="number" id="lk-s2" value="" readonly></div></div>
         </div>
-        <div class="demo-cap">Lock: залоченная нога держит свою сумму, вторая пересчитывается равным профитом по своему кэфу — поставленная нога не сдвигается от пересчёта. В настройках есть переключатель режима фиксации (держать сумму или замораживать сумму вместе с кэфом).</div>
+        <div class="demo-cap">Кружок в сканере совсем небольшой — он живёт в карточке ноги рядом с GO, а не отдельной крупной кнопкой. Отмеченная нога держит сумму и кэф, вторая пересчитывается равным профитом. Режим кружка настраивается (глава «Настройки калькулятора»): «Поставлено» — по умолчанию, старая «Блокировка» — выключенный режим со значком замка.</div>
       </div>
     </div>
 
     <!-- Е Odd History -->
     <div class="blk">
       <h3>⑥ Odd History — куда движется кэф</h3>
-      <p class="why">Прежде чем ставить — решение: <b>кэф растёт или падает прямо сейчас</b>. Если падает — вилка схлопывается, можно не успеть. Маленький график рисует траекторию кэфа по каждой ноге.</p>
+      <p class="why">Прежде чем ставить — решение: <b>кэф растёт или падает прямо сейчас</b>. Если падает — вилка схлопывается, можно не успеть. Маленький график рисует траекторию кэфа по каждой ноге. Живёт он в панели деталей <b>ниже калькулятора</b> — к нему надо прокрутить.</p>
       <div class="demo">
         <div class="spark"><span class="lbl">bet365</span><svg id="sp1" width="160" height="34"></svg><span class="dl up" id="dl1">↑ +0.06</span></div>
         <div class="spark"><span class="lbl">pinnacle</span><svg id="sp2" width="160" height="34"></svg><span class="dl down" id="dl2">↓ −0.04</span></div>
-        <div class="demo-cap">Маленький график траектории кэфа на каждое плечо плюс последняя дельта и тренд; история хранит до 30 последних точек.</div>
+        <div class="demo-cap">График в сканере намеренно сдержанный: <b>линии серые</b>, цветом горит только последняя дельта (зелёная вверх / красная вниз) — глаз ловит направление, не разглядывая кривую. История хранит до 30 последних точек.</div>
       </div>
     </div>
 
     <!-- Ж ALL BOOKS -->
     <div class="blk">
       <h3>⑦ All Books on this Market — все конторы на рынке</h3>
-      <p class="why">Решение: <b>не лучшая ли цена есть у другой конторы</b>, прежде чем ставить на эти две. Три режима: лучшие три / средняя / все. Переключи.</p>
+      <p class="why">Решение: <b>не лучшая ли цена есть у другой конторы</b>, прежде чем ставить на эти две. Грид живёт в панели деталей <b>ниже калькулятора</b> (прокрутить) и держит три вкладки — как в сканере: <b>BEST</b> — лучшие цены по каждому исходу, <b>AVERAGE</b> — отклонение каждой конторы от среднего по рынку, <b>ALL</b> — весь список. Переключи.</p>
       <div class="demo">
         <div class="tgl" id="ab-mode">
-          <button data-m="best" class="on">Лучшие 3</button>
-          <button data-m="avg">Средняя</button>
-          <button data-m="all">Все</button>
+          <button data-m="best" class="on">BEST</button>
+          <button data-m="avg">AVERAGE</button>
+          <button data-m="all">ALL</button>
         </div>
-        <table><thead><tr><th>Контора</th><th>Кэф (нога 1)</th></tr></thead><tbody id="ab-rows"></tbody></table>
-        <div class="demo-cap">Встроенный грид цен по рынку, три режима: лучшие три конторы, средняя по всем, все конторы.</div>
+        <table><thead><tr><th>Контора</th><th>Исх 1</th><th>Δ%</th><th>Исх 2</th><th>Δ%</th></tr></thead><tbody id="ab-rows"></tbody></table>
+        <div class="demo-cap">Как в сканере: таблица контор с ценами обоих исходов и отклонением Δ% от среднего (зелёное = выгоднее рынка), внизу — строка AVERAGE. ★ — эталонная контора, EX — биржа (цена после комиссии).</div>
       </div>
-      <div class="honest"><b>Честная граница:</b> сам грид и три режима готовы, но конторы в нём сейчас <b>синтетические</b> — реальный поток цен по рынку придёт отдельным каналом с сервера (он ещё не подключён). Механизм рабочий, наполнение реальными конторами — впереди.</div>
+      <div class="honest"><b>Честная граница:</b> в боевом сканере грид уже живой — реальные конторы рынка, шире списка подписки (на реальном рынке видно полтора десятка книг). В демо главы список условный, учебный — механизм тот же.</div>
     </div>
   </section>
 
@@ -253,10 +253,10 @@
   <section class="part">
     <div class="part-head">
       <h2>Часть 3 · Как в бою</h2>
-      <div class="step">Полный калькулятор без подсказок. Сумма, две ноги, профит, перекос, lock — так это выглядит в работе.</div>
+      <div class="step">Полный калькулятор без подсказок. Сумма, две ноги, профит, перекос, кружок «Поставлено» — так это выглядит в работе.</div>
     </div>
     <div class="demo">
-      <div class="row-total"><label>Сумма €</label><input type="number" id="p3-total" value="800" step="50"><button class="lockbtn" id="p3-lk">🔒 Lock 1</button></div>
+      <div class="row-total"><label>Сумма €</label><input type="number" id="p3-total" value="800" step="50"><button class="lockbtn" id="p3-lk">○ 1</button></div>
       <div class="calc">
         <div class="leg"><div class="bk">betonline · 2.05</div><div class="fld"><label>€</label><input type="number" id="p3-s1" value="" ></div></div>
         <div class="leg"><div class="bk">pinnacle · 2.02</div><div class="fld"><label>€</label><input type="number" id="p3-s2" value="" readonly></div></div>
@@ -376,7 +376,7 @@ const profitOf = (s, o, total) => s * o - total;
   btn.addEventListener('click', ()=>{
     locked = !locked;
     btn.classList.toggle('on', locked);
-    btn.textContent = locked ? '🔒 Нога 1 залочена — держит сумму' : '🔒 Lock ногу 1';
+    btn.textContent = locked ? '✓ Поставлено · нога 1 — сумма и кэф держатся' : '○ Поставлено · нога 1';
     s1El.classList.toggle('locked', locked);
     s1El.readOnly = locked;
     hedge();
@@ -391,24 +391,47 @@ const profitOf = (s, o, total) => s * o - total;
     const min=Math.min(...pts), max=Math.max(...pts), rng=(max-min)||1;
     const step=(w-2*pad)/(pts.length-1);
     const d = pts.map((p,i)=>`${i?'L':'M'}${(pad+i*step).toFixed(1)},${(h-pad-(p-min)/rng*(h-2*pad)).toFixed(1)}`).join(' ');
-    const color = cls==='up'?'#1a8a2e':cls==='down'?'#cc2222':'#666';
+    /* П-5 (демо=реал): линия серая как в сканере, цвет несёт только дельта рядом */
+    const color = '#8a8a8a'; void cls;
     svg.innerHTML = `<path d="${d}" fill="none" stroke="${color}" stroke-width="1.5"/>`;
   }
   draw('sp1',[2.00,2.01,2.03,2.04,2.07,2.10],'up');
   draw('sp2',[1.99,1.99,1.98,1.97,1.96,1.95],'down');
 })();
 
-/* ⑦ All Books — 3 режима (синтетика, помечено в honest) */
+/* ⑦ All Books — вкладки BEST/AVERAGE/ALL как в сканере (детали demo=реал: две цены + Δ% + строка AVERAGE).
+   Список контор — учебный (в бою грид живой и шире подписки; honest выше). */
 (function allbooks(){
-  const BOOKS = [['bet365',2.10],['pinnacle',2.07],['betonline',2.05],['1xbet',2.04],['betfair',2.12],['winline',2.02],['marathon',2.06]];
+  const BOOKS = [
+    ['Pinnacle ★',1.83,2.12],['Betsson',1.79,2.16],['Matchbook EX',1.85,2.09],
+    ['Smarkets EX',1.84,2.10],['Ladbrokes',1.77,2.18],['Bwin',1.80,2.14],
+    ['Dafabet',1.76,2.20],['888sport',1.78,2.15]
+  ];
   const tb = document.getElementById('ab-rows');
+  const avg1 = BOOKS.reduce((s,b)=>s+b[1],0)/BOOKS.length;
+  const avg2 = BOOKS.reduce((s,b)=>s+b[2],0)/BOOKS.length;
+  function dcell(v,avg){ const d=(v/avg-1)*100; const cls=d>0.05?'best':''; return `<td class="${cls}">${d>=0?'+':''}${d.toFixed(1)}%</td>`; }
+  const best1 = Math.max(...BOOKS.map(b=>b[1])), best2 = Math.max(...BOOKS.map(b=>b[2]));
+  function rowsHtml(list, withDelta){
+    /* три вкладки — три взгляда: BEST/AVERAGE с Δ% (фокус на отклонении), ALL без Δ% с подсветкой лучшей цены */
+    return list.map(b=>withDelta
+      ? `<tr><td>${b[0]}</td><td>${b[1].toFixed(2)}</td>${dcell(b[1],avg1)}<td>${b[2].toFixed(2)}</td>${dcell(b[2],avg2)}</tr>`
+      : `<tr><td>${b[0]}</td><td class="${b[1]===best1?'best':''}">${b[1].toFixed(2)}</td><td></td><td class="${b[2]===best2?'best':''}">${b[2].toFixed(2)}</td><td></td></tr>`
+    ).join('');
+  }
   function render(mode){
-    let rows;
-    if(mode==='best'){ rows = [...BOOKS].sort((a,b)=>b[1]-a[1]).slice(0,3); }
-    else if(mode==='avg'){ const avg=(BOOKS.reduce((s,b)=>s+b[1],0)/BOOKS.length); rows=[['Средняя по '+BOOKS.length+' БК', +avg.toFixed(2)]]; }
-    else rows = BOOKS;
-    const best = Math.max(...BOOKS.map(b=>b[1]));
-    tb.innerHTML = rows.map(r=>`<tr><td>${r[0]}</td><td class="${r[1]===best?'best':''}">${r[1].toFixed(2)}</td></tr>`).join('');
+    let html;
+    if(mode==='best'){
+      html = rowsHtml([...BOOKS].sort((a,b)=>b[1]-a[1]).slice(0,3), true);
+    } else if(mode==='avg'){
+      html = rowsHtml(BOOKS, true);
+    } else {
+      html = rowsHtml(BOOKS, false);
+    }
+    if(mode==='avg'){ /* строка AVERAGE — часть AVERAGE-вкладки, как в сканере */
+      html += `<tr><td><b>AVERAGE</b></td><td><b>${avg1.toFixed(2)}</b></td><td></td><td><b>${avg2.toFixed(2)}</b></td><td></td></tr>`;
+    }
+    tb.innerHTML = html;
   }
   document.querySelectorAll('#ab-mode button').forEach(b=>b.addEventListener('click',()=>{
     document.querySelectorAll('#ab-mode button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); render(b.dataset.m);
@@ -451,7 +474,7 @@ const profitOf = (s, o, total) => s * o - total;
     const pct=(s1+s2)>0?Math.abs(p1-p2)/(s1+s2)*100:0;
     wEl.textContent = pct>3 ? ' · ⚠ перекос '+pct.toFixed(1)+'%' : '';
   }
-  lk.addEventListener('click',()=>{ locked=!locked; lk.classList.toggle('on',locked); lk.textContent=locked?'🔒 Нога 1 залочена':'🔒 Lock 1';
+  lk.addEventListener('click',()=>{ locked=!locked; lk.classList.toggle('on',locked); lk.textContent=locked?'✓ 1':'○ 1';
     s1El.readOnly=!locked; s1El.classList.toggle('locked',locked); tEl.disabled=locked; recompute(); });
   tEl.addEventListener('input',()=>recompute()); s1El.addEventListener('input',()=>{ if(locked) recompute(true); });
   recompute();
