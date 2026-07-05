@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Г13 · Настройки калькулятора и поздней стадии</title>
+<style>
+  :root{
+    /* слой-2: каркас страницы (дизайн-паттерн учебника, пилот Г2 2026-07-02) */
+    --ink:#14161a; --paper:#f7f7f5; --hairline:#e7e7e4;
+    --panel:#ffffff; --surface2:#f4f4f5; --border:#e0e0e0;
+    --text:#1a1a1a; --text-secondary:#666; --text-tertiary:#8a8a8a;
+    --accent:#2563eb; --hl:rgba(37,99,235,.08);
+    --green:#1a8a2e; --green-bg:rgba(26,138,46,.10);
+    --amber:#b45309; --amber-bg:#fff7ed; --amber-border:#e0b070;
+    --shadow-1:0 1px 2px rgba(20,22,26,.05); --shadow-2:0 4px 16px rgba(20,22,26,.06);
+    --r-panel:12px; --r-block:8px;
+    --font-display:"Avenir Next","Segoe UI",system-ui,sans-serif;
+    --mono:ui-monospace,Menlo,monospace;
+    /* слой-1 (цвета продукта): survival-триада + терминал */
+    --surv-high:#16a34a; --surv-med:#ca8a04; --surv-low:#dc2626;
+    --t-bg:#111418; --t-row:#171b21; --t-border:#242a33; --t-text:#e8eaed; --t-dim:#9aa3ad;
+    --t-amber:#f0b429; --t-green:#3fb950; --t-red:#f85149; --t-blue:#58a6ff;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-font-smoothing:antialiased}
+  body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--paper);color:var(--text);font-size:15px;line-height:1.6}
+  .wrap{max-width:840px;margin:0 auto;padding:28px 18px 80px}
+  h1{font-family:var(--font-display);font-size:28px;font-weight:700;letter-spacing:-0.01em;margin:0 0 4px;text-wrap:balance}
+  h1::after{content:"";display:block;width:120px;height:3px;margin-top:10px;border-radius:2px;background:linear-gradient(90deg,var(--surv-high) 0 33%,var(--surv-med) 33% 66%,var(--surv-low) 66% 100%)} /* risk-ribbon */
+  .lead{color:var(--text-secondary);font-size:16px;margin:0 0 18px;text-wrap:pretty}
+  h2.part{font-family:var(--font-display);font-size:13px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--ink);margin:34px 0 6px;border-bottom:1px solid var(--hairline);padding-bottom:6px}
+  .part-sub{font-size:13px;color:var(--text-secondary);margin:0 0 14px}
+  .blk{background:var(--panel);border:1px solid var(--hairline);border-radius:var(--r-panel);box-shadow:var(--shadow-1);padding:16px 18px;margin:0 0 14px}
+  .blk h3{font-size:16px;margin:0 0 6px;font-weight:650}
+  .sig-why{font-size:13.5px;color:var(--text-secondary);margin:0 0 10px;text-wrap:pretty}
+  .sig-why b{color:var(--text)}
+  .demo{background:var(--t-bg);border-radius:var(--r-block);padding:12px;overflow-x:auto}
+  .demo,.demo *{font-family:var(--mono);font-size:12.5px;color:var(--t-text)}
+  .btn{display:inline-block;background:#1f2630;border:1px solid var(--t-border);border-radius:6px;color:var(--t-text);padding:5px 12px;cursor:pointer;user-select:none;font-size:12px}
+  .btn:hover{border-color:var(--t-blue)}
+  .btn--on{border-color:var(--t-green);color:var(--t-green)}
+  .note{margin:10px 0 0;font-size:12.5px;color:var(--text-secondary)}
+  details{margin:10px 0 0;font-size:13px;color:var(--text-secondary)}
+  details summary{cursor:pointer;color:var(--text);font-weight:600;font-size:13px}
+  .honest{margin:12px 0 0;padding:9px 12px;border-left:3px solid var(--amber-border);background:var(--amber-bg);border-radius:0 var(--r-block) var(--r-block) 0;font-size:12.5px;color:var(--amber)}
+  .prow{display:flex;align-items:center;gap:8px;padding:5px 8px;border-bottom:1px solid var(--t-border)}
+  .prow:last-child{border-bottom:0}
+  .prow .lab{flex:1 1 auto;color:var(--t-text)}
+  .prow .hint{flex:0 0 auto;font-size:10px;color:var(--t-dim);text-transform:uppercase;letter-spacing:.4px}
+  .prow input[type=checkbox]{accent-color:var(--t-green)}
+  .prow input[type=number]{width:64px;background:#0d1014;border:1px solid var(--t-border);border-radius:4px;color:var(--t-text);padding:3px 6px;text-align:right;font-size:12px}
+  .srow{display:grid;grid-template-columns:52px 44px 1fr 78px 46px;gap:8px;align-items:center;padding:6px 8px;background:var(--t-row);border:1px solid var(--t-border);border-left-width:3px;border-radius:6px;margin:6px 0}
+  .srow .pct{font-weight:700}
+  .srow .per{color:var(--t-dim)}
+  .srow--late .per{color:var(--t-red);font-weight:700}
+  .legend2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+  .legend2 .card{background:var(--panel);border:1px solid var(--hairline);border-radius:var(--r-block);padding:8px 11px;font-size:12.5px}
+  .legend2 .card b{display:block;font-size:12.5px;margin-bottom:2px}
+  .legend2 .card span{color:var(--text-secondary);font-size:12px}
+  .part2-grid{display:grid;grid-template-columns:1fr;gap:10px}
+  .toast{display:inline-block;background:#0d1014;border:1px solid var(--t-amber);color:var(--t-amber);border-radius:6px;padding:5px 10px;font-size:12px}
+  .kbd{display:inline-block;border:1px solid var(--t-border);border-bottom-width:2px;border-radius:4px;padding:0 5px;font-size:11px;color:var(--t-dim)}
+  .gear{color:var(--t-dim)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Настройки калькулятора и поздней стадии</h1>
+<p class="lead">Две группы настроек под один и тот же страх вилочника: <b>чтобы живая позиция не поехала</b>. Первая учит калькулятор правильно вести себя после реальной постановки. Вторая — подсвечивать вилки на догорающих матчах, где кэф дёргается резче всего. Всё открывается шестерёнкой в правом углу топбара; пока панель настроек открыта, горячие клавиши потока спят.</p>
+
+<!-- ЧАСТЬ 1 -->
+<h2 class="part">Часть 1 · Учёба — каждый переключатель отдельно</h2>
+<p class="part-sub">Пять настроек, у каждой — своё живое демо. Жми переключатели: подписи и поведение — дословно из сканера.</p>
+
+<div class="blk">
+  <h3>① «Поставлено» вместо «Блокировки» — фиксация реальной постановки</h3>
+  <p class="sig-why">Решение: <b>отметить ногу, которая уже стоит у конторы, чтобы поток её больше не трогал</b>. Во включённом режиме (по умолчанию) кнопка «Поставлено» замораживает ставку и кэф этой ноги; если кэф в потоке уезжает — нога подсвечивается янтарным сигналом, но числа не пересчитываются: у конторы ставка уже стоит по старому кэфу, пересчёт был бы враньём. Выключенный режим — устаревшая «Блокировка»: просто останавливала пересчёт, не зная, стоит ли нога на самом деле.</p>
+  <div class="demo" id="d1">
+    <div class="prow">
+      <input type="checkbox" id="d1-t" checked>
+      <span class="lab">Фиксация ставки и кэфа после реальной постановки (рекомендуется)</span>
+      <span class="hint" id="d1-hint">Включено (по умолчанию)</span>
+    </div>
+    <div style="padding:8px">
+      <span class="btn btn--on" id="d1-btn">Поставлено</span>
+      <span id="d1-leg" style="margin-left:10px">нога 1 · bet365 · кэф <b id="d1-odds">2.10</b> · ставка <b id="d1-stake">476&nbsp;€</b></span>
+      <span id="d1-sig" style="display:none;margin-left:8px;color:var(--t-amber)">⚠ кэф в потоке уехал → сигнал, числа держатся</span>
+    </div>
+    <div style="padding:0 8px 6px"><span class="btn" id="d1-drift">Дёрнуть кэф в потоке</span></div>
+  </div>
+  <details><summary>Что происходит в выключенном режиме</summary>
+    Кнопка называется «Блокировка» и просто не даёт пересчитывать ставку этой ноги при дрейфе кэфа — без явной отметки «я реально поставил». Режим оставлен для тех, кто привык к старому поведению; новым пользователям он не нужен.</details>
+</div>
+
+<div class="blk">
+  <h3>② Смена режима не дёргает живую позицию</h3>
+  <p class="sig-why">Решение: <b>менять настройки можно в любой момент — открытая пара не пострадает</b>. Если в калькуляторе прямо сейчас идёт живая пара (нога отмечена поставленной), смена режима фиксации не применяется мгновенно: она встаёт в очередь и включится, когда пара закроется. Сканер скажет об этом плашкой. Так настройка никогда не перещёлкивает семантику посреди денег — даже если её сменили в другой вкладке браузера.</p>
+  <div class="demo" id="d2">
+    <div style="padding:6px 8px">поток: пара <b>активна</b> (нога 1 поставлена) · <span class="btn" id="d2-switch">Сменить режим фиксации</span></div>
+    <div style="padding:2px 8px 8px"><span class="toast" id="d2-toast" style="display:none">Lock semantic будет применён после закрытия активного flow.</span> <span id="d2-gloss" style="display:none;color:var(--t-dim);font-size:11px;margin-left:6px">— по-русски: режим фиксации применится, когда закроется активная пара (плашка показана дословно, как в сканере)</span></div>
+    <div style="padding:0 8px 8px"><span class="btn" id="d2-close">Закрыть пару</span> <span id="d2-applied" style="display:none;color:var(--t-green);margin-left:8px">✓ отложенный режим применился</span></div>
+  </div>
+</div>
+
+<div class="blk">
+  <h3>③ Высота калькулятора — адаптив или ровно пополам</h3>
+  <p class="sig-why">Решение: <b>сколько экрана отдать форме ставок, а сколько — панели деталей под ней</b>. Адаптивный режим (по умолчанию): форма занимает сколько ей нужно, панель деталей забирает весь остаток — на коротких вилках деталям достаётся больше воздуха. Выключено — старое ровное деление пополам.</p>
+  <div class="demo" id="d3">
+    <div class="prow">
+      <input type="checkbox" id="d3-t" checked>
+      <span class="lab">Адаптивная высота калькулятора (детальная панель занимает остаток)</span>
+      <span class="hint" id="d3-hint">Включено (по умолчанию)</span>
+    </div>
+    <div style="display:flex;gap:6px;padding:8px">
+      <div id="d3-a" style="flex:0 0 38%;background:#1f2630;border:1px solid var(--t-border);border-radius:6px;padding:6px;text-align:center">калькулятор</div>
+      <div id="d3-b" style="flex:1;background:#0d1014;border:1px solid var(--t-border);border-radius:6px;padding:6px;text-align:center;color:var(--t-dim)">панель деталей — остаток</div>
+    </div>
+  </div>
+</div>
+
+<div class="blk">
+  <h3>④ Смена пресета не сбрасывает выбранную вилку</h3>
+  <p class="sig-why">Решение: <b>переключить режим потока, не потеряв вилку в работе</b>. По умолчанию: если выбранная вилка проходит фильтры нового пресета — калькулятор остаётся открытым на ней. Выключено — любой чих пресета сбрасывает выбор, и вилку приходится искать заново.</p>
+  <div class="demo" id="d4">
+    <div style="padding:6px 8px">выбрана вилка: <b>Alcaraz — Sinner · ТБ 22.5 · 3.6%</b> (Tennis)</div>
+    <div style="padding:0 8px 8px">
+      <span class="btn" id="d4-p1">Пресет: All Sports</span>
+      <span class="btn" id="d4-p2">Пресет: Soccer EU</span>
+      <span id="d4-out" style="margin-left:8px;color:var(--t-dim)"></span>
+    </div>
+    <div class="prow" style="border-top:1px solid var(--t-border)">
+      <input type="checkbox" id="d4-t" checked>
+      <span class="lab">Сохранять выбранную вилку при смене пресета (если она проходит новый фильтр)</span>
+      <span class="hint" id="d4-hint">Включено (по умолчанию)</span>
+    </div>
+  </div>
+</div>
+
+<div class="blk">
+  <h3>⑤ Поздняя стадия матча — пороги по видам спорта</h3>
+  <p class="sig-why">Решение: <b>видеть, что матч догорает, до того как взял вилку</b>. Когда матч подходит к концу, кэф дёргается резко, и конторы фиксируют подозрительные движения почти мгновенно — вилка на такой минуте живёт иначе. Сканер подсвечивает время в строке красным: «поздняя стадия — двойная осторожность». Порог у каждого спорта свой, и единицы разные: у футбола и гандбола — минута второго тайма, у баскетбола и ам. футбола — сколько секунд ОСТАЛОСЬ в четвёртой четверти, у хоккея — минута третьего периода.</p>
+  <div class="demo" id="d5">
+    <div class="prow"><span class="lab">Футбол — late-stage с минуты во 2-м тайме</span><input type="number" id="d5-n" value="75" min="0" max="120"><span class="hint">мин</span></div>
+    <div style="padding:6px 8px 2px;color:var(--t-dim)">строки потока (футбол, 2-й тайм):</div>
+    <div style="padding:0 8px 8px">
+      <div class="srow" id="d5-r1" style="border-left-color:var(--surv-med)"><span class="pct">4.1%</span><span>SOC</span><span>Real — Barca</span><span>ТБ 2.5</span><span class="per" id="d5-p1">2H 71'</span></div>
+      <div class="srow" id="d5-r2" style="border-left-color:var(--surv-high)"><span class="pct">3.2%</span><span>SOC</span><span>Ajax — PSV</span><span>ТМ 3.0</span><span class="per" id="d5-p2">2H 78'</span></div>
+      <div class="srow" id="d5-r3" style="border-left-color:var(--surv-low)"><span class="pct">6.0%</span><span>SOC</span><span>Lyon — Nice</span><span>Ф1 −1</span><span class="per" id="d5-p3">2H 89'</span></div>
+    </div>
+    <div class="note" style="color:var(--t-dim);padding:0 8px 6px">двинь порог — красная минута пересчитается: выше порога = поздняя стадия</div>
+  </div>
+  <details><summary>Пороги остальных спортов (по умолчанию)</summary>
+    Баскетбол — меньше 120 секунд до конца Q4/OT; хоккей — с 17-й минуты 3-го периода; гандбол — с 25-й минуты 2-го тайма; ам. футбол — меньше 120 секунд в Q4/OT. Пороги гандбола и ам. футбола подобраны эмпирически и помечены в сканере как предварительные — уточнятся отраслевой нормой.</details>
+  <div class="honest">Честно: у волейбола и бейсбола порог через настройки пока не задаётся — там поздняя стадия определяется по самому периоду («Set 5», «9th Inning»), формат этих строк ждёт подтверждения от сервера. Пока — зашито в коде.</div>
+</div>
+
+<!-- ЧАСТЬ 2 -->
+<h2 class="part">Часть 2 · В живом сканере</h2>
+<p class="part-sub">Панель настроек рядом с потоком. Меняй порог футбола и режим фиксации — эффект виден сразу в строках и в калькуляторе. Легенда — под терминалом.</p>
+
+<div class="blk">
+  <div class="demo part2-grid" id="p2">
+    <div>
+      <div style="padding:2px 4px;color:var(--t-dim)">поток · футбол 2H <span style="float:right" class="gear">⚙ настройки открыты · хоткеи спят</span></div>
+      <div class="srow" id="p2-r1" style="border-left-color:var(--surv-high)"><span class="pct">3.6%</span><span>SOC</span><span>Milan — Roma</span><span>ТБ 2.5</span><span class="per" id="p2-per1">2H 74'</span></div>
+      <div class="srow" id="p2-r2" style="border-left-color:var(--surv-med)"><span class="pct">4.4%</span><span>SOC</span><span>Betis — Sevilla</span><span>ТМ 2.5</span><span class="per" id="p2-per2">2H 81'</span></div>
+      <div style="padding:6px 4px 2px;color:var(--t-dim)">калькулятор · пара:</div>
+      <div style="padding:0 4px 4px">
+        <span class="btn btn--on" id="p2-btn">Поставлено</span>
+        <span style="margin-left:8px">нога 1 · bet365 · <b id="p2-odds">2.10</b> · <b>57&nbsp;€</b></span>
+        <span id="p2-sig" style="display:none;margin-left:8px;color:var(--t-amber)">⚠ дрейф — числа держатся</span>
+      </div>
+      <div style="padding:0 4px 6px"><span class="btn" id="p2-drift">Дёрнуть кэф</span></div>
+    </div>
+    <div>
+      <div style="padding:2px 4px;color:var(--t-dim)">настройки:</div>
+      <div class="prow"><span class="lab">Футбол — late-stage с минуты</span><input type="number" id="p2-n" value="75" min="0" max="120"><span class="hint">мин</span></div>
+      <div class="prow"><input type="checkbox" id="p2-lock" checked><span class="lab">Фиксация после реальной постановки</span><span class="hint" id="p2-lockhint">Вкл</span></div>
+    </div>
+  </div>
+  <div class="legend2">
+    <div class="card"><b>Красная минута</b><span>матч в поздней стадии по порогу этого спорта — кэф дёргается, двойная осторожность</span></div>
+    <div class="card"><b>«Поставлено» + янтарный сигнал</b><span>нога зафиксирована; дрейф кэфа показывается, но числа не пересчитываются</span></div>
+    <div class="card"><b>Порог — личный</b><span>сколько минут 2-го тайма считать «поздно» — каждый решает под свой риск</span></div>
+    <div class="card"><b>Хоткеи спят</b><span>пока открыта панель настроек, горячие клавиши потока не срабатывают</span></div>
+  </div>
+</div>
+
+<!-- ЧАСТЬ 3 -->
+<h2 class="part">Часть 3 · Как в бою</h2>
+<p class="part-sub">Плотный вид секций панели — так они выглядят в сканере, без подсказок.</p>
+
+<div class="blk">
+  <div class="demo">
+    <div style="padding:4px;color:var(--t-dim);text-transform:uppercase;font-size:10px;letter-spacing:.5px">Настройки калькулятора</div>
+    <div class="prow"><input type="checkbox" checked disabled><span class="lab">Адаптивная высота калькулятора (детальная панель занимает остаток)</span><span class="hint">Включено (по умолчанию)</span></div>
+    <div class="prow"><input type="checkbox" checked disabled><span class="lab">Фиксация ставки и кэфа после реальной постановки (рекомендуется)</span><span class="hint">Включено (по умолчанию)</span></div>
+    <div class="prow"><input type="checkbox" checked disabled><span class="lab">Сохранять выбранную вилку при смене пресета (если она проходит новый фильтр)</span><span class="hint">Включено (по умолчанию)</span></div>
+    <div style="padding:8px 4px 4px;color:var(--t-dim);text-transform:uppercase;font-size:10px;letter-spacing:.5px">Поздняя стадия матча — пороги по видам спорта</div>
+    <div class="prow"><span class="lab">Футбол — late-stage с минуты во 2-м тайме</span><input type="number" value="75" disabled><span class="hint">мин</span></div>
+    <div class="prow"><span class="lab">Баскетбол — late-stage когда remaining в Q4/OT меньше</span><input type="number" value="120" disabled><span class="hint">сек</span></div>
+    <div class="prow"><span class="lab">Хоккей — late-stage с минуты 3-го периода</span><input type="number" value="17" disabled><span class="hint">мин</span></div>
+    <div class="prow"><span class="lab">Гандбол — late-stage с минуты во 2-м тайме (TENTATIVE)</span><input type="number" value="25" disabled><span class="hint">мин</span></div>
+    <div class="prow"><span class="lab">Ам. футбол — late-stage когда remaining в Q4/OT меньше (TENTATIVE)</span><input type="number" value="120" disabled><span class="hint">сек</span></div>
+  </div>
+  <p class="note">Часть 3 — статичный боевой вид (поля выключены нарочно: это снимок, тренажёр — выше). Настройки живут в браузере: пережёвывают перезагрузку страницы и подхватываются во всех вкладках сканера.</p>
+</div>
+
+<script>
+(function(){
+  // ① lockSemantic: toggle меняет подпись/кнопку; drift — сигнал без пересчёта (вкл) или пересчёт остановлен «блокировкой» (выкл)
+  var t=document.getElementById('d1-t'),hint=document.getElementById('d1-hint'),btn=document.getElementById('d1-btn'),
+      sig=document.getElementById('d1-sig'),odds=document.getElementById('d1-odds'),drift=document.getElementById('d1-drift');
+  function render(){
+    if(t.checked){hint.textContent='Включено (по умолчанию)';btn.textContent='Поставлено';btn.classList.add('btn--on');}
+    else{hint.textContent='Выключено — устаревший режим «Блокировка»';btn.textContent='Блокировка';btn.classList.remove('btn--on');}
+    sig.style.display='none';
+  }
+  t.addEventListener('change',render);
+  drift.addEventListener('click',function(){ sig.style.display='inline'; /* числа не трогаем: заморожены в обоих режимах, разница в семантике подписи */ });
+  render();
+})();
+(function(){
+  // ② defer-машина: смена режима при активной паре — очередь + toast; закрытие пары — применение
+  var sw=document.getElementById('d2-switch'),toast=document.getElementById('d2-toast'),close=document.getElementById('d2-close'),
+      applied=document.getElementById('d2-applied'),queued=false;
+  sw.addEventListener('click',function(){ queued=true; toast.style.display='inline-block'; document.getElementById('d2-gloss').style.display='inline'; applied.style.display='none'; });
+  close.addEventListener('click',function(){ if(queued){ toast.style.display='none'; document.getElementById('d2-gloss').style.display='none'; applied.style.display='inline'; queued=false; } });
+})();
+(function(){
+  // ③ layoutAdaptiveSplit: adaptive (38% + остаток) vs 50/50
+  var t=document.getElementById('d3-t'),hint=document.getElementById('d3-hint'),a=document.getElementById('d3-a'),b=document.getElementById('d3-b');
+  function render(){
+    if(t.checked){hint.textContent='Включено (по умолчанию)';a.style.flex='0 0 38%';b.textContent='панель деталей — остаток';}
+    else{hint.textContent='Выключено — равное деление 50/50';a.style.flex='0 0 50%';b.textContent='панель деталей — 50%';}
+  }
+  t.addEventListener('change',render); render();
+})();
+(function(){
+  // ④ presetSwitchPreservesSelected: Soccer EU не содержит Tennis-вилку → поведение зависит от toggle
+  var t=document.getElementById('d4-t'),hint=document.getElementById('d4-hint'),out=document.getElementById('d4-out'),
+      p1=document.getElementById('d4-p1'),p2=document.getElementById('d4-p2');
+  function upd(){hint.textContent=t.checked?'Включено (по умолчанию)':'Выключено — выбор всегда сбрасывается';}
+  t.addEventListener('change',upd); upd();
+  p1.addEventListener('click',function(){ out.textContent = t.checked ? '✓ вилка проходит фильтр — калькулятор остался открыт' : '✗ выбор сброшен (режим «всегда сбрасывать»)'; out.style.color = t.checked ? 'var(--t-green)' : 'var(--t-red)'; });
+  p2.addEventListener('click',function(){ out.textContent = '✗ Tennis не проходит фильтр Soccer EU — выбор сброшен'; out.style.color='var(--t-red)'; });
+})();
+(function(){
+  // ⑤ порог футбола: minute > threshold в 2H → late (логика isLateStage для Soccer)
+  var n=document.getElementById('d5-n');
+  var rows=[{el:'d5-r1',per:'d5-p1',min:71},{el:'d5-r2',per:'d5-p2',min:78},{el:'d5-r3',per:'d5-p3',min:89}];
+  function render(){
+    var th=parseInt(n.value,10); if(isNaN(th)||th<0) return;
+    rows.forEach(function(r){
+      var late = r.min > th;
+      document.getElementById(r.el).classList.toggle('srow--late',late);
+    });
+  }
+  n.addEventListener('change',render); n.addEventListener('input',render); render();
+})();
+(function(){
+  // Часть 2: порог + лок вместе
+  var n=document.getElementById('p2-n');
+  var rows=[{el:'p2-r1',min:74},{el:'p2-r2',min:81}];
+  function render(){
+    var th=parseInt(n.value,10); if(isNaN(th)||th<0) return;
+    rows.forEach(function(r){ document.getElementById(r.el).classList.toggle('srow--late', r.min>th); });
+  }
+  n.addEventListener('change',render); n.addEventListener('input',render); render();
+  var lock=document.getElementById('p2-lock'),lh=document.getElementById('p2-lockhint'),btn=document.getElementById('p2-btn'),
+      sig=document.getElementById('p2-sig'),dr=document.getElementById('p2-drift');
+  function rl(){ if(lock.checked){lh.textContent='Вкл';btn.textContent='Поставлено';btn.classList.add('btn--on');} else {lh.textContent='Выкл — «Блокировка»';btn.textContent='Блокировка';btn.classList.remove('btn--on');} sig.style.display='none'; }
+  lock.addEventListener('change',rl); rl();
+  dr.addEventListener('click',function(){ sig.style.display='inline'; });
+})();
+</script>
+</div>
+</body>
+</html>
