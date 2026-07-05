@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Г14 · Служебное: уведомления и вход</title>
+<style>
+  :root{
+    /* слой-2: каркас страницы (дизайн-паттерн учебника, пилот Г2 2026-07-02) */
+    --ink:#14161a; --paper:#f7f7f5; --hairline:#e7e7e4;
+    --panel:#ffffff; --surface2:#f4f4f5; --border:#e0e0e0;
+    --text:#1a1a1a; --text-secondary:#666; --text-tertiary:#8a8a8a;
+    --accent:#2563eb;
+    --amber:#b45309; --amber-bg:#fff7ed; --amber-border:#e0b070;
+    --shadow-1:0 1px 2px rgba(20,22,26,.05);
+    --r-panel:12px; --r-block:8px;
+    --font-display:"Avenir Next","Segoe UI",system-ui,sans-serif;
+    --mono:ui-monospace,Menlo,monospace;
+    --surv-high:#16a34a; --surv-med:#ca8a04; --surv-low:#dc2626;
+    --t-bg:#111418; --t-row:#171b21; --t-border:#242a33; --t-text:#e8eaed; --t-dim:#9aa3ad;
+    --t-amber:#f0b429; --t-red:#f85149;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--paper);color:var(--text);font-size:15px;line-height:1.6}
+  .wrap{max-width:840px;margin:0 auto;padding:28px 18px 80px}
+  h1{font-family:var(--font-display);font-size:28px;font-weight:700;letter-spacing:-0.01em;margin:0 0 4px;text-wrap:balance}
+  h1::after{content:"";display:block;width:120px;height:3px;margin-top:10px;border-radius:2px;background:linear-gradient(90deg,var(--surv-high) 0 33%,var(--surv-med) 33% 66%,var(--surv-low) 66% 100%)} /* risk-ribbon */
+  .lead{color:var(--text-secondary);font-size:16px;margin:0 0 18px;text-wrap:pretty}
+  h2.part{font-family:var(--font-display);font-size:13px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--ink);margin:34px 0 6px;border-bottom:1px solid var(--hairline);padding-bottom:6px}
+  .part-sub{font-size:13px;color:var(--text-secondary);margin:0 0 14px}
+  .blk{background:var(--panel);border:1px solid var(--hairline);border-radius:var(--r-panel);box-shadow:var(--shadow-1);padding:16px 18px;margin:0 0 14px}
+  .blk h3{font-size:16px;margin:0 0 6px;font-weight:650}
+  .sig-why{font-size:13.5px;color:var(--text-secondary);margin:0 0 10px;text-wrap:pretty}
+  .sig-why b{color:var(--text)}
+  .demo{background:var(--t-bg);border-radius:var(--r-block);padding:12px;overflow-x:auto;position:relative;min-height:120px}
+  .demo,.demo *{font-family:var(--mono);font-size:12.5px;color:var(--t-text)}
+  .btn{display:inline-block;background:#1f2630;border:1px solid var(--t-border);border-radius:6px;color:var(--t-text);padding:5px 12px;cursor:pointer;user-select:none;font-size:12px}
+  .btn:hover{border-color:var(--accent)}
+  .note{margin:10px 0 0;font-size:12.5px;color:var(--text-secondary)}
+  details{margin:10px 0 0;font-size:13px;color:var(--text-secondary)}
+  details summary{cursor:pointer;color:var(--text);font-weight:600;font-size:13px}
+  .srow{display:grid;grid-template-columns:52px 44px 1fr 78px;gap:8px;align-items:center;padding:6px 8px;background:var(--t-row);border:1px solid var(--t-border);border-left:3px solid var(--surv-med);border-radius:6px;margin:6px 0}
+  .toastbox{position:absolute;top:10px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;align-items:center;width:max-content;max-width:92%}
+  .toast{display:flex;gap:8px;align-items:center;background:#0d1014;border:1px solid var(--t-amber);color:var(--t-amber);border-radius:6px;padding:5px 10px;font-size:12px;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+  .toast .x{cursor:pointer;color:var(--t-dim);border:0;background:none;font-size:14px;line-height:1}
+  .login-demo{display:flex;align-items:center;justify-content:center;height:130px;background:#fafafa;border:1px solid var(--hairline);border-radius:var(--r-block)}
+  .login-btn{padding:10px 24px;font-size:14px;cursor:pointer;border:1px solid var(--border);background:var(--panel);border-radius:4px}
+  .legend2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+  .legend2 .card{background:var(--panel);border:1px solid var(--hairline);border-radius:var(--r-block);padding:8px 11px;font-size:12.5px}
+  .legend2 .card b{display:block;margin-bottom:2px}
+  .legend2 .card span{color:var(--text-secondary);font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Служебное: уведомления и вход</h1>
+<p class="lead">Мини-глава про два «фоновых» механизма, с которыми вилочник сталкивается не по своей воле: <b>тосты</b> — сканер коротко говорит, что что-то пошло не так (канал, ставка, курсы), и <b>вход</b> — одна кнопка, когда сессия истекла. Оба не требуют изучения — требуют правильной реакции за секунду.</p>
+
+<!-- ЧАСТЬ 1 -->
+<h2 class="part">Часть 1 · Учёба — два механизма отдельно</h2>
+<p class="part-sub">Тексты тостов — дословно из сканера. Жми кнопки.</p>
+
+<div class="blk">
+  <h3>① Тост — сканер сообщает о проблеме, не останавливая работу</h3>
+  <p class="sig-why">Решение: <b>прочитать за секунду и понять, страдает ли поток денег</b>. Тост всплывает сверху по центру (под топбаром), висит шесть секунд и гаснет сам; крестиком можно убрать раньше. Клики «мимо тоста» проваливаются на сканер — работа не блокируется. Главные тексты: обрыв потока вилок (переподключение само), падение подписки на купоны, неотправленный GO, курсы валют. Если тост про поток — свежесть строк на экране под вопросом до переподключения; если про GO — ставка НЕ ушла, и это надо увидеть сразу.</p>
+  <div class="demo" id="t1">
+    <div class="toastbox" id="t1-box"></div>
+    <div style="margin-top:56px">
+      <span class="btn" id="t1-stream">Оборвать поток</span>
+      <span class="btn" id="t1-retry">Ретрай подписки ×3</span>
+      <span class="btn" id="t1-go">GO без события</span>
+    </div>
+    <div class="note" style="color:var(--t-dim)">«Ретрай ×3» показывает вытеснение: три ошибки подряд с одной меткой — на экране всегда ОДИН тост, новый заменяет старый и перезапускает таймер (не стопка мусора).</div>
+  </div>
+  <details><summary>Почему тосты не копятся стопкой при повторных ошибках</summary>
+    У однотипных ошибок есть метка. Повторная ошибка с той же меткой вытесняет предыдущий тост: анимация и шестисекундный таймер стартуют заново. Так канал, падающий в цикле ретраев, даёт один живой тост, а не лавину.</details>
+</div>
+
+<div class="blk">
+  <h3>② Вход — одна кнопка, тот же аккаунт, что у расширения</h3>
+  <p class="sig-why">Решение: <b>увидел кнопку Login — сессия истекла, жми и возвращаешься</b>. Страница входа — пустой экран с одной кнопкой: клик уводит к провайдеру входа, после подтверждения сканер сам возвращает на поток. Аккаунт один на всё: сканер и расширение проставки входят под одним пользователем — если расширение вдруг «молчит» после долгого перерыва, первым делом стоит проверить, жива ли сессия в обоих местах.</p>
+  <div class="login-demo"><button class="login-btn" id="t2-login">Login</button></div>
+  <div class="note" id="t2-note" style="display:none">→ в реальном сканере отсюда уводит на страницу провайдера входа; после подтверждения — обратно на поток (демо никуда не уводит).</div>
+</div>
+
+<!-- ЧАСТЬ 2 -->
+<h2 class="part">Часть 2 · В живом сканере</h2>
+<p class="part-sub">Мини-поток; тост живёт ПОВЕРХ строк и не мешает кликать по ним. Легенда — под терминалом.</p>
+
+<div class="blk">
+  <div class="demo" id="p2">
+    <div class="toastbox" id="p2-box"></div>
+    <div style="padding:2px 4px;color:var(--t-dim)">поток:</div>
+    <div class="srow" id="p2-r1"><span style="font-weight:700">3.6%</span><span>TEN</span><span>Alcaraz — Sinner · ТБ 22.5</span><span style="color:var(--t-dim)">0s</span></div>
+    <div class="srow" id="p2-r2"><span style="font-weight:700">4.4%</span><span>SOC</span><span>Milan — Roma · ТМ 2.5</span><span style="color:var(--t-dim)">1s</span></div>
+    <div style="padding:4px"><span class="btn" id="p2-break">Оборвать поток</span> <span class="btn" id="p2-click">Кликнуть строку под тостом</span> <span id="p2-out" style="margin-left:8px;color:var(--t-dim)"></span></div>
+  </div>
+  <div class="legend2">
+    <div class="card"><b>Тост сверху по центру</b><span>под топбаром; поток и клики продолжают работать</span></div>
+    <div class="card"><b>Гаснет сам</b><span>шесть секунд — и ушёл; крестик — раньше</span></div>
+    <div class="card"><b>Тост про поток</b><span>свежесть строк под вопросом до переподключения</span></div>
+    <div class="card"><b>Тост про GO</b><span>ставка НЕ ушла — проверить ногу немедленно</span></div>
+  </div>
+</div>
+
+<!-- ЧАСТЬ 3 -->
+<h2 class="part">Часть 3 · Как в бою</h2>
+<p class="part-sub">Реальные тексты, как они приходят в работе.</p>
+
+<div class="blk">
+  <div class="demo">
+    <div class="toast" style="position:static;transform:none;margin:4px 0"><span>Поток вилок оборван сервером — переподключение…</span><button class="x">×</button></div>
+    <div class="toast" style="position:static;transform:none;margin:4px 0"><span>TakeBet на bet365 упал: deadline exceeded</span><button class="x">×</button></div>
+    <div class="toast" style="position:static;transform:none;margin:4px 0"><span>Не удалось обновить курсы валют: network error</span><button class="x">×</button></div>
+  </div>
+  <p class="note">Снимок трёх боевых текстов рядом — в работе они приходят по одному, сверху по центру. Реакция: «поток» — ждать переподключения и не доверять возрасту строк; «TakeBet упал» — нога не поставлена, решать немедленно; «курсы валют» — суммы в чужой валюте могут не пересчитаться.</p>
+</div>
+
+<script>
+(function(){
+  var DUR=6000;
+  function makeToast(box,msg,tag){
+    var old = tag && box.querySelector('[data-tag="'+tag+'"]');
+    if(old){ old.remove(); }
+    var t=document.createElement('div'); t.className='toast'; if(tag) t.setAttribute('data-tag',tag);
+    var s=document.createElement('span'); s.textContent=msg;
+    var x=document.createElement('button'); x.className='x'; x.textContent='×'; x.setAttribute('aria-label','Закрыть');
+    x.addEventListener('click',function(){ t.remove(); });
+    t.appendChild(s); t.appendChild(x); box.appendChild(t);
+    setTimeout(function(){ t.remove(); }, DUR);
+  }
+  var box1=document.getElementById('t1-box'), n=0;
+  document.getElementById('t1-stream').addEventListener('click',function(){ makeToast(box1,'Поток вилок оборван сервером — переподключение…','stream'); });
+  document.getElementById('t1-retry').addEventListener('click',function(){
+    n=0;
+    var iv=setInterval(function(){ n++; makeToast(box1,'Подписка на купоны упала: retry #'+n,'coupon'); if(n>=3) clearInterval(iv); },450);
+  });
+  document.getElementById('t1-go').addEventListener('click',function(){ makeToast(box1,'Не могу отправить TakeBet на bet365: нет eventId у плеча.','takebet'); });
+  document.getElementById('t2-login').addEventListener('click',function(){ document.getElementById('t2-note').style.display='block'; });
+  var box2=document.getElementById('p2-box'), out=document.getElementById('p2-out');
+  document.getElementById('p2-break').addEventListener('click',function(){ makeToast(box2,'Поток вилок оборван сервером — переподключение…','stream2'); });
+  document.getElementById('p2-click').addEventListener('click',function(){ out.textContent='✓ клик прошёл на строку — тост не блокирует'; });
+  // Ч3: крестики боевого снимка живые — поведение совпадает с «крестиком можно убрать»
+  document.querySelectorAll('.demo .toast .x').forEach(function(x){ if(!x.onclick && !x.closest('#t1-box') && !x.closest('#p2-box')) x.addEventListener('click',function(){ x.closest('.toast').remove(); }); });
+})();
+</script>
+</div>
+</body>
+</html>
