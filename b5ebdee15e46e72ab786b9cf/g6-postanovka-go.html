@@ -3,404 +3,736 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Постановка и GO — учебная глава (3 части)</title>
+<title>Г6 · Постановка и GO — момент нажатия</title>
 <style>
-  /* Цвета/значения воссозданы из кода форка (R-3); координаты — в r3-registry-g6.md. */
+  /* Цвета/значения воссозданы из кода форка (R-3); координаты — в r3-registry-g6.md.
+     Палитра/классы демо совпадают с соседней главой «Калькулятор» (g5) — читатель ходит между ними. */
   :root{
-    --bg:#fafafa; --panel:#ffffff; --surface2:#f4f4f5; --border:#e0e0e0; --border-subtle:#ebebeb;
-    --text:#1a1a1a; --text-secondary:#666666; --text-tertiary:#8a8a8a; --text-inverse:#ffffff;
-    --accent:#2563eb; --hl:rgba(37,99,235,.12);
-    --green:#1a8a2e;                                   /* index.css --color-accent-green */
-    --red:#cc2222;                                     /* index.css --color-accent-red */
-    --info-bg:#e8f1fb; --info-border:#c8ddf0; --info-text:#1d4f7a;   /* index.css info (купон) */
-    --danger-bg:#fff0f0; --danger-border:#e88a8a; --danger-text:#991b1b; /* index.css danger (suspended) */
-    --mono:ui-monospace,Menlo,monospace;
-    /* слой-1 survival-триада (значения продукта) — под risk-ribbon */
-    --surv-high:#16a34a; --surv-med:#ca8a04; --surv-low:#dc2626;
-    /* слой-2 — каркас страницы + учебные плашки (перенос дизайн-паттерна) */
+    /* каркас страницы — читательская рама учебника (единая для всех глав) */
     --ink:#14161a; --paper:#f7f7f5; --hairline:#e7e7e4;
-    --note-bg:#fff8e6; --note-border:#f0d99a; --note-text:#6b5418;   /* honest-семейство: СОБСТВЕННЫЕ hex g6 (было россыпью в .honest) */
+    --panel:#ffffff; --surface2:#f4f4f5; --border:#e0e0e0;
+    --text:#1a1a1a; --text-secondary:#666; --text-tertiary:#8a8a8a;
+    --accent:#0a76ad; --hl:rgba(10,118,173,.08);
+    --green:#1a8a2e; --amber:#b45309; --amber-bg:#fff7ed; --amber-border:#e0b070;
     --shadow-1:0 1px 2px rgba(20,22,26,.05); --shadow-2:0 4px 16px rgba(20,22,26,.06);
     --r-panel:12px; --r-block:8px;
     --font-display:"Avenir Next","Segoe UI",system-ui,sans-serif;
+    --mono:ui-monospace,Menlo,monospace;
+    /* survival-триада продукта (risk-ribbon заголовка) */
+    --surv-high:#16a34a; --surv-med:#ca8a04; --surv-low:#dc2626;
+    /* ДЕМО — дневная палитра сканера (значения :root дневной темы фронта, index.css) */
+    --t-bg:#f6f7f9; --t-row:#ffffff; --t-card:#ffffff; --t-border:#dde2ea;
+    --t-text:#1a1a1a; --t-dim:#4d5765;
+    --cyan:#0a76ad;
+    --t-amber:#f59e0b; --t-green:#19776c; --t-red:#c53a36;
+    /* цвет НОГИ (не конторы, не циан) — те же токены, что в коде сканера */
+    --leg-1:#16a34a; --leg-2:#dc2626;
   }
   *{box-sizing:border-box}
-  html{font-size:15px;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+  html{-webkit-font-smoothing:antialiased}
   body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--paper);color:var(--text);font-size:15px;line-height:1.6}
-  .wrap{max-width:760px;margin:0 auto;padding:28px 18px 80px}
-  h1{font-size:28px;margin:0 0 6px;font-family:var(--font-display);font-weight:700;letter-spacing:-0.01em;text-wrap:balance}
-  h1::after{content:"";display:block;width:120px;height:3px;margin-top:10px;border-radius:2px;background:linear-gradient(90deg,var(--surv-high) 0 33%,var(--surv-med) 33% 66%,var(--surv-low) 66% 100%)} /* risk-ribbon */
-  h2{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink);margin:0 0 4px;font-weight:700}
-  h3{font-size:18px;margin:0 0 4px;font-family:var(--font-display);font-weight:600;text-wrap:balance}
+  .wrap{max-width:820px;margin:0 auto;padding:28px 18px 80px}
+  h1{font-family:var(--font-display);font-size:28px;font-weight:700;letter-spacing:-0.01em;margin:0 0 6px;text-wrap:balance}
+  h1::after{content:"";display:block;width:120px;height:3px;margin-top:10px;border-radius:2px;background:linear-gradient(90deg,var(--surv-high) 0 33%,var(--surv-med) 33% 66%,var(--surv-low) 66% 100%)}
   .lead{color:var(--text-secondary);font-size:16px;margin:0 0 8px;text-wrap:pretty}
-  .border-note{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-block);padding:9px 12px;font-size:13px;color:var(--text-secondary);margin:10px 0 0}
+  .lead b{color:var(--text)}
+  .bigidea{background:#f0f5ff;border:1px solid #cfe0ff;border-left:3px solid var(--accent);border-radius:8px;padding:13px 15px;margin:14px 0 4px;font-size:14.5px}
+  .bigidea b{color:#1a3a7a}
+  .border-note{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-block);padding:9px 12px;font-size:13px;color:var(--text-secondary);margin:12px 0 0}
   .border-note b{color:var(--text)}
-  .part{background:var(--panel);border:1px solid var(--hairline);border-radius:var(--r-panel);padding:20px 20px 22px;margin:18px 0;box-shadow:var(--shadow-1),var(--shadow-2)}
-  .part-head{border-left:3px solid var(--accent);padding-left:10px;margin-bottom:14px}
-  .part-head{border-image:linear-gradient(180deg,var(--surv-high),var(--surv-med),var(--surv-low)) 1} /* risk-ribbon */
-  .part-head .step{font-size:12px;color:var(--text-secondary)}
-  .signal{border-top:1px solid var(--border);padding:16px 0 4px}
-  .signal:first-of-type{border-top:none;padding-top:4px}
-  .sig-why{color:var(--text-secondary);margin:2px 0 10px;font-size:14px;text-wrap:pretty}
-  .demo{background:var(--paper);border:1px solid var(--hairline);border-radius:var(--r-block);padding:12px;overflow-x:auto} /* mobile: клип колонки возраста — таблица скроллится, не режется краем экрана */
-  .demo-cap{font-size:11px;color:var(--text-secondary);margin:8px 2px 0}
-  .honest{background:var(--note-bg);border:1px solid var(--note-border);border-radius:var(--r-block);padding:8px 10px;font-size:12.5px;color:var(--note-text);margin-top:8px}
-  .honest b{color:var(--note-text)}
-  .btn-row{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
-  .ctl{font-size:12px;padding:4px 10px;border:1px solid var(--border);background:var(--panel);border-radius:5px;cursor:pointer;color:var(--text)}
-  .ctl:hover{border-color:var(--accent);color:var(--accent)}
+  h2.part{font-family:var(--font-display);font-size:13px;letter-spacing:.02em;font-weight:700;color:var(--ink);margin:32px 0 4px;border-bottom:1px solid var(--hairline);padding-bottom:6px}
+  .part-sub{font-size:13px;color:var(--text-secondary);margin:0 0 14px}
+  .blk{background:var(--panel);border:1px solid var(--hairline);border-radius:var(--r-panel);box-shadow:var(--shadow-1);padding:16px 18px;margin:0 0 14px}
+  .blk h3{font-size:16px;margin:0 0 6px;font-weight:650}
+  .why{font-size:13.5px;color:var(--text-secondary);margin:0 0 10px;text-wrap:pretty}
+  .why b{color:var(--text)}
+  .demo{background:var(--t-bg);border:1px solid var(--t-border);border-radius:var(--r-block);padding:12px;overflow-x:auto}
+  .demo,.demo *{font-family:var(--mono);font-size:12.5px;color:var(--t-text)}
+  .cap{font-size:11px;color:var(--t-dim);margin:8px 2px 0}
+  .cap b{color:var(--t-text)}
+  .note{margin:10px 0 0;font-size:12.5px;color:var(--text-secondary)}
+  details{margin:10px 0 0;font-size:13px;color:var(--text-secondary)}
+  details summary{cursor:pointer;color:var(--text);font-weight:600;font-size:13px}
+  details p{margin:8px 0 0}
+  .honest{margin:12px 0 0;padding:9px 12px;border-left:3px solid var(--amber-border);background:var(--amber-bg);border-radius:0 var(--r-block) var(--r-block) 0;font-size:12.5px;color:var(--amber)}
+  .honest b{color:var(--amber)}
+  button{font:inherit;cursor:pointer}
+  .btn{display:inline-block;background:#ffffff;border:1px solid var(--t-border);border-radius:6px;color:var(--t-text);padding:5px 12px;user-select:none;font-size:12px}
+  .btn:hover{border-color:var(--cyan)}
+  .btn--on{border-color:var(--cyan);color:var(--cyan)}
+  .tgl{display:inline-flex;gap:6px;flex-wrap:wrap;margin:10px 0 0}
+  .ic{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px}
 
-  /* ── Плечо калькулятора (воссоздаём вёрстку leg-card.vue, постановочный слой) ── */
-  .legs{display:flex;gap:12px;flex-wrap:wrap}
-  .leg{flex:1;min-width:240px;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px}
-  .leg-head{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
-  .bk-favicon{width:12px;height:12px;border-radius:2px;flex-shrink:0}
-  .bk-name{font-size:12px;font-weight:600}
-  .ex-badge{font-size:9px;font-weight:700;color:var(--text-secondary);border:1px solid var(--border);border-radius:3px;padding:0 4px} /* EX -X% бейдж комиссии биржи */
+  /* ── МАТРИЦА ПАРЫ (демо) ── */
+  .mx{background:#ffffff;border:1px solid var(--t-border);border-radius:8px;padding:8px 10px;max-width:430px}
+  .mx-head{display:flex;align-items:baseline;gap:8px;padding:2px 2px 8px;flex-wrap:wrap}
+  .mx-event{font-size:14px;font-weight:700;color:var(--t-text)}
+  .mx-meta{font-size:11px;color:var(--t-dim)}
+  .mx-live{margin-left:auto;color:var(--cyan);font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:3px}
+  .mx-grid{display:grid;grid-template-columns:auto 1fr 1fr;gap:5px 6px}
+  .mx-grid>div{display:flex;flex-direction:column;justify-content:center;min-width:0}
+  .rh{color:var(--t-dim);font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.4px}
+  .cell{position:relative;background:var(--t-row2,#f4f4f5);border:1px solid var(--t-border);border-radius:6px;padding:6px 9px;min-height:34px}
+  .cell-bk{display:flex;flex-direction:column;align-items:stretch;gap:2px}
+  .bk-top{display:flex;align-items:center;gap:4px;min-height:18px}
+  .bksel-r{display:flex;justify-content:flex-end;color:var(--t-dim);font-size:10.5px;min-height:15px}
+  .ord{display:inline-flex;padding:0 4px;height:14px;border-radius:3px;align-items:center;justify-content:center;font-size:9px;font-weight:700;border:1px solid var(--t-border);color:var(--t-dim);letter-spacing:.2px;cursor:help;white-space:nowrap;flex:0 0 auto}
+  .ord--1st{border:0;background:color-mix(in srgb,var(--cyan) 15%,transparent);color:var(--cyan)}
+  .legdot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:0 0 auto}
+  .bkname{color:var(--t-text)}
+  .caret{color:var(--t-dim);display:inline-flex}
+  .copy{position:relative;background:transparent;border:0;color:var(--t-dim);padding:0;margin-left:auto;display:inline-flex;cursor:pointer}
+  .copy:hover{color:var(--cyan)}
+  .copy--done{color:var(--t-green)}
+  .copy--done::after{content:"скопировано";position:absolute;right:0;top:-17px;font-size:9.5px;font-weight:600;color:var(--t-green);background:#ffffff;border:1px solid var(--t-border);border-radius:3px;padding:0 4px;white-space:nowrap;z-index:5}
+  .sel{width:100%;font-size:11px;color:var(--t-dim);margin-top:2px}
 
-  /* бейдж порядка — кружок 1/2; первая нога зелёная, вторая серая */
-  .bet-order{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;font-family:var(--mono);font-size:10px;font-weight:700;border-radius:50%;flex-shrink:0;cursor:help}
-  .bet-order--first{background:var(--green);color:var(--text-inverse)}
-  .bet-order--second{background:var(--border);color:var(--text-secondary)}
+  /* ячейка Кэф — компакт-юнит источников; число прижато к правому краю, как в живом калькуляторе (C3-10/11) */
+  .odds-unit{display:flex;align-items:center;gap:6px;justify-content:flex-end}
+  .odds-val{font-size:15px;font-weight:700;color:var(--t-text)}
+  .odds-val--edited{color:var(--cyan);border-bottom:1px dashed var(--cyan)}
+  .dots{display:inline-flex;gap:3px;align-items:center}
+  .sdot{width:6px;height:6px;border-radius:50%;display:inline-block;border:1px solid var(--t-dim);background:transparent;opacity:.5;cursor:help}
+  .sdot--has{background:var(--t-dim);opacity:.85}
+  .sdot--on{background:var(--t-green);border-color:var(--t-green);opacity:1}
+  .sdot--susp{background:var(--t-amber);border-color:var(--t-amber);opacity:1}
+  .altn{color:var(--t-dim);font-size:11px;margin-left:2px}
+  .ex{font-size:10px;color:var(--t-dim);margin-top:2px;text-align:right}
 
-  /* кнопка GO — рамка зелёная, заливка по наведению */
-  .go-btn{display:inline-flex;align-items:center;justify-content:center;padding:2px 10px;border:1px solid var(--green);background:var(--panel);font-size:10px;font-weight:700;color:var(--green);cursor:pointer;border-radius:3px;line-height:16px;margin-left:auto}
-  .go-btn:hover{background:var(--green);color:var(--text-inverse)}
-  .go-btn.is-placed{background:var(--green);color:var(--text-inverse)}
+  /* ячейка Ставка */
+  .stake-wrap{position:relative;width:100%}
+  .stake-in{background:#ffffff;border:1px solid var(--t-border);border-radius:4px;color:var(--t-text);padding:3px 22px 3px 6px;font-size:12.5px;font-family:var(--mono);width:100%;text-align:right}
+  .stake-cur{position:absolute;right:7px;top:50%;transform:translateY(-50%);color:var(--t-dim);font-size:11px;pointer-events:none}
+  .stake-in--over{border-color:var(--t-amber);background:color-mix(in srgb,var(--t-amber) 10%,#ffffff)}
 
-  /* GO BOTH — полноширинная зелёная кнопка (обе ноги разом) */
-  .go-both-row{border-top:1px solid var(--border);padding-top:10px;margin-top:10px}
-  .go-both{width:100%;padding:7px;border:1px solid var(--green);background:var(--green);color:var(--text-inverse);font-size:12px;font-weight:700;letter-spacing:.5px;cursor:pointer;border-radius:4px}
-  .go-both:disabled{opacity:.55;cursor:default}
+  /* ячейка Профит */
+  .pf-val{font-size:13px;font-weight:700}
+  .pos{color:var(--t-green)} .neg{color:var(--t-red)}
 
-  .leg-selection-row{display:flex;align-items:center;gap:8px;margin:6px 0 3px;flex-wrap:wrap}
-  .leg-selection{font-size:11px;color:var(--text-secondary)}
+  /* дом состояний ноги (тонкая строка низом колонки) */
+  .state{grid-column:span 1;background:var(--t-bg)!important;min-height:0!important;padding:2px 9px 6px!important}
+  .susp{display:inline-flex;font-size:10px;font-weight:700;color:var(--amber);border:1px solid var(--amber);border-radius:4px;padding:0 5px;letter-spacing:.03em}
+  .drift{display:inline-flex;align-items:center;gap:3px;font-size:10.5px;color:var(--amber);border:1px solid var(--amber);border-radius:4px;padding:0 5px;margin-right:5px}
 
-  /* купон — синяя плашка; заморожен (suspended) → красная */
-  .coupon{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:10px;padding:1px 6px;border-radius:3px;background:var(--info-bg);border:1px solid var(--info-border);color:var(--info-text);white-space:nowrap}
-  .coupon--suspended{background:var(--danger-bg);border-color:var(--danger-border);color:var(--danger-text)}
-  .coupon-susp-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:1px 4px;border-radius:2px;background:var(--red);color:var(--text-inverse);margin-left:2px}
-  .coupon-empty{font-size:10px;color:var(--text-tertiary);font-style:italic}
+  /* терминал GO — ряд под строкой профита, ВНУТРИ панели: ТА ЖЕ сетка, что матрица
+     .mx-grid (auto 1fr 1fr + те же gap), спейсер-клон «Профит» держит auto-колонку равной
+     матричной — фланги GO встают ровно под КОЛОНКАМИ ног, не под краями панели
+     [calculator.vue:2689-2721, волна-3.1 скрин-12 партнёра] */
+  .go-row{display:grid;grid-template-columns:auto 1fr 1fr;gap:5px 6px;margin-top:8px;align-items:center}
+  .go-flank{background:#ffffff;border:1px solid #8a94a5;border-radius:6px;color:var(--t-text);padding:3px 14px;min-width:64px;height:22px;display:inline-flex;align-items:center;justify-content:center;text-align:center;font-weight:700;font-size:12px;position:relative;z-index:2}
+  .go-flank--1{grid-column:2;grid-row:1;justify-self:start;box-shadow:inset 0 -2px 0 color-mix(in srgb,var(--leg-1) 45%,transparent)}
+  .go-flank--2{grid-column:3;grid-row:1;justify-self:end;box-shadow:inset 0 -2px 0 color-mix(in srgb,var(--leg-2) 45%,transparent)}
+  .go-both{grid-column:2 / 4;grid-row:1;justify-self:center;background:#19776c;border:1px solid #19776c;color:#ffffff;font-weight:800;border-radius:6px;padding:7px 16px;font-size:12px;max-width:calc(100% - 144px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;z-index:1}
+  .go-both:hover{filter:brightness(1.08)}
+  .go-dis{opacity:.6;cursor:not-allowed;background:#f4f4f5;color:var(--t-dim);border-color:var(--t-border)}
+  .go-flank.go-dis{background:#f4f4f5}
+  .go-spacer-cap{grid-column:1;grid-row:1;visibility:hidden}
+  .go-status{margin-top:8px;font-size:11px;color:var(--t-dim);min-height:15px;white-space:pre-line}
+  .go-status.ok{color:var(--t-green)}
+  .go-status.warn{color:var(--amber)}
 
-  /* источники кэфа — 3 штуки; активный подсвечен синим */
-  .odds-srcs{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:4px}
-  .odds-src{display:inline-flex;align-items:baseline;gap:3px;padding:1px 5px;border-radius:3px;border:1px solid transparent;font-family:var(--mono);font-size:11px;color:var(--text-secondary)}
-  .odds-src--active{background:var(--info-bg);border-color:var(--info-border);color:var(--info-text);font-weight:700}
-  .odds-src--suspended{background:var(--danger-bg);border-color:var(--danger-border);color:var(--danger-text);text-decoration:line-through;text-decoration-color:var(--danger-border)}
-  .eff{font-family:var(--mono);font-size:11px;color:var(--text-tertiary)}
+  /* дроп recovery (мини, связка с главой про recovery) */
+  .drop{margin-top:8px;border:1px solid var(--t-border);border-radius:6px;background:#ffffff;max-width:320px;overflow:hidden}
+  /* демо=реал (волна-3.1, скрин-13 партнёра): дроп перекрытий — оверлей ИЗ ячейки БК мёртвой
+     ноги (leg-card.vue: .calc-swap-drop живёт в .calc-cell-bk; calculator.vue:2033-2050 —
+     absolute, top 100%+4px, нога 2 → right:0, раскрытие внутрь панели), НЕ блок в потоке */
+  .drop--cell{position:absolute;top:calc(100% + 4px);right:0;margin-top:0;z-index:100;width:max-content;min-width:250px;max-width:340px}
+  .cell-bk--dead{background:#fff0f0;border-color:#e88a8a}  /* ячейка мёртвой ноги краснеет — .calc-cell-bk--dead */
+  .drop-head{padding:5px 9px;font-size:11px;color:var(--amber);border-bottom:1px solid var(--t-border)}
+  .drow{display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center;width:100%;background:transparent;border:0;border-bottom:1px solid var(--t-border);padding:7px 9px;color:var(--t-text);text-align:left}
+  .drow:hover{background:#f4f4f5}
+  .relb{font-size:9.5px;color:var(--t-dim);border:1px solid var(--t-border);border-radius:3px;padding:0 4px}
+  .drop-note{padding:6px 9px;font-size:10.5px;color:var(--t-dim)}
+  .dead-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--t-red);border:1px solid var(--t-red);border-radius:4px;padding:1px 5px;margin-top:3px}
 
-  /* Часть 2 — статичная подсвечиваемая легенда (как в эталоне survival) */
-  .part2-grid{display:grid;grid-template-columns:1fr;gap:16px;align-items:start} /* правка приёмки (вёрстка part2-grid): легенда ПОД таблицу (таблица на полную ширину, все 9 колонок видны) */
-  @media(max-width:640px){.part2-grid{grid-template-columns:1fr}}
-  .legend-static{font-size:12.5px;display:grid;grid-template-columns:1fr 1fr;gap:7px}
-  @media(max-width:560px){.legend-static{grid-template-columns:1fr}}
-  .legend-static .item{padding:7px 9px;border-radius:7px;border:1px solid var(--border);transition:background .25s,border-color .25s}
-  .legend-static .item.lit{background:var(--hl);border-color:var(--accent)}
-  .legend-static .item b{display:block;font-size:13px;margin-bottom:1px}
-  .legend-static .item span{color:var(--text-secondary)}
-  .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--text-secondary);margin-left:6px;vertical-align:middle;opacity:.25;transition:opacity .25s}
-  .item.lit .dot{opacity:1;background:var(--accent)}
-  .pace{font-size:11px;color:var(--text-secondary);margin:8px 2px 0}
+  /* легенда Части 2 (светлая рама, статична — подсвечивается «что сейчас») */
+  .legend2{display:grid;grid-template-columns:1fr;gap:7px;margin-top:12px}
+  @media(min-width:560px){.legend2{grid-template-columns:1fr 1fr}}
+  .legend2 .card{background:var(--panel);border:1px solid var(--hairline);border-radius:var(--r-block);padding:8px 11px;font-size:12.5px;transition:background .25s,border-color .25s}
+  .legend2 .card.lit{background:var(--hl);border-color:var(--accent)}
+  .legend2 .card b{display:block;font-size:12.5px;margin-bottom:1px}
+  .legend2 .card .k{display:inline-block;width:9px;height:9px;border-radius:50%;vertical-align:middle;margin-right:5px}
+  .legend2 .card span{color:var(--text-secondary);font-size:12px}
+  .pace{font-size:11px;color:var(--text-secondary);margin:10px 2px 0}
 
-  /* Часть 3 — плотный «как в бою» */
-  .dense .leg{padding:6px 8px}
-  .dense .leg-selection-row{margin:3px 0 2px}
+  /* мини-легенда точек внутри демо (единственный носитель расшифровки) */
+  .dotkey{display:grid;grid-template-columns:1fr;gap:5px;margin-top:10px;padding:9px 10px;border:1px solid var(--t-border);border-radius:6px;background:#ffffff}
+  @media(min-width:480px){.dotkey{grid-template-columns:1fr 1fr 1fr}}
+  .dotkey .k{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--t-dim)}
+  .dotkey .k b{color:var(--t-text);font-weight:600}
+  .dotkey-title{grid-column:1/-1;font-size:11px;color:var(--t-dim);margin-bottom:1px}
 </style>
 </head>
 <body>
 <div class="wrap">
 
-  <h1>Постановка и GO</h1>
-  <p class="lead">Решение, которое обслуживает эта функция: <b>«вилку нашёл, суммы посчитал — теперь надо поставить обе ноги быстрее, чем кэф уйдёт»</b>. В эту секунду профи решает две вещи: <b>какой ногой начать</b> и <b>как нажать</b>, чтобы не терять время на лишние клики. Сканер отвечает на обе — порядком ног, кнопками GO / GO BOTH и купоном, который он читает прямо с сайта БК.</p>
+  <h1>Постановка и GO — момент нажатия</h1>
+  <p class="lead">Вилка найдена, суммы посчитаны — остаётся <b>поставить обе ноги раньше, чем кэф уйдёт</b>. В эту секунду профи решает три вещи: <b>какой ногой начать</b>, <b>можно ли вообще ставить прямо сейчас</b> и <b>как нажать</b>, чтобы не терять движения. Эта глава — про сам акт постановки: ряд кнопок GO под матрицей, точки-источники у кэфа (что реально уйдёт в контору) и честная граница — докуда доводит кнопка, а где дальше руки.</p>
 
-  <div class="border-note"><b>Граница главы.</b> <i>Сколько</i> ставить на каждую ногу (равный профит, перекос, налог, валюта, шаг) — это калькулятор, отдельная глава. Здесь — только <i>порядок</i> и сам <i>момент постановки</i>.</div>
+  <div class="bigidea">
+    <b>Главная мысль.</b> Кнопки постановки собраны в один <b>ряд под строкой профита</b>: <b>GO 1</b> · <b>GO BOTH</b> · <b>GO 2</b> — точка, куда смотрит глаз, и есть точка действия. GO кладёт исход в купон конторы <b>без суммы</b> (сумму и приём ставят руками). А три точки у кэфа говорят, <b>какой именно кэф уйдёт</b> и <b>не заморожен ли исход</b> — сводная расшифровка этих точек живёт здесь, в учебнике (в сканере на ховере по точке всплывает имя её источника, а сводного ключа там нет — он здесь).
+  </div>
 
-  <!-- ============ ЧАСТЬ 1 — УЧЁБА ИЗОЛИРОВАННО ============ -->
-  <section class="part">
-    <div class="part-head">
-      <h2>Часть 1 · Учёба</h2>
-      <div class="step">Каждый элемент постановки по отдельности. Под описанием — своё демо, где работает <i>только этот</i> элемент. Кнопки живые — жми.</div>
+  <div class="border-note"><b>Граница главы.</b> <i>Сколько</i> ставить на каждую ногу (равный профит, перекос, налог, валюта, шаг округления) — это соседняя глава про калькулятор. Здесь — только <i>очередь</i>, <i>сам момент постановки</i> и <i>что мешает</i> нажать.</div>
+
+  <!-- ============ ЧАСТЬ 1 — ПО ОДНОМУ ============ -->
+  <h2 class="part">Часть 1 · По одному</h2>
+  <p class="part-sub">Каждый элемент постановки — отдельно: какое решение он обслуживает и где честная граница. Контролы живые — покрутить руками.</p>
+
+  <!-- ① Порядок постановки -->
+  <div class="blk">
+    <h3>① Очередь постановки — пилюля «1-я / 2-я»</h3>
+    <p class="why">Первой ставят ногу, у которой <b>больше эффективный кэф</b> (кэф уже после комиссии биржи): у неё больше запаса прибыли, пока контора правит линию, — её надо успеть взять раньше. Сканер сам помечает очередь <b>пилюлей</b> у имени конторы: «1-я» (подсвечена) — ставить первой, «2-я» — следом. Жать «Сменить кэфы» — пилюля перепрыгивает на бóльший эффективный кэф.</p>
+    <div class="demo">
+      <div class="mx" id="d1"></div>
+      <div class="tgl"><button class="btn" id="d1-swap">Сменить кэфы</button></div>
+      <div class="cap"><b>«1-я / 2-я» — это очередь, а не номер плеча.</b> Номер плеча (1 или 2) держат цвет-точка ноги (зелёная — нога 1, красная — нога 2) и фланги GO ниже; они не двигаются. Пилюля «1-я» может встать на любую колонку — например на красную, если у ноги 2 кэф выше. У биржи под кэфом подписан эффективный (ниже номинала на комиссию) — очередь считается по нему.</div>
     </div>
+    <details><summary>Что значит «эффективный» кэф и можно ли поменять логику очереди</summary>
+      <p><b>Эффективный кэф</b> — это кэф после комиссии биржи: у обычной конторы он равен показанному, у биржи комиссия срезает часть выигрыша, поэтому эффективный ниже номинала. Очередь считается по эффективным кэфам обеих ног.</p>
+      <p><b>Логику очереди можно сменить в настройках.</b> По умолчанию — «выше эффективный кэф первой». Есть и другие: «по типу события» (у тоталов ТБ-нога первой), «по % вилки» (жирная вилка — тоже ТБ первой, иначе по кэфу), «проблемная контора первой» (та, что режет линию быстрее, — её берут раньше). Подсказка на самой пилюле называет активную логику. Разбор всех логик — в главе про настройки калькулятора.</p>
+    </details>
+  </div>
 
-    <!-- ① Порядок ног -->
-    <div class="signal">
-      <h3>① Порядок ног — кружок 1 и 2</h3>
-      <p class="sig-why">Сканер сам помечает, какую ногу ставить первой: <b>зелёный «1»</b> — первая, серый «2» — вторая. Правило одно: первой идёт нога с <b>бóльшим эффективным кэфом</b>. Жми кнопку — кружок «1» перепрыгивает на ту ногу, где после всех вычетов выходит больше.</p>
-      <details class="honest"><summary>Что значит «эффективный» кэф и почему именно бóльший — первой</summary>
-      <b>Эффективный</b> — это кэф уже после комиссии биржи: у обычной БК он равен показанному, у биржи комиссия срезает часть выигрыша. По нему и считается порядок.<br><br>
-      <b>Почему бóльший первой (строго по коду, без догадок):</b> у ноги с бóльшим кэфом больше запаса прибыли, пока контора правит линию, — её надо успеть взять первой. Это <b>не</b> «угадываем, кто опомнится первым» — такого в коде нет, и так объяснять нельзя.</details>
-      <div class="demo">
-        <div class="legs" id="d1-legs"></div>
-        <div class="btn-row"><button class="ctl" id="d1-swap">Сменить кэфы</button></div>
+  <!-- ② Терминал GO -->
+  <div class="blk">
+    <h3>② Ряд GO — одно движение вместо гонки по карточкам</h3>
+    <p class="why">Решение принято, осталось <b>жать</b>. Ряд стоит <b>сразу под строкой профита</b>: по краям — <b>GO 1</b> и <b>GO 2</b> с полосой цвета своей ноги (встают ровно под колонками), в центре — доминантный <b>GO BOTH</b>: оба плеча разом, хоткей <b>⌘↵</b> (Cmd/Ctrl+Enter) подписан прямо на кнопке (в дневном ритме на закрытие пары — секунды). Жать GO BOTH — оба исхода уходят в купоны.</p>
+    <div class="honest"><b>Постановка живьём — только через расширение.</b> GO шлёт ставку через браузерное расширение на сайте конторы; без установленного расширения живая постановка не работает. В демо ниже отправка имитирована — показан принцип.</div>
+    <div class="demo">
+      <div class="mx">
+        <div id="d2"></div>
+        <div class="go-row" id="d2-go"></div>
       </div>
-      <div class="demo-cap">У биржи (EX) под номиналом подписан эффективный кэф — он ниже из-за комиссии. Кружок «1» всегда у бóльшего эффективного.</div>
+      <div class="go-status" id="d2-status"></div>
+      <div class="tgl"><button class="btn" id="d2-fail">Если канал упал</button></div>
+      <div class="cap">GO кладёт исход в купон конторы — точки-источники у кэфа зажигают «купон». Сумму и финальную кнопку приёма ставят в самой конторе. Нажать «Если канал упал» — и клик GO покажет честный отказ: команда никуда не уйдёт, купон останется пустым. Тосты здесь — учебная имитация; в бою отказ звучит конкретикой, например: «Не могу отправить TakeBet на bet365.com: нет eventId у плеча» (у синтетики нет привязки события — реальный гард кода).</div>
     </div>
+    <div class="honest"><b>Докуда доводит кнопка.</b> GO передаёт только <b>событие и контору, без суммы</b> — он лишь копирует исход в купон, деньги не несёт. Сумму в купон и приём у конторы ставят вручную. Сканер доводит до купона — не дальше.</div>
+    <details><summary>Почему быстрый второй клик не сработает</summary>
+      <p><b>GO BOTH — это реальные деньги ×2.</b> Поэтому стоит защита от случайного дубля: пока предыдущая отправка не завершилась, повторный клик или хоткей игнорируется. В демо: ткнуть GO BOTH и сразу второй раз — второй клик уйдёт вхолостую, пока идёт первый. Тот же гард стоит и на каждой одиночной GO, и на постановке из recovery-дропа.</p>
+    </details>
+  </div>
 
-    <!-- ② Кнопка GO -->
-    <div class="signal">
-      <h3>② Кнопка GO — одна нога в купон</h3>
-      <p class="sig-why">GO у плеча кладёт исход в <b>купон букмекера</b> — через расширение в браузере, где залогинены БК. Жми GO — справа от исхода появится плашка купона: расширение положило туда выбор.</p>
-      <div class="demo">
-        <div class="legs" id="d2-legs"></div>
+  <!-- ③ Источники кэфа -->
+  <div class="blk">
+    <h3>③ Точки у кэфа — какой кэф уйдёт и настоящий ли он</h3>
+    <p class="why">У кэфа плеча — <b>крупное число</b> (то, что идёт в расчёт) и <b>три маленькие точки</b> сбоку. Точки — это три источника кэфа: <b>купон · live · вилка</b>. Яркая (зелёная) точка = какой источник сейчас в работе, и его значение стоит крупно. Связь с конторой двусторонняя: расширение не только кладёт исход, но и <b>читает купон обратно</b> — поэтому точка «купон» показывает <b>реальный</b> кэф из купона конторы, а не только цифру с табло. Перед тем как ввести сумму и жать приём, это и есть проверка «то ли я ставлю». Жать «Сменить источник» — крупное число и яркая точка переходят.</p>
+    <div class="demo">
+      <div class="mx" id="d3"></div>
+      <div class="dotkey">
+        <div class="dotkey-title">Три точки у кэфа — сводная расшифровка (в сканере на ховере всплывает имя точки, а сводного ключа там нет — он здесь):</div>
+        <div class="k"><b>Точка 1 — купон</b>: реальный кэф из купона конторы (прочитан обратно)</div>
+        <div class="k"><b>Точка 2 — live</b>: кэф из живого потока сканера</div>
+        <div class="k"><b>Точка 3 — вилка</b>: исходный кэф, на котором вилка нашлась</div>
+        <div class="k" style="grid-column:1/-1"><b>Цвет точки:</b> <span class="sdot sdot--on"></span> яркая зелёная — идёт в расчёт · <span class="sdot sdot--has"></span> серая — пришла, но не в расчёте · <span class="sdot sdot--susp"></span> жёлтая — заморожен (suspended) · <span class="sdot"></span> пустой контур — не пришла</div>
       </div>
-      <div class="demo-cap">Жми GO — исход уходит в купон БК (плашка 📋). Повторный GO просто обновляет купон.</div>
-      <div class="honest"><b>Докуда доводит кнопка:</b> GO передаёт только <b>событие и букмекера, без суммы</b> — в коде он лишь копирует поле в купон, сумму не несёт. Сумму в купон и финальную кнопку приёма у букмекера ставят вручную. Сканер доводит до купона — не дальше. <b>И плашка купона появляется только при установленном расширении:</b> без него команду GO некому исполнить на сайте конторы — купон не наполнится и обратно не прочитается. В этом демо ответ купона имитирован.</div>
+      <div class="tgl">
+        <button class="btn" id="d3-src">Сменить источник</button>
+        <button class="btn" id="d3-susp">Заморозить купон</button>
+      </div>
+      <div class="cap"><b>Яркая точка = источник в расчёте.</b> Пустой контур = источника нет (например, купон не пришёл: расширение не установлено или сайт конторы не открыт). Точка «купон» становится жёлтой, когда исход у конторы <b>заморожен</b> — такой купон в расчёт не идёт, и ставить туда нельзя (см. ниже).</div>
     </div>
+    <details><summary>Какой из трёх источников победит в расчёте</summary>
+      <p>Если источники разошлись, калькулятор берёт один по цепочке приоритета: <b>ручная прикидка «что если» → купон → live → вилка</b>. То есть реальный купон важнее живого табло, а живое табло важнее исходного кэфа вилки. Крупное число всегда показывает того, кто победил. (Ручная прикидка «что если» — клик по самому числу, чтобы подставить свой кэф; это про расчёт, её разбирает глава про калькулятор.)</p>
+    </details>
+  </div>
 
-    <!-- ③ GO BOTH -->
-    <div class="signal">
-      <h3>③ GO BOTH — обе ноги разом</h3>
-      <p class="sig-why">Одна кнопка кладёт в купоны <b>оба</b> исхода сразу; хоткей — <b>Ctrl/Cmd+Enter</b>. Это для скорости: в дневном ритме на закрытие пары — секунды. Жми GO BOTH — заполнятся обе плашки.</p>
-      <div class="demo">
-        <div class="legs" id="d3-legs"></div>
-        <div class="go-both-row"><button class="go-both" id="d3-goboth">GO BOTH</button></div>
-        <div id="d3-status" class="demo-cap"></div>
+  <!-- ④ Suspended гасит GO -->
+  <div class="blk">
+    <h3>④ Замороженный исход гасит GO</h3>
+    <p class="why">Контора может <b>заморозить</b> исход (suspended) — линия на паузе, ставку она сейчас не примет. Заморозка видна и <b>гасит постановку</b>: точка «купон» желтеет, под колонкой встаёт бейдж <b>SUSP</b>, а GO этой ноги <b>сереет</b> (с причиной в подсказке). <b>GO BOTH тоже сереет</b> — он поставил бы ту же больную ногу. Жать «Заморозить ногу 2» — и обратно: сравнить живое и погашенное.</p>
+    <div class="demo">
+      <div class="mx">
+        <div id="d4"></div>
+        <div class="go-row" id="d4-go"></div>
       </div>
-      <div class="demo-cap">Кнопка кладёт оба исхода в купоны одним движением (в сканере — ещё и по Ctrl+Enter).</div>
-      <div class="honest"><b>GO BOTH = реальные деньги ×2.</b> Поэтому в коде стоит защита от случайного дубля: пока предыдущая отправка не завершилась, повторный клик/хоткей игнорируется — ткни быстро второй раз, кнопка не сработает, пока идёт первая.</div>
+      <div class="go-status" id="d4-status"></div>
+      <div class="tgl"><button class="btn" id="d4-susp">Заморозить ногу 2</button></div>
+      <div class="cap">Живая пара — обе GO активны, GO BOTH зовёт. Замороженная нога 2 — жёлтая точка + SUSP + серая GO 2 + серый GO BOTH: ставить на неё нельзя, пока не разморозят. Число 2.05 у ноги 2 ещё видно — это наш live-поток, но заморозка живёт у самой конторы: пока она держит исход на паузе, ставку не примет, каким бы ни было наше число. Клик по серой кнопке GO BOTH ничего не отправит. Хоткей ⌘↵ при заморозке тоже нем целиком: если любая из ног на паузе, сканер не отправит ни одной ноги — покажет предупреждение, что исход приостановлен на стороне конторы. Остаться с одной «голой» ногой через ⌘↵ нельзя: обе стороны уходят только вместе.</div>
     </div>
+  </div>
 
-    <!-- ④ Купон и источники кэфа -->
-    <div class="signal">
-      <h3>④ Купон и источники кэфа — сканер читает купон обратно</h3>
-      <p class="sig-why">Связь с букмекером двусторонняя: расширение не только кладёт исход, но и <b>читает купон обратно</b> и показывает его содержимое рядом с плечом. Поэтому у кэфа плеча может быть несколько источников, и активный (тот, что идёт в расчёт) подсвечен. Переключи — увидишь, какой активен; и что бывает, когда исход «заморожен» на стороне БК.</p>
-      <details class="honest"><summary>Три источника кэфа — что значит каждый</summary>
-      <b>📋 из купона</b> — что реально стоит в букмекере; <b>⚡ live</b> — из потока сканера; <b>🎯 из вилки</b> — исходный кэф. Активный идёт в расчёт.<br><br>
-      <i>Рядом есть и четвёртый значок — ✎ ручная прикидка кэфа «что если»; но это про расчёт, а не про постановку — он живёт в главе про калькулятор.</i></details>
-      <div class="demo">
-        <div class="legs" id="d4-legs"></div>
-        <div class="btn-row">
-          <button class="ctl" id="d4-src">Сменить активный источник</button>
-          <button class="ctl" id="d4-susp">Переключить suspended</button>
-        </div>
+  <!-- ⑤ Recovery — тот же канал -->
+  <div class="blk">
+    <h3>⑤ Если нога слетела — постановка тем же каналом</h3>
+    <p class="why">Когда одна нога умирает на лету, её ячейка конторы <b>краснеет</b> и превращается в дроп с перекрытиями — конторами, где можно докрыть вторую сторону. Важное для этой главы: <b>клик по строке перекрытия ставит тем же каналом, что GO</b>. Канал един — GO и клик по перекрытию оба кладут исход в купон, а подтверждает ставку человек в конторе; тот же гард от повторного клика, тот же честный отказ, если купон не ушёл. Отдельного жеста для аварии учить не нужно.</p>
+    <div class="demo">
+      <div class="mx" id="d5"></div>
+      <div class="drop drop--cell" id="d5-drop">
+        <div class="drop-head">Нога слетела — куда докрыть (лучшее сверху)</div>
+        <button class="drow" id="d5-row">
+          <span>BetOnline</span><span class="relb">REG</span><span>2.06</span><span class="pos">+6.40 €</span>
+        </button>
+        <div class="drop-note" id="d5-note">Клик по строке = положить исход в купон (тот же канал, что GO). Ставку подтверждает человек в конторе.</div>
       </div>
-      <div class="demo-cap">📋 из купона — то, что сканер прочитал из букмекера прямо сейчас. ⚠️ susp = исход заморожен у БК, проставить нельзя.</div>
-      <div class="honest"><b>Зачем читать купон обратно:</b> виден <b>реальный</b> кэф букмекера в его купоне, а не только цифра с табло сканера — перед тем как ввести сумму и жать приём. Если исход у БК suspended, плашка краснеет (⚠️ susp): класть туда ставку нельзя.</div>
+      <div class="cap"><b>Один канал на всё.</b> Как выбрать перекрытие, что такое классы надёжности и когда брать первое, второе, третье — в отдельной главе про recovery. Здесь важно одно: <b>акт постановки одинаковый</b>.</div>
     </div>
-  </section>
+  </div>
+
+  <!-- ⑥ Перед нажатием: ссылка + лимит -->
+  <div class="blk">
+    <h3>⑥ Два помощника перед нажатием</h3>
+    <p class="why">Прежде чем жать GO, у плеча есть ещё два тихих контрола — оба про подготовку к постановке, не про расчёт.</p>
+    <div class="demo">
+      <div class="mx" id="d6"></div>
+      <div class="cap"><b>⧉ у имени конторы</b> — копирует ссылку на контору (моё зеркало или канон-домен) плюс строку «событие — исход», чтобы вставить в свой браузер, где открыт сайт конторы. Точная ссылка прямо на событие появится позже. <b>Жёлтая рамка ставки</b> — сумма выше моего личного лимита на эту контору (из профиля парка): сканер <b>предупреждает, но не урезает</b> — решение за профи.</div>
+    </div>
+    <div class="honest"><b>Лимит — мой, а не конторы.</b> Жёлтая рамка про потолок, который я сам задал конторе в профиле парка, — это не скрытый лимит самой конторы (его сканер не знает и не выдумывает). Поэтому сумма не режется автоматически: деньги решает человек.</div>
+  </div>
 
   <!-- ============ ЧАСТЬ 2 — В ЖИВОМ СКАНЕРЕ ============ -->
-  <section class="part">
-    <div class="part-head">
-      <h2>Часть 2 · В живом сканере</h2>
-      <div class="step">Теперь всё вместе, как в работе. Кэфы дёргаются — следи, как кружок «1» перепрыгивает на бóльший эффективный кэф. Жми GO BOTH: оба исхода уходят в купоны, легенда справа подсвечивает, что сейчас произошло.</div>
+  <h2 class="part">Часть 2 · В живом сканере</h2>
+  <p class="part-sub">Теперь всё вместе, как в работе. Кэфы дёргаются — пилюля «1-я» перепрыгивает на бóльший эффективный кэф. Жать GO BOTH — оба исхода уходят в купоны; «Заморозить» — гасит постановку. Легенда справа подсвечивает, что сейчас произошло (текст всегда на месте, меняется подсветка).</p>
+  <div class="demo">
+    <div class="mx">
+      <div id="p2"></div>
+      <div class="go-row" id="p2-go"></div>
     </div>
-    <div class="part2-grid">
-      <div class="demo">
-        <div class="legs" id="p2-legs"></div>
-        <div class="go-both-row"><button class="go-both" id="p2-goboth">GO BOTH</button></div>
-      </div>
-      <div class="legend-static">
-        <div class="item" id="lg-order"><b>Порядок ног <span class="dot"></span></b><span>«1» у бóльшего эффективного кэфа — двигается за кэфами</span></div>
-        <div class="item" id="lg-go"><b>GO → купон <span class="dot"></span></b><span>исход ушёл в купон БК (без суммы)</span></div>
-        <div class="item" id="lg-coupon"><b>Купон читается обратно <span class="dot"></span></b><span>видно реальное содержимое купона БК</span></div>
-      </div>
+    <div class="go-status" id="p2-status"></div>
+    <div class="tgl"><button class="btn" id="p2-susp">Заморозить ногу 2</button></div>
+    <div class="legend2">
+      <div class="card" id="lg-order"><b><span class="k" style="background:var(--cyan)"></span>Очередь «1-я / 2-я»</b><span>прыгает на бóльший эффективный кэф — не номер плеча</span></div>
+      <div class="card" id="lg-go"><b><span class="k" style="background:var(--t-green)"></span>GO → купон</b><span>исход ушёл в купон конторы, без суммы</span></div>
+      <div class="card" id="lg-src"><b><span class="k" style="background:var(--t-green)"></span>Три точки у кэфа</b><span>купон · live · вилка; яркая идёт в расчёт</span></div>
+      <div class="card" id="lg-susp"><b><span class="k" style="background:var(--t-amber)"></span>Заморожен → серая GO</b><span>на suspended-исход ставить нельзя</span></div>
     </div>
-    <div class="pace">Поток замедлен для учёбы. В реальном сканере кэфы меняются быстрее, а порядок ног пересчитывается на каждом изменении.</div>
-  </section>
+  </div>
+  <div class="pace">Поток замедлен для учёбы. В реальном сканере кэфы меняются быстрее, а очередь и суммы пересчитываются на каждом изменении.</div>
 
   <!-- ============ ЧАСТЬ 3 — КАК В БОЮ ============ -->
-  <section class="part">
-    <div class="part-head">
-      <h2>Часть 3 · Как в бою</h2>
-      <div class="step">Плотный вид постановки, без подсказок и легенд. Кружки порядка, GO на каждом плече, GO BOTH снизу — так это выглядит в работе.</div>
+  <h2 class="part">Часть 3 · Как в бою</h2>
+  <p class="part-sub">Плотный вид, без подсказок и легенд. Матрица, точки-источники, ряд GO под профитом — так это выглядит в работе.</p>
+  <div class="demo">
+    <div class="mx">
+      <div id="p3"></div>
+      <div class="go-row" id="p3-go"></div>
     </div>
-    <div class="demo dense">
-      <div class="legs" id="p3-legs"></div>
-      <div class="go-both-row"><button class="go-both" id="p3-goboth">GO BOTH</button></div>
-    </div>
-  </section>
+    <div class="go-status" id="p3-status"></div>
+  </div>
 
-  <details class="honest" style="margin-top:18px"><summary>Честно про «уникальность» и про демо</summary>
-    <b>Про «уникальность»:</b> двусторонний путь — расширение кладёт исход в купон и читает купон обратно — <b>не</b> «такого нет ни у кого». Похожий путь у конкурентов есть (например arbhelp у BetBurger). Уникальность не заявляется. Что точно по коду: GO несёт только событие и букмекера, без суммы; сумму и финальный приём ставят вручную.
-    <br><br>
-    <b>Про демо:</b> здесь показан <b>принцип</b>. Сам путь GO→купон работает только когда установлено расширение в антидетект-браузере с залогиненными БК (сканер → сервер → расширение). Без этой связки кнопка ничего не отправит — в коде на этот случай честный отказ («ставка НЕ отправлена»). Кнопки в этой главе воспроизводят логику, а не шлют реальную команду на сервер.
+  <details style="margin-top:18px"><summary>Честно про демо и про купон</summary>
+    <p>Здесь показан <b>принцип</b>. Сам путь «GO → купон» работает только когда установлено расширение в браузере с залогиненными конторами: сканер передаёт команду на сервер, сервер — в расширение, расширение кладёт исход в купон конторы и читает его обратно. Без этой связки кнопка ничего не отправит — на этот случай в коде честный отказ («ставка НЕ отправлена»). Кнопки в этой главе воспроизводят логику, а не шлют реальную команду. GO несёт только событие и контору, без суммы; сумму и финальный приём ставят руками в конторе.</p>
   </details>
 
 </div>
 
 <script>
 /* ============================================================
-   Постановка и GO — движок учебной главы.
-   Формулы/значения — из кода форка (R-3), см. r3-registry-g6.md:
-     порядок ног:  firstLegNum = o1Eff >= o2Eff ? 1 : 2   [calculator.vue:764]
-     эфф. кэф:     commission>0 ? 1+(odds-1)*(1-commission) : odds  [arbs.ts:162-168]
-     GO:           takeBet({eventId, bookmaker}) — БЕЗ суммы   [calculator.vue:916-945,939]
-     GO BOTH:      Promise.all([takeBet(1),takeBet(2)]) + гард goBothInFlight  [:947-964]
-     купон:        subscribeToCoupon (читается обратно)  [use-coupon-stream.ts:48-114]
-                   suspended → исход недоступен  [leg-card.vue:212-214]
-     источники:    📋coupon / ⚡actual(live) / 🎯arb, активный идёт в расчёт  [leg-card.vue:244-296]
-   takeBet тут не шлётся (нет backend+extension) — клик симулирует «исход лёг в купон».
-   Math.random не используется — детерминированный seed (стабильно при перезапуске).
+   Постановка и GO — движок учебной главы (демо=реал по коду форка, R-3).
+   Координаты и формулы — в r3-registry-g6.md рядом. Ключевое:
+     очередь ног:  firstLegNum = resolveFirstLeg(...) → default eff-odds: o1Eff>=o2Eff?1:2  [leg-order.ts:61,67,99-101; calculator.vue:859]
+     эфф. кэф:     commission>0 ? 1+(odds-1)*(1-commission) : odds  [arbs.ts:231-237]
+     комиссии:     Betfair Exchange .02 / Matchbook .015 / Smarkets .02  [arbs.ts:205-210]
+     GO:           takeBet({eventId, bookmaker}) — БЕЗ суммы  [calculator.vue:1052-1099,1091]
+     GO BOTH:      Promise.all([takeBet(1),takeBet(2)]) + гард goBothInFlight  [calculator.vue:1157-1174]
+     гард ноги:    per-leg goInFlight1/2  [calculator.vue:1059-1062]; recovery-строка altTakeInFlight  [calculator.vue:1126-1155]
+     ряд GO:       GO 1 / GO BOTH · ⌘↵ / GO 2, фланги --g1/--g2  [calculator.vue:1484-1523]
+     suspended:    legSusp1/2 → disabled GO + BOTH серый  [calculator.vue:139-141,1498,1506,1517]
+     точки:        купон/live/вилка, --on/--has/--susp/пусто  [leg-card.vue:360-380]
+     купон обратно:subscribeToCoupon  [use-coupon-stream.ts:37,68]
+     recovery=канал:onTakeAlt → takeBet тем же методом  [calculator.vue:1127-1155]
+     ⧉ ссылка:     copy-link  [leg-card.vue:207-218]; лимит overMaxHint (не урезает)  [calculator.vue:944-963]
+   takeBet тут не шлётся (нет сервера/расширения) — клик симулирует «исход лёг в купон».
+   Детерминированный seed (без Math.random — стабильно при перезапуске). Числа — иллюстрация,
+   математика честная (равный профит, единый курс EUR): равные эфф. кэфы → равные профиты.
    ============================================================ */
 
-// эффективный кэф — точная формула форка (arbs.ts:162-168)
-function effOdds(odds, commission){ return commission > 0 ? 1 + (odds - 1) * (1 - commission) : odds; }
-// порядок ног — точное правило форка (calculator.vue:764)
-function firstLeg(o1Eff, o2Eff){ return o1Eff >= o2Eff ? 1 : 2; }
+// комиссии бирж — точные значения форка (arbs.ts:205-210)
+var COMM = {"betfair exchange":0.02, "matchbook":0.015, "smarkets":0.02};  // arbs.ts:205-210 (биржи в потоке идут брендом)
+function comm(bk){ return COMM[bk] || 0; }
+function isExch(bk){ return comm(bk) > 0; }
+// эффективный кэф — точная формула форка (arbs.ts:231-237)
+function effOdds(o, bk){ var c = comm(bk); return c > 0 ? 1 + (o - 1) * (1 - c) : o; }
+// очередь — default eff-odds (leg-order.ts:67,99-101): бóльший эффективный первой
+function firstByEff(e1, e2){ return e1 >= e2 ? 1 : 2; }
+// равный профит: доли обратны эфф. кэфам; округление шага к 1 (roundStakeToBkStep, calculator-stakes.ts:43)
+function eqStakes(e1, e2, total){ var i1 = 1/e1, i2 = 1/e2, s = i1 + i2; return [Math.round(total*i1/s), Math.round(total*i2/s)]; }
+function grp(x){ return String(x).replace(/\B(?=(\d{3})+(?!\d))/g, " "); }
+function fmtStake(v){ return grp(Math.round(v)) + " €"; }
+function fmtOdds(o){ return o.toFixed(2); }
+function fmtProfit(v){ var neg = v < -0.005; var a = Math.abs(v).toFixed(2).split("."); return (neg ? "−" : "+") + grp(a[0]) + "." + a[1] + " €"; }
+function bkColor(bk){
+  var m = {"bet365.com":"#1a7a3c","pinnacle.com":"#c9992a","Betfair Exchange":"#e2b100","Matchbook":"#1b8a6b","betonline.ag":"#0a6bbf","Smarkets":"#1256c4"};
+  return m[bk] || "#7a8496";
+}
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+/* склонение «перекрытие» по числу — для читаемого демо (в коде сканера пока не склоняется) */
+function plurPerekr(n){ var d = n % 10, dd = n % 100; if (d === 1 && dd !== 11) return "перекрытие"; if (d >= 2 && d <= 4 && (dd < 12 || dd > 14)) return "перекрытия"; return "перекрытий"; }
 
-function bkColor(name){
-  const m = {bet365:'#1a7a3c','pinnacle':'#d11',betfair:'#fc0',betonline:'#06c','1xbet':'#06a'};
-  return m[name] || '#888';
+/* активное значение источника ноги */
+function activeVal(L){ return L.active === "coupon" ? L.coupon : L.active === "live" ? L.live : L.arb; }
+
+/* три точки-источника (leg-card.vue:360-380) */
+function dotsHtml(L){
+  var av = activeVal(L);
+  var cState = L.coupon == null ? "" : (L.suspended ? "susp" : (L.active === "coupon" ? "on" : "has"));
+  var cTitle = L.coupon == null
+    ? "Купон не приходит: расширение не установлено или сайт БК не открыт"
+    : (L.suspended
+        ? "Кф из купона " + fmtOdds(L.coupon) + " — исход suspended, недоступен для проставления"
+        : "Кф из купона: " + fmtOdds(L.coupon) + (L.active === "coupon" ? " — используется для расчётов" : ""));
+  var lState = L.live == null ? "" : (L.active === "live" ? "on" : "has");
+  var lTitle = L.live == null ? "Live-кэф из сканера не пришёл" : "Live кф (из сканера): " + fmtOdds(L.live) + (L.active === "live" ? " — идёт в расчёт" : "");
+  var aState = L.active === "arb" ? "on" : "has";
+  var aTitle = "Кф из вилки: " + fmtOdds(L.arb) + (L.active === "arb" ? " — используется для расчётов" : "");
+  function d(st, ti){ return '<span class="sdot' + (st ? " sdot--" + st : "") + '" title="' + esc(ti) + '"></span>'; }
+  return '<span class="dots">' + d(cState, cTitle) + d(lState, lTitle) + d(aState, aTitle) + "</span>";
 }
 
-// рендер одного плеча (постановочный слой leg-card.vue: header → selection+coupon → odds-srcs)
-function legHtml(L){
-  const isFirst = L.order === 1;
-  const exBadge = L.commission > 0 ? `<span class="ex-badge">EX -${(L.commission*100).toFixed(1)}%</span>` : '';
-  const effLabel = L.commission > 0 ? `<span class="eff">(eff ${effOdds(L.odds,L.commission).toFixed(3)})</span>` : '';
-  // источники кэфа: активный подсвечен (leg-card.vue:244-296)
-  const srcs = (L.srcs||[]).map(s => {
-    const act = s.key === L.activeSrc ? ' odds-src--active' : '';
-    const susp = (s.key==='coupon' && L.suspended) ? ' odds-src--suspended' : '';
-    return `<span class="odds-src${act}${susp}"><span>${s.icon}</span><span>${s.val.toFixed(2)}</span></span>`;
-  }).join('');
-  // плашка купона (leg-card.vue:209-230)
-  let coupon = '<span class="coupon-empty">купон пуст</span>';
-  if (L.inCoupon){
-    coupon = L.suspended
-      ? `<span class="coupon coupon--suspended"><span>⚠️</span><span>${L.event}</span><span class="coupon-susp-label">susp</span></span>`
-      : `<span class="coupon"><span>📋</span><span>${L.event}</span></span>`;
+/* ячейка Кэф: сигналы-точки слева, крупное число прижато вправо — как в живом калькуляторе (C3-10/11) */
+function oddsCellHtml(L){
+  var av = activeVal(L);
+  var edited = L.edited ? " odds-val--edited" : "";
+  var val = '<span class="odds-val' + edited + '" title="Кэф, идущий в расчёт">' + fmtOdds(av) + "</span>";
+  var ex = isExch(L.bk) ? '<div class="ex">EX −' + (comm(L.bk)*100).toFixed(1) + "% (eff " + fmtOdds(effOdds(av, L.bk)) + ")</div>" : "";
+  return '<div class="odds-unit">' + dotsHtml(L) + val + "</div>" + ex;
+}
+
+/* ячейка БК: пилюля очереди + точка ноги + имя + каретка + ⧉ */
+function bkCellHtml(L, opts){
+  opts = opts || {};
+  var pill = L.isFirst ? '<span class="ord ord--1st" title="Ставить этой ногой ПЕРВОЙ · логика: выше эффективный кэф — первой">1-я</span>'
+                       : '<span class="ord" title="Ставить этой ногой второй">2-я</span>';
+  var dot = '<span class="legdot" style="background:var(--leg-' + L.num + ')"></span>';
+  var name = '<span class="bkname">' + esc(L.bk) + "</span>";
+  var caret = opts.caret ? '<span class="caret"><svg class="ic" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>' : "";
+  var copy = opts.copy ? '<button class="copy" title="Скопировать ссылку ' + esc(L.bk) + ' + событие — вставить в свой браузер, где открыт сайт конторы"><svg class="ic" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button>' : "";
+  var dc = L.deadCount || 0;
+  var dead = L.dead ? '<span class="dead-badge"><svg class="ic" viewBox="0 0 24 24" style="width:10px;height:10px"><path d="M7.9 2h8.2L22 7.9v8.2L16.1 22H7.9L2 16.1V7.9L7.9 2z"/><path d="M15 9l-6 6M9 9l6 6"/></svg>нога мертва · ' + dc + ' ' + plurPerekr(dc) + '</span>' : "";
+  var sel = L.sel ? '<span class="sel">' + esc(L.sel) + "</span>" : "";
+  var selR = L.sel ? '<span class="bksel-r">' + esc(L.sel) + "</span>" : "";
+  return '<div class="cell cell-bk' + (L.dead ? ' cell-bk--dead' : '') + '"><div class="bk-top">' + pill + dot + name + caret + copy + '</div>' + selR + dead + "</div>";
+}
+
+/* сборка матрицы: rows = какие строки рисуем */
+function renderMatrix(host, M){
+  var L1 = M.legs[0], L2 = M.legs[1];
+  var e1 = effOdds(activeVal(L1), L1.bk), e2 = effOdds(activeVal(L2), L2.bk);
+  var fl = firstByEff(e1, e2);
+  L1.isFirst = (fl === 1); L2.isFirst = (fl === 2);
+  var rows = M.rows || ["bk","odds","stake","profit"];
+  var html = "";
+  // шапка события
+  html += '<div class="mx-head"><span class="mx-event">' + esc(M.event) + '</span><span class="mx-meta">' + esc(M.meta) + "</span>";
+  if (M.live) html += '<span class="mx-live"><svg class="ic" viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg>LIVE</span>';
+  html += "</div>";
+  html += '<div class="mx-grid">';
+  if (rows.indexOf("bk") >= 0){
+    html += '<div class="rh">БК</div>' + bkCellHtml(L1, M.bkOpts) + bkCellHtml(L2, M.bkOpts);
   }
-  return `<div class="leg">
-    <div class="leg-head">
-      <span class="bet-order ${isFirst?'bet-order--first':'bet-order--second'}" title="${isFirst?'Ставить первой — больший эффективный кэф':'Ставить второй'}">${L.order}</span>
-      <span class="bk-favicon" style="background:${bkColor(L.bk)}"></span>
-      <span class="bk-name">${L.bk}</span>${exBadge}
-      <button class="go-btn ${L.inCoupon?'is-placed':''}" data-go="${L.legNum}">GO</button>
-    </div>
-    <div class="leg-selection-row">
-      <span class="leg-selection">${L.selection} · ${L.odds.toFixed(2)}</span>
-      ${coupon}
-    </div>
-    <div class="odds-srcs">${srcs}${effLabel}</div>
-  </div>`;
-}
-
-// собрать пару ног с пересчётом порядка по эфф. кэфу
-function buildPair(o1, c1, o2, c2, base){
-  const e1 = effOdds(o1,c1), e2 = effOdds(o2,c2);
-  const fl = firstLeg(e1,e2);
-  return [
-    {legNum:1, order: fl===1?1:2, bk:base[0].bk, selection:base[0].sel, event:base[0].ev, odds:o1, commission:c1},
-    {legNum:2, order: fl===2?1:2, bk:base[1].bk, selection:base[1].sel, event:base[1].ev, odds:o2, commission:c2}
-  ];
-}
-
-/* ---------- ① Порядок ног ---------- */
-(function order(){
-  const host = document.getElementById('d1-legs');
-  // bet365 (soft, комиссии нет) vs betfair (биржа, комиссия 5% — eff ниже номинала)
-  const scen = [
-    {o1:1.95,c1:0,    o2:2.12,c2:0.05},  // bet365 1.95 eff1.95 vs betfair 2.12 eff 2.064 → 2.064>1.95 → бирж. нога первая
-    {o1:2.20,c1:0,    o2:2.12,c2:0.05}   // bet365 2.20 vs betfair eff 2.064 → bet365 первая
-  ];
-  const base = [{bk:'bet365',sel:'ТБ 2.5',ev:'Real — Barca · ТБ 2.5'},{bk:'betfair',sel:'ТМ 2.5',ev:'Real — Barca · ТМ 2.5'}];
-  let i = 0;
-  function draw(){
-    const s = scen[i%scen.length];
-    host.innerHTML = buildPair(s.o1,s.c1,s.o2,s.c2,base).map(legHtml).join('');
+  if (rows.indexOf("odds") >= 0){
+    html += '<div class="rh">Кэф</div><div class="cell">' + oddsCellHtml(L1) + '</div><div class="cell">' + oddsCellHtml(L2) + "</div>";
   }
-  draw();
-  document.getElementById('d1-swap').onclick = ()=>{ i++; draw(); };
+  var st = null, pf = null;
+  if (rows.indexOf("stake") >= 0 || rows.indexOf("profit") >= 0){
+    st = eqStakes(e1, e2, M.total);
+    pf = [st[0]*e1 - M.total, st[1]*e2 - M.total];
+  }
+  if (rows.indexOf("stake") >= 0){
+    function stakeCell(L, s){
+      var over = L.overMax != null && s > L.overMax;
+      var cls = over ? " stake-in--over" : "";
+      var ti = over ? ' title="Выше моего лимита ' + L.overMax + ' € в этой конторе (из профиля парка) — сумма не урезана"' : "";
+      return '<div class="cell"><div class="stake-wrap"><div class="stake-in' + cls + '"' + ti + '>' + grp(Math.round(s)) + '</div><span class="stake-cur">€</span></div></div>';
+    }
+    html += '<div class="rh">Ставка</div>' + stakeCell(L1, st[0]) + stakeCell(L2, st[1]);
+  }
+  if (rows.indexOf("profit") >= 0){
+    function pfCell(v){ return '<div class="cell"><span class="pf-val ' + (v < -0.005 ? "neg" : "pos") + '">' + fmtProfit(v) + "</span></div>"; }
+    html += '<div class="rh">Профит</div>' + pfCell(pf[0]) + pfCell(pf[1]);
+  }
+  // дом состояний (SUSP) — тонкая строка низом колонки
+  if (M.showState && (L1.suspended || L2.suspended)){
+    html += '<div class="rh state"></div>';
+    html += '<div class="state">' + (L1.suspended ? '<span class="susp">SUSP</span>' : "") + "</div>";
+    html += '<div class="state">' + (L2.suspended ? '<span class="susp">SUSP</span>' : "") + "</div>";
+  }
+  html += "</div>";
+  host.innerHTML = html;
+  return { st: st, pf: pf, first: fl };
+}
+
+/* ряд GO под профитом (calculator.vue:1484-1523) */
+function renderGo(host, M, state){
+  state = state || {};
+  var s1 = M.legs[0].suspended, s2 = M.legs[1].suspended;
+  var f1 = state.inFlight1, f2 = state.inFlight2, fb = state.inFlightBoth;
+  var g1dis = s1 || f1, g2dis = s2 || f2, gbdis = s1 || s2 || fb;
+  var t1 = s1 ? "Исход suspended на стороне бука — недоступен для проставления" : "Поставить ногу 1 — " + M.legs[0].bk;
+  var t2 = s2 ? "Исход suspended на стороне бука — недоступен для проставления" : "Поставить ногу 2 — " + M.legs[1].bk;
+  var tb = (s1 || s2) ? "Нога " + (s1 ? "1 (" + M.legs[0].bk + ")" : "2 (" + M.legs[1].bk + ")") + ": Исход suspended на стороне бука — недоступен для проставления" : "Поставить оба плеча (⌘↵ / Ctrl+Enter)";
+  host.innerHTML =
+    '<span class="rh go-spacer-cap">Профит</span>' +
+    '<button class="go-flank go-flank--1' + (g1dis ? " go-dis" : "") + '" data-go="1" title="' + esc(t1) + '">' + (f1 ? "…" : "GO 1") + "</button>" +
+    '<button class="go-both' + (gbdis ? " go-dis" : "") + '" data-go="both" title="' + esc(tb) + '">GO BOTH · ⌘↵</button>' +
+    '<button class="go-flank go-flank--2' + (g2dis ? " go-dis" : "") + '" data-go="2" title="' + esc(t2) + '">' + (f2 ? "…" : "GO 2") + "</button>";
+}
+
+/* ⧉ копировать ссылку: в демо реального буфера нет — клик даёт краткий отклик «скопировано» */
+function wireCopy(host){
+  host.querySelectorAll(".copy").forEach(function(b){
+    b.onclick = function(e){
+      e.preventDefault();
+      b.classList.add("copy--done");
+      clearTimeout(b._copyT);
+      b._copyT = setTimeout(function(){ b.classList.remove("copy--done"); }, 1200);
+    };
+  });
+}
+
+/* ---------- ① Очередь постановки ---------- */
+(function(){
+  var host = document.getElementById("d1");
+  // bet365 (обычная) vs Matchbook (биржа 1.5% — eff ниже номинала)
+  var scen = [
+    { o1:2.05, o2:2.12 },   // bet365 2.05 vs matchbook eff(2.12)=2.10 → биржа первой (1-я на красной)
+    { o1:2.20, o2:2.12 }    // bet365 2.20 vs matchbook eff 2.10 → bet365 первой
+  ];
+  var i = 0;
+  function build(){
+    var s = scen[i % scen.length];
+    var M = { event:"Наполи — Интер", meta:"Soccer · Italy. Serie A · TO 2.5: O/U", live:true, rows:["bk","odds"],
+      legs:[
+        { num:1, bk:"bet365.com", sel:"TO(2.5)", active:"arb", coupon:null, live:null, arb:s.o1, suspended:false },
+        { num:2, bk:"Matchbook", sel:"TU(2.5)", active:"arb", coupon:null, live:null, arb:s.o2, suspended:false }
+      ] };
+    renderMatrix(host, M);
+  }
+  build();
+  document.getElementById("d1-swap").onclick = function(){ i++; build(); };
 })();
 
-/* ---------- ② Кнопка GO (одна нога) ---------- */
-(function goOne(){
-  const host = document.getElementById('d2-legs');
-  const L = {legNum:1, order:1, bk:'bet365', selection:'ТБ 2.5', event:'Real — Barca · ТБ 2.5',
-             odds:1.95, commission:0, inCoupon:false};
-  function draw(){ host.innerHTML = legHtml(L); bind(); }
-  function bind(){ host.querySelector('[data-go]').onclick = ()=>{ L.inCoupon = true; draw(); }; }
+/* ---------- ② Ряд GO ---------- */
+(function(){
+  var host = document.getElementById("d2"), goHost = document.getElementById("d2-go"), status = document.getElementById("d2-status");
+  var M = { event:"Наполи — Интер", meta:"Soccer · Italy. Serie A · TO 2.5: O/U", live:true, total:1000, rows:["bk","odds","stake","profit"],
+    legs:[
+      { num:1, bk:"bet365.com", sel:"TO(2.5)", active:"live", coupon:null, live:2.10, arb:2.10, suspended:false, inCoupon:false },
+      { num:2, bk:"pinnacle.com", sel:"TU(2.5)", active:"live", coupon:null, live:2.05, arb:2.05, suspended:false, inCoupon:false }
+    ] };
+  var st = { inFlight1:false, inFlight2:false, inFlightBoth:false };
+  var channelDown = false;  // тогл «канал упал» → честный отказ (ставка НЕ отправлена)
+  function draw(){ renderMatrix(host, M); renderGo(goHost, M, st); bind(); }
+  function light(leg){ // GO положил исход в купон → точка «купон» зажглась (имитация)
+    M.legs[leg-1].coupon = M.legs[leg-1].live; M.legs[leg-1].active = "coupon";
+  }
+  function bind(){
+    goHost.querySelectorAll("[data-go]").forEach(function(b){
+      b.onclick = function(){
+        var k = b.dataset.go;
+        if (k === "both"){
+          if (st.inFlightBoth){ status.className = "go-status warn"; status.textContent = "повторный клик заблокирован, пока идёт отправка"; return; }
+          st.inFlightBoth = true; status.className = "go-status"; status.textContent = "отправка обоих исходов в купоны…"; draw();
+          setTimeout(function(){
+            st.inFlightBoth = false;
+            if (channelDown){ status.className = "go-status warn"; status.textContent = "канал упал — ставка НЕ отправлена. Оба исхода остались непроставленными, купон пуст."; draw(); return; }
+            light(1); light(2); status.className = "go-status ok"; status.textContent = "оба исхода — в купонах (имитация). Сумму и приём — вручную в конторе."; draw();
+          }, 1300);
+        } else {
+          var n = +k; var fl = n === 1 ? "inFlight1" : "inFlight2";
+          if (st[fl]){ return; }
+          st[fl] = true; draw();
+          setTimeout(function(){
+            st[fl] = false;
+            if (channelDown){ status.className = "go-status warn"; status.textContent = "канал упал — ставка НЕ отправлена (нога " + n + "), купон пуст."; draw(); return; }
+            light(n); status.className = "go-status ok"; status.textContent = "исход ноги " + n + " — в купоне (имитация)."; draw();
+          }, 900);
+        }
+      };
+    });
+  }
+  var failBtn = document.getElementById("d2-fail");
+  failBtn.onclick = function(){
+    channelDown = !channelDown;
+    failBtn.classList.toggle("btn--on", channelDown);
+    status.className = "go-status"; status.textContent = channelDown ? "канал «упал» — теперь клик GO честно откажет" : "";
+  };
   draw();
 })();
 
-/* ---------- ③ GO BOTH (гард от дубля) ---------- */
-(function goBoth(){
-  const host = document.getElementById('d3-legs');
-  const status = document.getElementById('d3-status');
-  const btn = document.getElementById('d3-goboth');
-  const base = [{bk:'bet365',sel:'ТБ 2.5',ev:'Real — Barca · ТБ 2.5'},{bk:'pinnacle',sel:'ТМ 2.5',ev:'Real — Barca · ТМ 2.5'}];
-  const pair = buildPair(1.95,0,2.05,0,base);
-  let inFlight = false, dblTries = 0;
-  function draw(){ host.innerHTML = pair.map(legHtml).join(''); }
+/* ---------- ③ Точки-источники ---------- */
+(function(){
+  var host = document.getElementById("d3");
+  var L = { num:1, bk:"bet365.com", sel:"TO(2.5)", active:"coupon", coupon:2.11, live:2.10, arb:2.09, suspended:false };
+  var order = ["coupon","live","arb"];
+  var M = { event:"Наполи — Интер", meta:"Soccer · Italy. Serie A · TO 2.5: O/U", live:true, rows:["bk","odds"], showState:true,
+    legs:[ L, { num:2, bk:"pinnacle.com", sel:"TU(2.5)", active:"live", coupon:null, live:2.05, arb:2.05, suspended:false } ] };
+  function draw(){ renderMatrix(host, M); }
   draw();
-  btn.onclick = ()=>{
-    if (inFlight){ dblTries++; status.textContent = `⛔ повторный клик заблокирован (goBothInFlight) — попыток вхолостую: ${dblTries}`; return; }
-    inFlight = true; dblTries = 0; btn.disabled = true;
-    status.textContent = '⏳ отправка обоих исходов в купоны…';
-    // имитируем in-flight окно: пока «летит» — повторный клик игнорируется (как в коде)
-    setTimeout(()=>{
-      pair.forEach(l => l.inCoupon = true); draw();
-      inFlight = false; btn.disabled = false;
-      status.textContent = '✅ оба исхода в купонах. Сумму и финальный приём — вручную.';
-    }, 1400);
+  document.getElementById("d3-src").onclick = function(){
+    if (L.suspended){ L.suspended = false; } // разморозим, чтобы купон снова годился
+    L.active = order[(order.indexOf(L.active) + 1) % order.length]; draw();
+  };
+  document.getElementById("d3-susp").onclick = function(){
+    L.suspended = !L.suspended;
+    if (L.suspended && L.active === "coupon"){ L.active = "live"; } // заморозка гонит расчёт с купона
+    draw();
   };
 })();
 
-/* ---------- ④ Купон и источники кэфа ---------- */
-(function coupon(){
-  const host = document.getElementById('d4-legs');
-  const L = {legNum:1, order:1, bk:'bet365', selection:'ТБ 2.5', event:'Real — Barca · ТБ 2.5',
-             odds:1.95, commission:0, inCoupon:true, suspended:false,
-             activeSrc:'coupon',
-             srcs:[{key:'coupon',icon:'📋',val:1.96},{key:'actual',icon:'⚡',val:1.95},{key:'arb',icon:'🎯',val:1.94}]};
-  const order = ['coupon','actual','arb'];
-  function draw(){ host.innerHTML = legHtml(L); }
+/* ---------- ④ Suspended гасит GO ---------- */
+(function(){
+  var host = document.getElementById("d4"), goHost = document.getElementById("d4-go"), status = document.getElementById("d4-status");
+  var M = { event:"Наполи — Интер", meta:"Soccer · Italy. Serie A · TO 2.5: O/U", live:true, total:1000, rows:["bk","odds","stake","profit"], showState:true,
+    legs:[
+      { num:1, bk:"bet365.com", sel:"TO(2.5)", active:"coupon", coupon:2.10, live:2.10, arb:2.10, suspended:false },
+      { num:2, bk:"pinnacle.com", sel:"TU(2.5)", active:"coupon", coupon:2.05, live:2.05, arb:2.05, suspended:false }
+    ] };
+  var st = { inFlight1:false, inFlight2:false, inFlightBoth:false };
+  function draw(){ renderMatrix(host, M); renderGo(goHost, M, st); bind(); }
+  function bind(){
+    goHost.querySelectorAll("[data-go]").forEach(function(b){
+      b.onclick = function(){
+        var k = b.dataset.go, s1 = M.legs[0].suspended, s2 = M.legs[1].suspended;
+        if (k === "both"){
+          if (s1 || s2) return;                         // серый GO BOTH — клик инертен
+          if (st.inFlightBoth) return;
+          st.inFlightBoth = true; draw();
+          setTimeout(function(){ st.inFlightBoth = false; M.legs[0].active = "coupon"; M.legs[1].active = "coupon"; status.className = "go-status ok"; status.textContent = "оба исхода — в купонах (имитация)."; draw(); }, 900);
+        } else {
+          var n = +k; if (M.legs[n-1].suspended) return; // серая GO — клик инертен
+          var fl = n === 1 ? "inFlight1" : "inFlight2"; if (st[fl]) return;
+          st[fl] = true; draw();
+          setTimeout(function(){ st[fl] = false; M.legs[n-1].active = "coupon"; status.className = "go-status ok"; status.textContent = "исход ноги " + n + " — в купоне (имитация)."; draw(); }, 800);
+        }
+      };
+    });
+  }
   draw();
-  document.getElementById('d4-src').onclick = ()=>{ L.activeSrc = order[(order.indexOf(L.activeSrc)+1)%order.length]; draw(); };
-  document.getElementById('d4-susp').onclick = ()=>{ L.suspended = !L.suspended; draw(); };
+  document.getElementById("d4-susp").onclick = function(){
+    var L = M.legs[1]; L.suspended = !L.suspended;
+    L.active = L.suspended ? "live" : "coupon";
+    status.className = "go-status"; status.textContent = "";
+    draw();
+  };
+})();
+
+/* ---------- ⑤ Recovery — тот же канал ---------- */
+(function(){
+  var host = document.getElementById("d5"), row = document.getElementById("d5-row"), note = document.getElementById("d5-note");
+  var M = { event:"Наполи — Интер", meta:"Soccer · Italy. Serie A · TO 2.5: O/U", live:true, rows:["bk","odds"],
+    legs:[
+      { num:1, bk:"bet365.com", sel:"TO(2.5)", active:"live", coupon:2.10, live:2.10, arb:2.10, suspended:false },
+      { num:2, bk:"pinnacle.com", sel:"TU(2.5)", active:"live", coupon:null, live:2.05, arb:2.05, suspended:false, dead:true, deadCount:1 }
+    ] };
+  renderMatrix(host, M);
+  // демо=реал (волна-3.1, скрин-13): дроп перекрытий вшит в ЯЧЕЙКУ БК мёртвой ноги —
+  // оверлей из ячейки (right:0, внутрь панели), не отдельный блок под матрицей.
+  // Оверлей выпирает ниже панели — отступ отдаёт место (учебный хром съезжает, мир сканера точен).
+  var deadCell = host.querySelectorAll(".cell-bk")[1], drop5 = document.getElementById("d5-drop");
+  if (deadCell && drop5){
+    deadCell.appendChild(drop5);
+    requestAnimationFrame(function(){
+      var over = drop5.getBoundingClientRect().bottom - host.getBoundingClientRect().bottom;
+      if (over > 0) host.style.marginBottom = Math.ceil(over + 10) + "px";
+    });
+  }
+  var placed = false;
+  row.onclick = function(){
+    if (placed) return; placed = true;
+    note.className = "drop-note"; note.style.color = "var(--t-green)";
+    note.textContent = "Исход положен в купон тем же каналом, что GO. Ставку подтверждает человек в конторе (имитация).";
+  };
+})();
+
+/* ---------- ⑥ Помощники перед нажатием ---------- */
+(function(){
+  var host = document.getElementById("d6");
+  var M = { event:"Наполи — Интер", meta:"Soccer · Italy. Serie A · TO 2.5: O/U", live:true, total:1000, rows:["bk","stake"],
+    bkOpts:{ copy:true }, legs:[
+      { num:1, bk:"bet365.com", sel:"TO(2.5)", active:"live", coupon:2.10, live:2.10, arb:2.10, suspended:false, overMax:null },
+      { num:2, bk:"pinnacle.com", sel:"TU(2.5)", active:"live", coupon:2.05, live:2.05, arb:2.05, suspended:false, overMax:500 }
+    ] };
+  renderMatrix(host, M); wireCopy(host); // нога 2: ставка ~506 > лимит 500 → жёлтая рамка
 })();
 
 /* ---------- Часть 2 — живой поток + подсветка легенды ---------- */
-(function live(){
-  const host = document.getElementById('p2-legs');
-  const btn = document.getElementById('p2-goboth');
-  let seed = 11;
-  const rnd = ()=>{ seed = (seed*1103515245 + 12345) & 0x7fffffff; return seed/0x7fffffff; };
-  const base = [{bk:'bet365',sel:'ТБ 2.5',ev:'Real — Barca · ТБ 2.5'},{bk:'betfair',sel:'ТМ 2.5',ev:'Real — Barca · ТМ 2.5'}];
-  let o1=1.98, o2=2.06, pair = buildPair(o1,0,o2,0.05,base), prevFirst = pairFirst(pair);
-  let inFlight=false;
-  function pairFirst(p){ return p[0].order===1 ? 1 : 2; }
-  function lit(id){ const e=document.getElementById(id); if(!e)return; e.classList.add('lit'); setTimeout(()=>e.classList.remove('lit'),1100); }
-  function draw(){ host.innerHTML = pair.map(legHtml).join(''); bind(); }
-  function bind(){ host.querySelectorAll('[data-go]').forEach(b => b.onclick = ()=>{ const n=+b.dataset.go; pair[n-1].inCoupon=true; draw(); lit('lg-go'); lit('lg-coupon'); }); }
-  function tick(){
-    o1 = +(o1 + (rnd()-0.5)*0.12).toFixed(2); if(o1<1.7)o1=1.7; if(o1>2.4)o1=2.4;
-    o2 = +(o2 + (rnd()-0.5)*0.12).toFixed(2); if(o2<1.7)o2=1.7; if(o2>2.4)o2=2.4;
-    const keep1 = pair[0].inCoupon, keep2 = pair[1].inCoupon;
-    pair = buildPair(o1,0,o2,0.05,base); pair[0].inCoupon=keep1; pair[1].inCoupon=keep2;
-    const nf = pairFirst(pair);
-    lit('lg-order');                          // порядок активен всегда (пересчёт на каждом тике)
-    if(nf!==prevFirst){ lit('lg-order'); prevFirst=nf; }  // смена «1» — особо подсветить
-    draw();
+(function(){
+  var host = document.getElementById("p2"), goHost = document.getElementById("p2-go"), status = document.getElementById("p2-status");
+  var seed = 11;
+  function rnd(){ seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; }
+  var o1 = 2.08, o2 = 2.06;
+  var M = { event:"Наполи — Интер", meta:"Soccer · Italy. Serie A · TO 2.5: O/U", live:true, total:1000, rows:["bk","odds","stake","profit"], showState:true,
+    legs:[
+      { num:1, bk:"bet365.com", sel:"TO(2.5)", active:"live", coupon:null, live:o1, arb:2.08, suspended:false },
+      { num:2, bk:"pinnacle.com", sel:"TU(2.5)", active:"live", coupon:null, live:o2, arb:2.06, suspended:false }
+    ] };
+  var st = { inFlight1:false, inFlight2:false, inFlightBoth:false };
+  var prevFirst = 0;
+  function lit(id){ var e = document.getElementById(id); if(!e) return; e.classList.add("lit"); setTimeout(function(){ e.classList.remove("lit"); }, 1100); }
+  function draw(){ var r = renderMatrix(host, M); renderGo(goHost, M, st); bind(); return r; }
+  function bind(){
+    goHost.querySelectorAll("[data-go]").forEach(function(b){
+      b.onclick = function(){
+        var k = b.dataset.go;
+        if (k === "both"){
+          if (st.inFlightBoth || M.legs[0].suspended || M.legs[1].suspended) return;
+          st.inFlightBoth = true; draw();
+          setTimeout(function(){ M.legs[0].coupon = M.legs[0].live; M.legs[0].active = "coupon"; M.legs[1].coupon = M.legs[1].live; M.legs[1].active = "coupon"; st.inFlightBoth = false; status.className = "go-status ok"; status.textContent = "оба исхода — в купонах (имитация)."; draw(); lit("lg-go"); lit("lg-src"); }, 1100);
+        } else {
+          var n = +k; if (M.legs[n-1].suspended) return;
+          var fl = n === 1 ? "inFlight1" : "inFlight2"; if (st[fl]) return;
+          st[fl] = true; draw();
+          setTimeout(function(){ M.legs[n-1].coupon = M.legs[n-1].live; M.legs[n-1].active = "coupon"; st[fl] = false; status.className = "go-status ok"; status.textContent = "исход ноги " + n + " — в купоне (имитация)."; draw(); lit("lg-go"); lit("lg-src"); }, 900);
+        }
+      };
+    });
   }
+  function tick(){
+    o1 = +(o1 + (rnd()-0.5)*0.10).toFixed(2); if(o1<1.9)o1=1.9; if(o1>2.25)o1=2.25;
+    o2 = +(o2 + (rnd()-0.5)*0.10).toFixed(2); if(o2<1.9)o2=1.9; if(o2>2.25)o2=2.25;
+    M.legs[0].live = o1; if(M.legs[0].active==="live") M.legs[0].coupon = null;
+    M.legs[1].live = o2; if(M.legs[1].active==="live") M.legs[1].coupon = null;
+    var r = draw();
+    lit("lg-order"); lit("lg-src");
+    if (r.first !== prevFirst){ prevFirst = r.first; }
+  }
+  document.getElementById("p2-susp").onclick = function(){
+    var L = M.legs[1]; L.suspended = !L.suspended; L.active = L.suspended ? "live" : L.active;
+    if (L.suspended){ status.className = "go-status warn"; status.textContent = "нога 2 заморожена — GO 2 и GO BOTH серые."; lit("lg-susp"); }
+    else { status.className = "go-status"; status.textContent = ""; }
+    draw();
+  };
   draw(); tick();
   setInterval(tick, 1900);
-  btn.onclick = ()=>{
-    if(inFlight) return; inFlight=true; btn.disabled=true;
-    setTimeout(()=>{ pair.forEach(l=>l.inCoupon=true); draw(); lit('lg-go'); lit('lg-coupon'); inFlight=false; btn.disabled=false; }, 1200);
-  };
 })();
 
 /* ---------- Часть 3 — плотный «как в бою» ---------- */
-(function boy(){
-  const host = document.getElementById('p3-legs');
-  const btn = document.getElementById('p3-goboth');
-  let seed = 29;
-  const rnd = ()=>{ seed = (seed*1103515245 + 12345) & 0x7fffffff; return seed/0x7fffffff; };
-  const base = [{bk:'betonline',sel:'Ф1 -4.5',ev:'Lakers — Celtics · Ф1 -4.5'},{bk:'pinnacle',sel:'Ф2 +4.5',ev:'Lakers — Celtics · Ф2 +4.5'}];
-  let o1=1.90, o2=2.02, pair=buildPair(o1,0,o2,0,base), inFlight=false;
-  function draw(){ host.innerHTML = pair.map(legHtml).join(''); bind(); }
-  function bind(){ host.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{ pair[(+b.dataset.go)-1].inCoupon=true; draw(); }); }
-  function tick(){
-    o1=+(o1+(rnd()-0.5)*0.12).toFixed(2); if(o1<1.7)o1=1.7; if(o1>2.3)o1=2.3;
-    o2=+(o2+(rnd()-0.5)*0.12).toFixed(2); if(o2<1.7)o2=1.7; if(o2>2.3)o2=2.3;
-    const k1=pair[0].inCoupon,k2=pair[1].inCoupon;
-    pair=buildPair(o1,0,o2,0,base); pair[0].inCoupon=k1; pair[1].inCoupon=k2; draw();
+(function(){
+  var host = document.getElementById("p3"), goHost = document.getElementById("p3-go"), status = document.getElementById("p3-status");
+  var seed = 29;
+  function rnd(){ seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; }
+  var o1 = 2.05, o2 = 2.05;
+  var M = { event:"Лейкерс — Селтикс", meta:"Баскетбол · NBA · Фора −4.5", live:true, total:800, rows:["bk","odds","stake","profit"],
+    bkOpts:{ caret:false, copy:true }, legs:[
+      { num:1, bk:"betonline.ag", sel:"Ф1(-4.5)", active:"live", coupon:2.05, live:o1, arb:2.05, suspended:false },
+      { num:2, bk:"pinnacle.com", sel:"Ф2(+4.5)", active:"live", coupon:2.05, live:o2, arb:2.05, suspended:false }
+    ] };
+  var st = { inFlight1:false, inFlight2:false, inFlightBoth:false };
+  function draw(){ renderMatrix(host, M); renderGo(goHost, M, st); bind(); wireCopy(host); }
+  function bind(){
+    goHost.querySelectorAll("[data-go]").forEach(function(b){
+      b.onclick = function(){
+        var k = b.dataset.go;
+        if (k === "both"){
+          if (st.inFlightBoth) return;
+          st.inFlightBoth = true; draw();
+          setTimeout(function(){ M.legs[0].active="coupon"; M.legs[1].active="coupon"; st.inFlightBoth=false; status.className="go-status ok"; status.textContent="оба исхода — в купонах (имитация)."; draw(); }, 1000);
+        } else {
+          var n = +k; var fl = n === 1 ? "inFlight1" : "inFlight2"; if (st[fl]) return;
+          st[fl] = true; draw();
+          setTimeout(function(){ M.legs[n-1].active="coupon"; st[fl]=false; status.className="go-status ok"; status.textContent="исход ноги " + n + " — в купоне (имитация)."; draw(); }, 900);
+        }
+      };
+    });
   }
-  draw(); tick(); setInterval(tick, 1500);
-  btn.onclick=()=>{ if(inFlight)return; inFlight=true; btn.disabled=true; setTimeout(()=>{ pair.forEach(l=>l.inCoupon=true); draw(); inFlight=false; btn.disabled=false; },1100); };
+  function tick(){
+    o1 = +(o1 + (rnd()-0.5)*0.10).toFixed(2); if(o1<1.92)o1=1.92; if(o1>2.20)o1=2.20;
+    o2 = +(o2 + (rnd()-0.5)*0.10).toFixed(2); if(o2<1.92)o2=1.92; if(o2>2.20)o2=2.20;
+    M.legs[0].live=o1; M.legs[0].coupon=o1; M.legs[1].live=o2; M.legs[1].coupon=o2; draw();
+  }
+  draw(); tick(); setInterval(tick, 1600);
 })();
 </script>
 </body>
