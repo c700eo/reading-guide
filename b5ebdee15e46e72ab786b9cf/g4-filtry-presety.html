@@ -3,411 +3,809 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Фильтры и пресеты — режим работы одним движением (учебная глава, 3 части)</title>
+<title>Пресеты и режимы — вся станция одним движением (учебная глава, 3 части)</title>
 <style>
-  /* Цвета/форматы воссозданы из кода форка (R-3), привязка координат — в r3-registry-g4.md.
-     UI-хром пилюль/панели приблизительный (цвет хрома смысла-решения не несёт);
-     механизм (активный пресет, ⌥+цифра, 5 системных пресетов, фильтр-поля) — точно из кода. */
+  /* Демо-скин .sc — светлая палитра реального сканера (день): фон #f6f7f9, акцент #0a76ad.
+     Палитра уловов (латунь/олива/серо-синий/роза/сиена/петроль) — реальные значения цветов пресетов.
+     Значки — inline-SVG в стиле интерфейса сканера (⊞-группа = четыре квадрата). */
   :root{
-    --bg:#fafafa; --panel:#ffffff; --surface2:#f4f4f5; --border:#e0e0e0;
-    --text:#1a1a1a; --text-secondary:#666;
-    --green:#1a8a2e; --red:#cc2222; --warning:#b45309;
-    --accent:#2563eb; --hl:rgba(37,99,235,.14);
-    --mono:ui-monospace,Menlo,monospace;
-    --surv-high:#16a34a; --surv-med:#ca8a04; --surv-low:#dc2626;         /* слой-1: survival-триада (значения продукта) для risk-ribbon */
-    /* слой-2: каркас страницы и учебные плашки (раскатка полировки; семантика сканера выше — слой-1, не трогается) */
-    --ink:#14161a;
-    --paper:#f7f7f5;
-    --hairline:#e7e7e4;
+    /* каркас страницы (учебная методичка, светлый) */
+    --paper:#f7f7f5; --panel:#ffffff; --hairline:#e7e7e4;
+    --text:#1a1a1a; --text-secondary:#575d66; --accent:#0a76ad;
     --note-bg:#fff8e6; --note-border:#f0d99a; --note-text:#6b5418;
-    --info-bg:#eef4ff; --info-border:#c5d8f5; --info-text:#1d4f7a;
-    --shadow-1:0 1px 2px rgba(20,22,26,.05);
-    --shadow-2:0 4px 16px rgba(20,22,26,.06);
+    --shadow-1:0 1px 2px rgba(20,22,26,.05); --shadow-2:0 4px 16px rgba(20,22,26,.06);
     --r-panel:12px; --r-block:8px;
     --font-display:"Avenir Next","Segoe UI",system-ui,sans-serif;
+    --mono:ui-monospace,Menlo,monospace;
+    /* демо-скин — светлые токены реального сканера, день (index.css :root) */
+    --sc-bg:#f6f7f9; --sc-surface:#ffffff; --sc-s2:#f4f4f5; --sc-active:#e8e8e8;
+    --sc-border:#dde2ea; --sc-border-sub:#ebebeb; --sc-hover:#efeff1;
+    --sc-text:#1a1a1a; --sc-2:#4d5765; --sc-3:#636d7c;
+    --sc-cyan:#0a76ad; --sc-teal:#19776c; --sc-coral:#c53a36;
+    --sc-flash:rgba(10,118,173,.18);
+    /* survival — цвет левой границы строки (лесенка кромок, index.css) */
+    --surv-hi:#16a34a; --surv-md:#ca8a04; --surv-lo:#dc2626;
+    /* палитра уловов — реальные значения цветов пресетов (темонезависимы) */
+    --pv-brass:#d4a72c; --pv-olive:#8fa653; --pv-slate:#7a8ba6; --pv-rose:#ad6a86; --pv-siena:#b3763f; --pv-petrol:#4e8098;
   }
   *{box-sizing:border-box}
   html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
   body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--paper);color:var(--text);font-size:15px;line-height:1.6}
-  .wrap{max-width:820px;margin:0 auto;padding:28px 18px 80px}
-  h1{font-family:var(--font-display);font-size:28px;font-weight:700;letter-spacing:-0.01em;margin:0 0 6px;text-wrap:balance}
-  /* risk-ribbon (ПРОБНАЯ, signature пилота): лента трёх survival-токенов — теза учебника «опасность кричит цветом» графикой. Снимается удалением этих двух правил. */
-  h1::after{content:"";display:block;width:120px;height:3px;margin-top:10px;border-radius:2px;background:linear-gradient(90deg,var(--surv-high) 0 33%,var(--surv-med) 33% 66%,var(--surv-low) 66% 100%)}
-  .part-head{border-image:linear-gradient(180deg,var(--surv-high),var(--surv-med),var(--surv-low)) 1} /* risk-ribbon echo */
-  h2{font-size:12px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--ink);margin:0 0 4px}
-  h3{font-family:var(--font-display);font-size:18px;font-weight:600;margin:0 0 4px;text-wrap:balance}
+  .wrap{max-width:820px;margin:0 auto;padding:28px 18px 90px}
+  h1{font-size:28px;margin:0 0 6px;font-family:var(--font-display);font-weight:700;letter-spacing:-0.01em;text-wrap:balance}
+  h1::after{content:"";display:block;width:120px;height:3px;margin-top:10px;border-radius:2px;background:linear-gradient(90deg,var(--sc-cyan) 0 50%,var(--sc-teal) 50% 100%)}
+  h2.part-t{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--text);font-weight:700;margin:0 0 4px}
+  h3{font-size:18px;margin:0 0 4px;font-family:var(--font-display);font-weight:600;text-wrap:balance}
   .lead{color:var(--text-secondary);font-size:16px;margin:0 0 8px;text-wrap:pretty}
-  .part{background:var(--panel);border:1px solid var(--hairline);border-radius:var(--r-panel);padding:20px 20px 22px;margin:18px 0;box-shadow:var(--shadow-1),var(--shadow-2)}
-  .part-head{border-left:3px solid var(--accent);padding-left:10px;margin-bottom:14px}
+  .lead b{color:var(--text)}
+  .block-band{margin:22px 0 2px;font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--accent);font-weight:700;border-bottom:1px solid var(--hairline);padding-bottom:4px}
+  .part{background:var(--panel);border:1px solid var(--hairline);border-radius:var(--r-panel);padding:20px 20px 22px;margin:14px 0;box-shadow:var(--shadow-1),var(--shadow-2)}
+  .part-head{border-left:3px solid var(--accent);padding-left:10px;margin-bottom:14px;border-image:linear-gradient(180deg,var(--sc-cyan),var(--sc-teal)) 1}
   .part-head .step{font-size:12px;color:var(--text-secondary)}
-  .signal{border-top:1px solid var(--border);padding:16px 0 4px}
+  .signal{border-top:1px solid var(--hairline);padding:16px 0 4px}
   .signal:first-of-type{border-top:none;padding-top:4px}
   .sig-why{color:var(--text-secondary);font-size:14px;margin:2px 0 10px;text-wrap:pretty}
-  .demo{background:var(--paper);border:1px solid var(--border);border-radius:var(--r-block);padding:10px;overflow-x:auto} /* mobile: клип колонки возраста — таблица скроллится, не режется краем экрана */
   .demo-cap{font-size:11px;color:var(--text-secondary);margin:6px 2px 0}
-  .honest{background:var(--note-bg);border:1px solid var(--note-border);border-radius:var(--r-block);padding:8px 10px;font-size:12.5px;color:var(--note-text);margin-top:8px}
-  .honest b{color:var(--note-text)}
-  .key{background:var(--info-bg);border:1px solid var(--info-border);border-radius:var(--r-block);padding:8px 10px;font-size:13px;margin-top:8px}
-  table{width:100%;border-collapse:collapse}
-  th{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-secondary);text-align:left;padding:4px 6px;border-bottom:1px solid var(--border)}
-  td{padding:5px 6px;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums;vertical-align:middle;font-size:14px}
-  table.dense td{padding:2px 6px;font-size:13px}
-  table.dense th{padding:2px 6px}
-  .st-pct{font-weight:700;color:var(--green)}
-  .st-league{color:var(--text-secondary);font-size:11px}
+  .key{background:#eef4ff;border:1px solid #c5d8f5;border-radius:var(--r-block);padding:9px 12px;font-size:13.5px;margin-top:8px;color:#1d4f7a}
+  .key b{color:#123a5e}
+  details.note{background:var(--note-bg);border:1px solid var(--note-border);border-radius:var(--r-block);padding:8px 10px;font-size:12.5px;color:var(--note-text);margin-top:8px}
+  details.note summary{cursor:pointer;font-weight:600;color:var(--note-text)}
+  details.note[open] summary{margin-bottom:5px}
+  details.note b{color:var(--note-text)}
+  .map{font-size:13px;color:var(--text-secondary);background:var(--paper);border:1px dashed var(--hairline);border-radius:var(--r-block);padding:10px 12px;margin-top:10px}
+  .map b{color:var(--text)}
+  button{font-family:inherit}
+  code{font-family:var(--mono);font-size:12px}
+
+  /* ── ДЕМО-СКИН (реплика сканера, день) ── */
+  .sc{background:var(--sc-bg);color:var(--sc-text);border:1px solid var(--sc-border);border-radius:var(--r-block);padding:12px;overflow-x:auto;font-size:13.5px}
+  .sc-2{color:var(--sc-2)} .sc-3{color:var(--sc-3)}
+  .sc-cnt{font-size:11px;color:var(--sc-3);font-family:var(--mono)}
+  .ui-icon{display:inline-block;vertical-align:-0.15em;flex-shrink:0}
+  .sc-box{background:var(--sc-s2);border:1px solid var(--sc-border);border-radius:7px;padding:9px 11px;margin:8px 0}
+
+  /* топбар-реплика */
+  .tb{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--sc-surface);border:1px solid var(--sc-border);border-radius:7px;padding:6px 8px}
+  .tb-door{padding:5px 12px;border:1px solid var(--sc-border);background:var(--sc-surface);color:var(--sc-text);font-size:12.5px;cursor:pointer;border-radius:5px;font-weight:600}
+  .tb-door:hover{border-color:var(--sc-cyan);color:var(--sc-cyan)}
+
+  /* пилюли пресетов */
+  .tb-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border:none;background:transparent;color:var(--sc-2);font-size:12px;cursor:pointer;border-radius:5px;white-space:nowrap}
+  .tb-pill:hover{background:var(--sc-active)}
+  .tb-pill.active{color:var(--sc-text);font-weight:600;background:var(--sc-active)}
+  .tb-pill.in-feed{color:var(--sc-text)}
+  .tb-pill.hyper{border:1px dashed var(--sc-border);font-weight:600}
+  .tb-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .tb-mark{font-size:10px;line-height:1;color:var(--sc-cyan);flex-shrink:0}
+  .tb-hk{margin-left:2px;font-size:9px;opacity:.5;font-weight:400;font-family:var(--mono)}
+
+  /* таблица-реплика ленты */
+  table.scan{width:100%;border-collapse:collapse}
+  table.scan th{font-size:9.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--sc-3);text-align:left;padding:4px 6px;border-bottom:1px solid var(--sc-border)}
+  table.scan td{padding:4px 6px;border-bottom:1px solid var(--sc-border-sub);font-variant-numeric:tabular-nums;font-size:13px}
+  table.scan.dense td{padding-top:2px;padding-bottom:2px}
+  .st-pct{font-weight:700;position:relative;padding-left:14px !important}
   .st-odds{font-family:var(--mono);white-space:nowrap}
-  .st-age{font-family:var(--mono);font-size:12px;color:var(--text-secondary)}
-  .st-age--fresh{color:var(--green);font-weight:600}
-  .st-age--alive{color:var(--warning)}
-  .st-age--dying{color:var(--red);font-weight:600}
-  /* имитация топбара с пилюлями пресетов */
-  .topbar-sim{display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:8px 10px}
-  .preset-pill{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;padding:4px 9px;border:1px solid var(--border);border-radius:16px;background:var(--surface2);color:var(--text);cursor:default;white-space:nowrap}
-  .preset-pill--active{background:var(--hl);border-color:var(--accent);color:var(--accent);font-weight:600}  /* активная пилюля пресета — подсвечена */
-  .preset-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
-  .preset-hotkey{font-size:10px;color:var(--text-secondary);font-family:var(--mono)}
-  .preset-pill--active .preset-hotkey{color:var(--accent)}
-  /* панель ★ Presets (вкладка управления) */
-  .pp-list{border:1px solid var(--border);border-radius:8px;overflow:hidden}
-  .pp-row{display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid var(--border);font-size:13px}
-  .pp-row:last-child{border-bottom:none}
-  .pp-row--active{background:var(--hl)}
-  .pp-name{flex:1}
-  .pp-sys{font-size:9px;color:var(--text-secondary);border:1px solid var(--border);border-radius:3px;padding:0 3px;margin-left:5px}
-  .pp-actions{display:flex;gap:3px;font-size:13px;color:var(--text-secondary)}
-  .pp-actions span{padding:1px 3px;border-radius:4px}
-  .pp-save{margin-top:8px;font-size:12.5px;color:var(--accent);border:1px dashed var(--accent);border-radius:6px;padding:6px 10px;text-align:center}
-  /* быстрый фильтр типов рынка */
-  .mkt-row{display:flex;flex-wrap:wrap;gap:5px}
-  .mkt-btn{font-size:12px;padding:3px 9px;border:1px solid var(--border);border-radius:5px;background:var(--surface2);color:var(--text-secondary)}
-  .mkt-btn--active{background:var(--hl);border-color:var(--accent);color:var(--accent);font-weight:600}  /* активный тип рынка — показан в потоке */
-  /* Часть 2 — поток + статичная легенда */
-  .part2-grid{display:grid;grid-template-columns:1fr;gap:16px;align-items:start} /* правка приёмки (вёрстка part2-grid): легенда ПОД таблицу (таблица на полную ширину, все 9 колонок видны) */
-  @media(max-width:680px){.part2-grid{grid-template-columns:1fr}}
-  .legend-static{font-size:12.5px;display:grid;grid-template-columns:1fr 1fr;gap:7px}          /* огрех легенды: 4 карточки в 2 колонки (по образцу g11 .lg-grid, без нового wrapper — сетка на существующем .legend-static) */
+  .st-league{color:var(--sc-3);font-size:11px}
+  .st-arb-palp{color:var(--sc-coral);font-weight:700}
+  /* дот пресета-владельца «чей улов» — в ячейке Arb%, absolute в левом паддинге (6px, тихий) */
+  .st-owner-dot{position:absolute;left:1px;top:50%;transform:translateY(-50%);width:6px;height:6px;border-radius:50%}
+  tr.surv-hi td:first-child{box-shadow:inset 3px 0 0 var(--surv-hi)}
+  tr.surv-md td:first-child{box-shadow:inset 3px 0 0 var(--surv-md)}
+  tr.surv-lo td:first-child{box-shadow:inset 3px 0 0 var(--surv-lo)}
+  .cell-flash{animation:cellFlash 1000ms ease-out}
+  @keyframes cellFlash{0%{background-color:var(--sc-flash)}100%{background-color:transparent}}
+  /* подсветка элемента демо по клику легенды (легенда → демо) */
+  .sc-hl{outline:2px solid var(--sc-cyan);outline-offset:2px;border-radius:5px}
+  /* статичная пилюля (снимок боя — не приглашает к клику) */
+  .tb-pill.tb-static{cursor:default}
+  .tb-pill.tb-static:not(.active):hover{background:transparent}
+
+  /* центр «Режимы» — список пресетов (op-presets реплика) */
+  .op{background:var(--sc-s2);border:1px solid var(--sc-border);border-radius:7px;padding:10px}
+  .op-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .op-head h4{margin:0;font-size:13px;color:var(--sc-text)}
+  .op-head .cnt{font-size:10.5px;color:var(--sc-3);font-family:var(--mono)}
+  .op-new{margin-left:auto;border:1px solid var(--sc-border);background:transparent;color:var(--sc-2);border-radius:5px;padding:3px 9px;font-size:11.5px;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+  .op-new:hover{border-color:var(--sc-cyan);color:var(--sc-cyan)}
+  .op-search{width:100%;background:var(--sc-bg);border:1px solid var(--sc-border);color:var(--sc-text);border-radius:5px;padding:5px 9px;font-size:12px;outline:none;margin-bottom:8px}
+  .op-search:focus{border-color:var(--sc-cyan)}
+  .p-row{display:flex;align-items:center;gap:7px;padding:5px 4px;border-radius:5px;font-size:12.5px}
+  .p-row--active{background:rgba(10,118,173,.08)}
+  .p-row input[type=checkbox]{accent-color:var(--sc-cyan);flex-shrink:0}
+  .p-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;border:1px solid var(--sc-border)}
+  .p-name{color:var(--sc-text);cursor:pointer}
+  .p-name:hover{color:var(--sc-cyan)}
+  .p-sys{font-size:8.5px;color:var(--sc-3);border:1px solid var(--sc-border);border-radius:3px;padding:0 3px;margin-left:4px;text-transform:uppercase;letter-spacing:.03em}
+  .p-live{font-size:10.5px;color:var(--sc-3);font-family:var(--mono)}
+  .own-dot{width:6px;height:6px;border-radius:50%;background:var(--sc-teal);flex-shrink:0}
+  .edit-note{font-size:10px;color:var(--sc-cyan);font-style:italic}
+  .p-actions{margin-left:auto;display:flex;gap:2px}
+  .p-act{border:none;background:transparent;color:var(--sc-3);cursor:pointer;padding:2px 4px;border-radius:4px;font-size:12px;line-height:1}
+  .p-act:hover{background:var(--sc-active);color:var(--sc-cyan)}
+  .p-act--danger:hover{color:var(--sc-coral)}
+  .hyper-block{border:1px dashed var(--sc-border);border-radius:6px;padding:5px 6px;margin:4px 0}
+  .hyper-head{display:flex;align-items:center;gap:7px;font-size:12.5px}
+  .hp-glyph{color:var(--sc-2);display:inline-flex}
+  .hyper-kids{padding-left:20px;margin-top:3px}
+  .hotkey{font-size:9.5px;color:var(--sc-3);font-family:var(--mono);border:1px solid var(--sc-border-sub);border-radius:3px;padding:0 4px}
+  .op-total{font-size:11px;color:var(--sc-2);margin-top:8px;padding-top:7px;border-top:1px solid var(--sc-border-sub)}
+  .op-total b{color:var(--sc-text)}
+
+  /* дот-палитра свотчей */
+  .swatches{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-top:5px}
+  .sw{width:18px;height:18px;border-radius:5px;border:1px solid var(--sc-border);cursor:pointer;position:relative}
+  .sw.sel{outline:2px solid var(--sc-cyan);outline-offset:1px}
+
+  /* dirty-бар (черновик) */
+  .db{display:flex;align-items:center;gap:9px;flex-wrap:wrap;background:var(--sc-surface);border:1px solid var(--sc-border);border-radius:7px;padding:8px 11px}
+  .db-dot{width:8px;height:8px;border-radius:50%;background:var(--sc-cyan);flex-shrink:0}
+  .db-dot.clean{background:var(--sc-3)}
+  .db-txt{font-size:12px;color:var(--sc-text)}
+  .db-txt b{color:var(--sc-cyan)}
+  .db-txt.clean b{color:var(--sc-3);font-weight:600}
+  .db-btn{border:1px solid var(--sc-border);background:transparent;color:var(--sc-2);border-radius:5px;padding:4px 10px;font-size:11.5px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+  .db-btn.save{margin-left:auto}
+  .db-btn.save.hot{border-color:var(--sc-cyan);color:var(--sc-cyan);background:rgba(10,118,173,.10);font-weight:600}
+  .db-btn:hover{border-color:var(--sc-cyan);color:var(--sc-text)}
+  /* тост в дневной теме реального сканера — намеренно тёмный */
+  .toast{margin-top:8px;background:#2c2c2c;border:1px solid #2c2c2c;border-left:3px solid var(--sc-cyan);border-radius:5px;padding:7px 10px;font-size:11.5px;color:#f0f0f0}
+
+  /* алерт-контракт */
+  .snd-row{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+  .snd-btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--sc-border);background:var(--sc-surface);color:var(--sc-2);border-radius:14px;padding:4px 11px;font-size:12px;cursor:pointer}
+  .snd-btn:hover{border-color:var(--sc-cyan);color:var(--sc-text)}
+  .snd-btn.sel{border-color:var(--sc-cyan);color:var(--sc-cyan);background:rgba(10,118,173,.10)}
+  .snd-play{color:var(--sc-cyan)}
+  .step-seg{display:inline-flex;border:1px solid var(--sc-border);border-radius:5px;overflow:hidden;margin-top:4px}
+  .step-seg button{padding:4px 11px;font-size:11.5px;background:transparent;border:none;color:var(--sc-2);cursor:pointer;border-right:1px solid var(--sc-border)}
+  .step-seg button:last-child{border-right:none}
+  .step-seg button.on{background:var(--sc-active);color:var(--sc-cyan)}
+
+  /* легенда статичная (часть 2) */
+  .legend-static{margin-top:12px;font-size:12.5px;display:grid;grid-template-columns:1fr 1fr;gap:7px;align-items:start}
   @media(max-width:560px){.legend-static{grid-template-columns:1fr}}
-  .legend-static .item{padding:6px 9px;border-radius:7px;border:1px solid var(--border);transition:background .25s,border-color .25s}
-  .legend-static .item.lit{background:var(--hl);border-color:var(--accent)}
-  .legend-static .item b{display:block;font-size:12.5px;margin-bottom:1px}
-  .legend-static .item span{color:var(--text-secondary);font-size:11.5px}
-  .flowcount{font-size:12px;color:var(--text-secondary);margin:8px 2px 0}
-  .flowcount b{color:var(--accent)}
-  .pace{font-size:11px;color:var(--text-secondary);margin:6px 2px 0}
-  .syslist{font-size:12.5px;margin:6px 0 0}
-  .syslist li{margin-bottom:3px}
-  code{font-size:12px}
-  /* интерактив оживления (механика «жми→эффект» Г6): кликабельные пилюли пресетов / кнопки типов рынка */
-  .preset-pill[data-pid],.mkt-btn[data-mkt]{cursor:pointer;transition:border-color .15s,background .15s,color .15s}
-  .preset-pill[data-pid]:hover{border-color:var(--accent);color:var(--accent)}
-  .mkt-btn[data-mkt]:hover{border-color:var(--accent)}
-  .p2-hint{font-size:11.5px;color:var(--info-text);background:var(--info-bg);border:1px solid var(--info-border);border-radius:var(--r-block);padding:6px 9px;margin:0 0 10px}
-  .p2-hint b{color:var(--accent)}
+  .legend-static .item{padding:7px 9px;border-radius:7px;border:1px solid var(--hairline);transition:background .25s,border-color .25s;cursor:pointer}
+  .legend-static .item:hover{border-color:var(--accent)}
+  .legend-static .item.lit{background:rgba(10,118,173,.08);border-color:var(--accent)}
+  .legend-static .item b{display:block;font-size:13px;margin-bottom:1px}
+  .legend-static .item span{color:var(--text-secondary)}
+  .flowcount{font-size:12px;color:var(--sc-2);margin:8px 2px 0}
+  .flowcount b{color:var(--sc-cyan)}
+  .pace{font-size:11px;color:var(--text-secondary);margin:10px 2px 0}
+  .p2-hint{font-size:11.5px;color:#1d4f7a;background:#eef4ff;border:1px solid #c5d8f5;border-radius:var(--r-block);padding:6px 9px;margin:0 0 10px}
+  .p2-hint b{color:#0a76ad}
+  .meta{font-size:12px;color:var(--text-secondary);background:var(--note-bg);border:1px solid var(--note-border);border-radius:var(--r-block);padding:8px 11px;margin-top:16px}
+  .meta b{color:var(--note-text)}
 </style>
 </head>
 <body>
 <div class="wrap">
 
-  <h1>Фильтры и пресеты</h1>
-  <p class="lead">Решение, которое обслуживает эта функция: <b>«как из тысячи строк оставить свои сорок — и переключить весь режим работы одним движением»</b>. С сервера падают сотни вилок в секунду по всем спортам и конторам. Глазами это не охватить. Фильтры — переключатели сортировочной станции: они режут поток до нужного профиля. А <b>пресет</b> — это сохранённая конфигурация всей станции разом: нажал — и поток мгновенно перестроился под «европейский вечер», «баскетбол» или «разведку». Эта глава — про пресеты (ядро) и быстрый фильтр типов рынка в топбаре. Детальная тонкая настройка фильтров (гистограммы, лиги, дерево типов) — отдельная глава.</p>
+  <h1>Пресеты и режимы</h1>
+  <p class="lead">Решение, которое обслуживает эта функция: <b>«как из тысячи строк оставить свои сорок — и переключить весь режим работы одним движением».</b> С сервера падают сотни вилок в секунду по всем спортам и конторам — глазами не охватить. Фильтры режут поток до нужного профиля, а <b>пресет</b> хранит этот профиль целиком и возвращает его одним кликом. Причём пресет помнит не только фильтры: с ним переключается <b>тема, плотность, набор и порядок колонок и даже контракт звукового алерта</b> — весь вид станции разом. Это и есть сортировочная станция: тысяча вагонов идёт, а на нужный путь падают только профильные. Эта глава — про <b>жизнь в пресетах</b>: пять готовых режимов, переключение, несколько режимов в одной ленте сразу и группы. Тонкая настройка полей (пороги, гистограммы, лиги, пути) — глава «Режимы».</p>
 
-  <p class="key"><b>Зачем это главное.</b> У вилочника не один режим, а несколько: днём европейский футбол, ночью азиатский, иногда разведка новой конторы. У каждого — свои спорты, конторы, пороги. Переключать десяток фильтров вручную каждый раз — потеря секунд, которых нет. Пресет переключает <b>весь профиль одним движением</b> (клик по пилюле или <code>⌥</code>+цифра). Это и есть «сортировочная станция»: тысяча вагонов проходит, а на нужный путь падают только профильные.</p>
+  <p class="key"><b>Зачем это главное.</b> У вилочника не один режим, а несколько: днём европейский футбол в плотной светлой ленте, ночью азиатский live в просторной тёмной, иногда разведка новой конторы. У каждого — свои спорты, конторы, пороги, свой звук, своя раскладка колонок. Настраивать десяток переключателей вручную каждый раз — потеря секунд, которых нет. Пресет переключает <b>весь профиль одним движением</b> — клик по пилюле или <code>⌥</code>+цифра.</p>
 
-  <!-- ============ ЧАСТЬ 1 — УЧЁБА ИЗОЛИРОВАННО ============ -->
+  <div class="map">
+    <b>Где это на экране.</b> Пилюли пресетов и групп живут слева в топбаре (глава «Топбар»). Их дом управления — <b>центр экрана «Режимы»</b> (дверь «Режимы» в топбаре, а у самой ленты стоит <b>срез активного пресета</b> — левый столбик с самым трогаемым (Профит %, Кэфы, Звук выше, Конторы «8 вкл · 1 заглушено») и кнопкой «Режимы →»: быстрый вход туда же): там их создают, красят, собирают в группы и включают в выдачу. Слева на том же экране правят поля активного режима, справа — его конторы (глубина — глава «Режимы»). Сквозные настройки, общие для всех режимов (парк контор, валюты, звуки станции) — на «Станции». Здесь разбираем сами пресеты: что это, как переключать, как держать несколько сразу и как связать в группу.
+  </div>
+
+  <!-- ============ ЧАСТЬ 1 — УЧЁБА ============ -->
   <section class="part">
     <div class="part-head">
-      <h2>Часть 1 · Учёба</h2>
-      <div class="step">Каждый элемент по отдельности — что это и какое решение обслуживает. Под описанием маленькое демо.</div>
+      <h2 class="part-t">Часть 1 · Учёба</h2>
+      <div class="step">Сначала — что такое пресет и как переключать. Потом — как держать несколько режимов в ленте сразу. Потом — группы и дом управления. Каждый элемент со своим живым демо: жми и смотри.</div>
     </div>
 
+    <div class="block-band">A · Пресет — профиль режима</div>
+
     <div class="signal">
-      <h3>① Что такое пресет — снимок всех фильтров</h3>
-      <p class="sig-why">Пресет — это сохранённая конфигурация фильтров целиком. Настроил поток один раз под задачу → нажал «Save current filters» → получил пресет. Дальше один клик возвращает ровно этот режим.</p>
-      <details class="honest"><summary>Что именно входит в снимок</summary>В пресете лежит весь набор настроек потока: какие спорты, лиги, типы рынка и страны включены; какие конторы; пороги процента, кэфа и возраста; режим исходов; скрытые бейджи. То есть пресет помнит не одну галочку, а всю комбинацию фильтров целиком.</details>
-      <div class="demo" id="d1"></div>
-      <div class="demo-cap">Набор фильтров → «Save current filters» → пилюля-пресет. Внутри пилюли — снимок всех настроек, которые были активны в момент сохранения.</div>
+      <h3>① Что входит в пресет</h3>
+      <p class="sig-why">Пресет — сохранённая конфигурация станции под задачу. Настроил один раз → сохранил → дальше один клик возвращает ровно этот режим. Важно: пресет помнит не только фильтры, а <b>весь профиль</b> — так «ночной просторный тёмный» отличается от «дневного плотного светлого» не одной галочкой, а всем видом сразу.</p>
+      <div class="sc">
+        <div id="d1"></div>
+      </div>
+      <div class="demo-cap">Тема, плотность, колонки и порядок — визуальный профиль; фильтры и контракт алерта — что и как ловит.</div>
+      <details class="note"><summary>Что именно захватывается — и что нет</summary>В профиль режима входят: <b>фильтры</b> (спорты, лиги, типы рынка, конторы, пороги процента/кэфа/возраста, чёрно-белые списки лиг, исходы, скрытые бейджи); <b>тема</b> (день/ночь); <b>плотность</b> (компактный/просторный); <b>набор колонок</b> и их <b>порядок</b>; <b>контракт алерта</b> (порог %, звук, ступень действия). Визуальные члены (тема, плотность, колонки) захватываются <b>только осознанной кнопкой</b> «Сохранить в пресет» и только когда они реально менялись — молчаливого пришивания вида нет. Сквозное для всех режимов (парк контор, валюты, звуки станции) в пресет НЕ входит — оно живёт на «Станции».</details>
     </div>
 
     <div class="signal">
       <h3>② Пять готовых (системных) пресетов</h3>
-      <p class="sig-why">Сканер уже несёт пять системных пресетов — их нельзя удалить, можно только сбросить к дефолту. Это стартовые режимы:</p>
-      <ul class="syslist">
-        <li><b>All Sports</b> — пустой фильтр, весь поток (режим по умолчанию).</li>
-        <li><b>Soccer EU</b> — только футбол и шесть европейских лиг (АПЛ, Ла Лига, Бундеслига, Серия А, Лига 1, ЛЧ).</li>
-        <li><b>Basketball</b> — только баскетбол.</li>
-        <li><b>Sharp Only</b> — вилки до 3% и моложе 30 секунд (консистентные, не аномальные).</li>
-        <li><b>Exploration</b> — всё нараспашку: пороги сняты (до 100%, до 600с), все спорты/рынки/конторы, включая то, что обычно отсечено. Режим разведки.</li>
-      </ul>
-      <div class="demo" id="d2"></div>
-      <div class="demo-cap">По кругу: имя пресета → что он делает с потоком (число строк — на демо-наборе из 8 вилок).</div>
-      <details class="honest"><summary>Важно про «Sharp Only» — имя обещает не то, что делает код</summary>Несмотря на имя, этот пресет фильтрует <b>не по sharp-конторам</b>, а по двум числам: процент ≤ 3% и возраст ≤ 30 секунд. То есть он показывает «здоровые», консистентные вилки, а не «вилки на sharp-конторах». А sharp-контор (Pinnacle, биржи) в текущем потоке нет вообще — они не подключены к парсингу. Поэтому в этом пресете и видны обычные конторы: фильтр работает по проценту с возрастом, а не по типу конторы. Глава честно показывает реальный механизм.</details>
+      <p class="sig-why">Сканер несёт пять системных пресетов — их нельзя удалить, можно только сбросить к дефолту. Это стартовые режимы. Клик по пилюле — и видно, что каждый делает с потоком (на демо-наборе из восьми вилок).</p>
+      <div class="sc">
+        <div class="tb" id="d2-pills" style="justify-content:flex-start;margin-bottom:8px"></div>
+        <div class="sc-2" id="d2-desc" style="font-size:12.5px;min-height:34px"></div>
+      </div>
+      <div class="demo-cap">Имя пресета → что он делает с потоком → сколько строк из восьми показывает. «Exploration» снимает пороги — видно даже аномальное и старое.</div>
+      <details class="note"><summary>Почему «Tight», а не «только sharp»</summary>Пресет <b>«Tight»</b> показывает узкие вилки по <b>двум числам: профит ≤ 3% и возраст ≤ 30 секунд</b> — консистентные, «тихие», а не «вилки на sharp-конторах». Имя честно называет механику: узкие критерии, а не список контор. Важно понимать: фильтра «только sharp-конторы» (Pinnacle, биржи) в сканере нет — <b>sharp-контор в текущем потоке нет вообще</b>, они не подключены к парсингу. Так что «Tight» — это про числа профита и возраста, а не про имена контор.</details>
     </div>
 
     <div class="signal">
       <h3>③ Как переключать — пилюли и <code>⌥</code>+цифра</h3>
-      <p class="sig-why">Закреплённые пресеты висят пилюлями в топбаре. Клик по пилюле применяет режим; активная подсвечена. А для скорости — горячие клавиши: <b><code>⌥</code> (Alt) + 1…9</b> применяют закреплённый пресет по его позиции. Хоткей работает по <b>закреплённым</b> пресетам (📌) и не срабатывает, когда курсор в поле ввода. Так смена режима — это полсекунды, а не поход в настройки.</p>
-      <div class="demo">
-        <div class="topbar-sim" id="d3"></div>
+      <p class="sig-why">Пресеты висят пилюлями в топбаре. Клик по пилюле делает режим <b>активным</b> (он ярче всех). Для скорости — горячие клавиши <b><code>⌥</code> (Alt) + 1…9</b>: смена режима вслепую с клавиатуры, не открывая настройки. Хоткеи идут <b>по композиции</b>: сначала группы, потом одиночные пресеты — то есть <code>⌥1</code> достаётся первой группе, а одиночки сдвинуты на число групп. Слотов девять — дальше без хоткея, кликом.</p>
+      <div class="sc">
+        <div class="tb" id="d3-pills" style="justify-content:flex-start"></div>
+        <div class="sc-cnt" style="margin-top:7px" id="d3-status"></div>
       </div>
-      <div class="demo-cap">Пилюли пресетов в топбаре. Цифра справа — горячая клавиша (<code>⌥1</code>…). Активный режим подсвечен.</div>
-      <div class="honest"><b>Деталь про клавишу:</b> у нас это <b><code>⌥</code> (Alt) + цифра</b>. В сильнейших сканерах-конкурентах (Forted) та же идея на <code>Ctrl</code>+цифра — механизм один (режим одним движением), клавиша у нас другая.</div>
+      <div class="demo-cap">Клик по пилюле подсвечивает активный режим (в сканере то же делает <code>⌥</code>+цифра). Группа «⊞ Вечер» стоит первой и держит <code>⌥1</code>; одиночки под ней сдвинуты на число групп.</div>
+      <details class="note"><summary>Деталь про клавишу и про то, что хоткей не мешает вводу</summary>Хоткей режима — <code>⌥</code> (Alt) + цифра: вся станция одним движением. Хоткей <b>не срабатывает, когда курсор в поле ввода</b> (поиск, число порога, выпадашка) — там цифры и стрелки имеют своё значение. Ось хоткея идёт по композиции — <b>сначала группы, потом одиночки</b>, и активный пресет показывает свой хоткей пилюлей в шапке экрана «Режимы».</details>
+    </div>
+
+    <div class="block-band">B · Несколько режимов в ленте сразу</div>
+
+    <div class="signal">
+      <h3>④ Мультипресеты — подмешать улов другого режима</h3>
+      <p class="sig-why">Активный режим — один, но иногда нужно, чтобы в ленте вместе с ним шёл улов <b>ещё одного-двух</b> режимов: идёт ночной live, а глаз держат ещё и на прематч-форах <span style="opacity:.9">(«прематч» здесь — не отдельный раздел, а события, которые ещё <b>не стартовали</b>: они идут в той же live-ленте, матч начнётся через минуты; форы и гандикапы по ним)</span>. Для этого у каждого пресета есть <b>чекбокс «в выдачу»</b>. Лента становится объединением активного и всех включённых — только по <b>вилкам</b>; поля, тема и колонки остаются за активным. Включённые пресеты несут на пилюле маркер <b>✓</b>, а их строки в ленте — <b>точка цвета своего пресета</b> у процента: сразу видно «чей это улов».</p>
+      <div class="sc">
+        <div class="tb" id="d4-pills" style="justify-content:flex-start;margin-bottom:8px"></div>
+        <table class="scan"><thead><tr><th>Arb%</th><th>Age</th><th>Sport</th><th>Event</th><th>Market</th><th>BK1</th><th>BK2</th><th>Odds1</th><th>Odds2</th></tr></thead><tbody id="d4-rows"></tbody></table>
+        <div class="flowcount" id="d4-count"></div>
+        <div class="sc-cnt" style="margin-top:4px">чекбоксы «в выдачу» ниже — включи второй режим, и его строки придут в ленту с точкой своего цвета</div>
+        <div id="d4-checks" style="margin-top:6px"></div>
+      </div>
+      <div class="demo-cap">Активный «Ночной live» (петроль) — его строки без точки, лента по умолчанию его. Включишь «Прематч-форы» (олива) — придут строки с оливковой точкой у процента: «чей улов». Клик по пилюле по-прежнему меняет активный; галку «в выдачу» ставят здесь.</div>
+      <details class="note"><summary>Куда уходят счётчики и почему у активного нет точки</summary>Итог объединения виден внизу центра «Режимы» и в карточке «Станция сейчас»: <b>«В ленте сейчас: N груп. + M пресетов · U вилок»</b>. У каждого пресета в списке — свой живой счётчик «·N» (сколько его улова в потоке) и точка «улов этого пресета в ленте». <b>У строк активного точки нет</b> намеренно: лента по умолчанию принадлежит ему, точка метит только <i>подмешанные</i> строки — якорь взгляда не двоится. Точка тихая (6px) и стоит в левом поле процента, чтобы не толкать само число — процент это ядро скана, он не жмётся.</details>
     </div>
 
     <div class="signal">
-      <h3>④ Управление пресетами — вкладка ★ Presets</h3>
-      <p class="sig-why">Вкладка «★ Presets» — место, где один раз собирается набор боевых режимов. Главное действие здесь — <b>закрепить</b> (📌) те два-три пресета, между которыми идёт скачка весь день (скажем, «вечерний футбол» и «разведка»): закреплённые встают в пилюли топбара и на <code>⌥</code>-хоткеи — дальше они переключаются вслепую с клавиатуры, не открывая вкладку.</p>
-      <details class="honest"><summary>Остальное на вкладке — обслуживание набора</summary>Создать пресет из текущих фильтров («+ Save current filters»); повесить цвет-метку, чтобы различать пилюли в топбаре одним взглядом (🎨); переименовать под удобный язык (✎). Системные (бейдж «sys») удалить нельзя — только сбросить к дефолту (↻), если случайно перенастроены; свои — удалить (✕).</details>
-      <div class="demo" id="d4"></div>
-      <div class="demo-cap">Вкладка управления пресетами (статичный вид). Системные с бейджем «sys» — только reset, свои — удаляемы.</div>
+      <h3>⑤ У каждого режима — свой звук</h3>
+      <p class="sig-why">Когда в ленте несколько режимов сразу, важно на слух различать, <b>чей</b> улов пришёл. Поэтому звуковой алерт — часть контракта <b>каждого</b> пресета: свой порог «звучать выше N%», свой звук из четырёх образцов и своя ступень действия. Ночной режим будит по своему порогу, дневной — по своему; вилка чужого набора не молчит из-за того, что активен другой.</p>
+      <div class="sc">
+        <div class="sc-3" style="font-size:11px;margin-bottom:4px">Звук этого режима (прослушать ▶):</div>
+        <div class="snd-row" id="d5-sounds"></div>
+        <div class="sc-3" style="font-size:11px;margin:6px 0 2px">Ступень действия при улове выше порога:</div>
+        <div class="step-seg" id="d5-steps"></div>
+        <div class="sc-cnt" id="d5-status" style="margin-top:8px"></div>
+      </div>
+      <div class="demo-cap">Четыре звука — реальные синтез-паттерны сканера (нажми ▶ — прозвучат по-настоящему). Три ступени: тихий тост / звук+тост / плюс системное уведомление. Это контракт ЭТОГО режима — у соседнего свой.</div>
+      <details class="note"><summary>Как ведут себя несколько порогов сразу (без какофонии)</summary>Каждый включённый режим слушается по <b>своему</b> порогу и звуку — сканер режет ленту на зоны «пресет + его контракт». Но память новизны одна на всю ленту, а между звонками — общий короткий тайм-аут, поэтому вилка, прошедшая сразу два порога, звенит <b>один раз</b>, а не дважды. Если разом появилось несколько новых — звучит зона <b>самой жирной</b> вилки, остальные приходят тостом. Ступень «плюс уведомление» показывает системный пуш, только если он разрешён в браузере и включён на «Станции»; иначе честно откатывается на «звук+тост», а не молчит. Сам селектор порога, звука и ступени живёт на экране «Режимы», в секции «Алерт» — здесь показан только смысл контракта.</details>
+    </div>
+
+    <div class="block-band">C · Группы и дом управления</div>
+
+    <div class="signal">
+      <h3>⑥ Гиперпресеты — группа режимов одним кликом</h3>
+      <p class="sig-why">Профи часто держит <b>десяток узких</b> пресетов (по лиге, по типу рынка) и хочет включать их пачкой. Для этого есть <b>группа</b> (гиперпресет): именованный набор пресетов. В топбаре она стоит пилюлей <b>«⊞ имя (N)»</b> первой. Клик по ней активирует весь набор одним движением: первый член становится активным режимом, остальные — в выдачу.</p>
+      <div class="sc">
+        <div class="tb" id="d6-pills" style="justify-content:flex-start;margin-bottom:8px"></div>
+        <div class="sc-box" style="margin:0">
+          <label class="sc-2" style="font-size:12px;display:flex;align-items:center;gap:7px;cursor:pointer">
+            <input type="checkbox" id="d6-group" style="accent-color:var(--sc-cyan)"> Чекбокс группы «⊞ Вечер» — включить членов в выдачу
+          </label>
+          <div id="d6-members" style="margin-top:8px"></div>
+        </div>
+        <div class="sc-cnt" id="d6-status" style="margin-top:8px"></div>
+      </div>
+      <div class="demo-cap">Сначала вручную включи «Теннис-узкий», потом включи чекбокс группы, потом сними его — «Теннис-узкий» останется. Группа помнит, кого добавила ОНА, и гасит только своих. Чекбокс группы — только в выдачу, с памятью атрибуции; клик по <b>пилюле группы</b> в топбаре — другое действие: он ещё и делает первый член активным режимом. Клик по <b>пилюле-члену</b> делает активным его.</div>
+      <details class="note"><summary>Память атрибуции: почему группа не гасит ручные галки</summary>Чекбокс группы включает её членов в выдачу — но запоминает <b>ровно тех, кого в этот момент добавила именно она</b> (кого ещё не было в ленте). Снятие чекбокса группы гасит <b>только этих</b>, а пресеты, включённые руками раньше или уже удерживаемые другой группой, остаются. Без этой памяти снятие группы стирало бы и ручную настройку — обидный сброс. Цвет и звук у группы своих нет: они живут на самих пресетах-членах (иначе объединённая лента ослепла бы к тому, «чей улов»). Один пресет может состоять сразу в нескольких группах — как теги. Собирают и распускают группы в центре «Режимы» кнопкой «⊞ Новая группа»; удаление группы <b>не трогает</b> сами пресеты.</details>
     </div>
 
     <div class="signal">
-      <h3>⑤ Быстрый фильтр типов рынка — в топбаре</h3>
-      <p class="sig-why">Рядом с пилюлями — ряд кнопок типов рынка: тотал, фора, исход и т.д. Клик мгновенно прячет или показывает этот тип в потоке, не открывая фильтры. Подсвеченная кнопка = тип сейчас в ленте. Это то же самое, что галочки на вкладке типов рынка в фильтрах (в текущем интерфейсе она подписана «Bet types»), только под рукой — для быстрого сужения «сейчас смотрю только тоталы».</p>
-      <div class="demo">
-        <div class="mkt-row" id="d5"></div>
+      <h3>⑦ Дом управления — центр экрана «Режимы»</h3>
+      <p class="sig-why">Все пресеты и группы собраны в <b>центре экрана «Режимы»</b>. Здесь их ищут, создают, красят, переименовывают и включают в выдачу. Два независимых канала: <b>чекбокс = в выдачу</b> (лента подмешивает улов, активный не меняется), <b>клик по имени или карандаш = редактировать</b> (пресет становится активным, помечается «← редактируется», и его поля правятся слева — не уходя с экрана).</p>
+      <div class="sc">
+        <div class="op" id="d7"></div>
+        <div id="d7-note"></div>
       </div>
-      <div class="demo-cap">Кнопки типов рынка в топбаре. Активные (подсвечены) — показаны в потоке; клик переключает. Синхронно с вкладкой типов рынка в фильтрах («Bet types»).</div>
+      <div class="demo-cap">Кликни имя пресета — он станет активным («← редактируется»), метка переедет. Поставь чекбокс — пресет уйдёт «в выдачу» (активный не сменится); зелёная точка у строки загорается, когда его улов реально идёт в ленту. Поиск сверху фильтрует и группы, и одиночек. «+ Новый» создаёт копию активного.</div>
+      <details class="note"><summary>Кнопки строки и почему «+ Новый» — это копия активного</summary>У каждого пресета в строке: точка его цвета, чекбокс «в выдачу», живой счётчик «·N», карандаш «редактировать» (сделать активным), палитра «цвет улова», карандаш «переименовать», а справа — <b>↻ сброс к дефолту</b> у системных (бейдж «системный») или <b>✕ удалить</b> у своих. Кнопка <b>«+ Новый»</b> берёт текущий активный режим за основу (все поля слева) → запрашивает имя → сохраняет; дальше по желанию — в группу и на хоткей. Так новый режим рождается не с чистого листа, а от того, что уже настроено под рукой.</details>
+    </div>
+
+    <div class="signal">
+      <h3>⑧ Черновик — правки не теряются</h3>
+      <p class="sig-why">Настройка режима — это иногда вечер работы, и терять её на перезагрузке нельзя. Несохранённые правки активного режима <b>переживают перезагрузку</b>: при возврате сканер покажет тост и восстановит черновик. Зафиксировать его в пресет — кнопкой «Сохранить в пресет».</p>
+      <div class="sc">
+        <div class="db" id="d8-bar"></div>
+        <div id="d8-toast"></div>
+        <div class="sc-cnt" style="margin-top:8px" id="d8-status"></div>
+      </div>
+      <div class="demo-cap">Жми «правка» — счётчик изменённых полей растёт, «Сохранить в пресет» загорается. «Сохранить» фиксирует · «Отменить» откатывает к сохранённому · «Сохранить как новый…» уводит правки в свежий пресет. Кнопка «перезагрузка» показывает тост восстановления.</div>
+      <details class="note"><summary>Что черновик держит, а что нет</summary>Шапка показывает <b>«● изменено: N»</b> — счётчик реально изменённых полей; изменение вида (тема, плотность, набор или порядок колонок) считается одним отдельным полем. Черновик привязан к <b>текущему режиму</b> и переживает перезагрузку, пока остаёшься в нём. <b>Переключение на другой режим</b> возвращает его к сохранённому состоянию: не используй переключение как хранение нескольких несохранённых черновиков. Вид меняется в ленте сразу, но войдёт в профиль активного пресета только после осознанного «Сохранить в пресет» — так светлая тема не пришивается к ночному режиму молча. При уходе с экрана с несохранёнными правками сканер спросит подтверждение — случайный вечер настройки не теряется.</details>
     </div>
   </section>
 
-  <!-- ============ ЧАСТЬ 2 — ЖИВОЙ СКАНЕР + ПЕРЕКЛЮЧЕНИЕ ПРЕСЕТА ============ -->
+  <!-- ============ ЧАСТЬ 2 — ЖИВОЙ СКАНЕР ============ -->
   <section class="part">
     <div class="part-head">
-      <h2>Часть 2 · В живом сканере</h2>
-      <div class="step">Один и тот же поток вилок — под разными пресетами. <b>Кликни пилюлю пресета</b> в топбаре — поток мгновенно перестроится под режим, счётчик внизу покажет, сколько строк осталось, и режим зафиксируется (можно читать спокойно). Легенда справа — что делает активный пресет.</div>
+      <h2 class="part-t">Часть 2 · В живом сканере</h2>
+      <div class="step">Один поток под разными режимами — с группой, мультипресетами и точками «чей улов». Кликни пилюлю — сменится активный режим; поставь чекбокс «в выдачу» — подмешается улов второго режима с точкой его цвета. Легенда справа подсвечивает то, чего касаешься; карточки легенды и сами кликаются — клик показывает концепт прямо в демо.</div>
     </div>
-    <div class="p2-hint">👆 <b>Кликни пилюлю</b> (All Sports / Soccer EU / Basketball / Sharp Only) — поток перестроится под режим, счётчик покажет «N из 8 вилок», и режим <b>зафиксируется</b> (можно читать спокойно). Можно просто <b>навести</b> — подсмотреть режим на лету, но стоит убрать курсор, и листание по кругу возобновится. Это и есть «вся станция за одно движение».</div>
-    <div class="topbar-sim" id="p2pills" style="margin-bottom:10px"></div>
-    <div class="part2-grid">
-      <div class="demo" style="padding:6px;overflow-x:auto">
-        <table id="p2table">
-          <thead><tr>
-            <th>Arb%</th><th>Спорт</th><th>Событие</th><th>Market</th><th>БК 1</th><th>Кэф 1</th><th>БК 2</th><th>Кэф 2</th><th>Возр.</th>
-          </tr></thead>
-          <tbody id="p2rows"></tbody>
-        </table>
-        <div class="flowcount" id="p2count"></div>
-      </div>
-      <div class="legend-static">
-        <div class="item" data-lg="preset-all"><b>All Sports</b><span>весь поток, без ограничений</span></div>
-        <div class="item" data-lg="preset-soccer-eu"><b>Soccer EU</b><span>только футбол + европейские лиги</span></div>
-        <div class="item" data-lg="preset-basketball"><b>Basketball</b><span>только баскетбол</span></div>
-        <div class="item" data-lg="preset-sharp"><b>Sharp Only</b><span>≤ 3% и моложе 30с (по числам, не по конторам)</span></div>
-      </div>
+    <div class="p2-hint">👆 <b>Кликни пилюлю</b> (⊞ Вечер / Ночной live / Прематч-форы / Теннис-узкий) — сменится активный режим. <b>Отметь «в выдачу»</b> под лентой — улов второго режима придёт в ту же ленту с точкой своего цвета. Пока никто не трогает — режим листается по кругу как подсказка.</div>
+    <div class="sc">
+      <div class="tb" id="p2-pills" style="justify-content:flex-start;margin-bottom:8px"></div>
+      <table class="scan"><thead><tr><th>Arb%</th><th>Age</th><th>Sport</th><th>Event</th><th>Market</th><th>BK1</th><th>BK2</th><th>Odds1</th><th>Odds2</th></tr></thead><tbody id="p2-rows"></tbody></table>
+      <div class="flowcount" id="p2-count"></div>
+      <div id="p2-checks" style="margin-top:8px"></div>
     </div>
-    <div class="pace">Поток замедлен для учёбы. <b>Клик</b> по пилюле фиксирует режим (можно читать спокойно); пока никто не трогает — листается по кругу как подсказка. В реальной работе это клик или <code>⌥</code>+цифра. Пилюля переключилась → поток сузился до режима: вся станция за одно движение.</div>
+    <div class="legend-static">
+      <div class="item" data-lg="hyper"><b>⊞ Группа</b><span>клик — весь набор: первый активным, остальные в выдачу</span></div>
+      <div class="item" data-lg="active"><b>Активный режим</b><span>лента по нему; пилюля ярче всех; его поля правятся</span></div>
+      <div class="item" data-lg="feed"><b>✓ в выдаче</b><span>улов подмешан в ленту; точка его цвета у процента</span></div>
+      <div class="item" data-lg="owner"><b>Точка «чей улов»</b><span>цвет пресета-владельца у Arb%; у активного точки нет</span></div>
+    </div>
+    <div class="pace">Поток замедлен для учёбы. Клик по пилюле фиксирует активный режим; чекбокс подмешивает второй. В реальной работе это клик или <code>⌥</code>+цифра. Вся станция — за одно движение.</div>
   </section>
 
   <!-- ============ ЧАСТЬ 3 — КАК В БОЮ ============ -->
   <section class="part">
     <div class="part-head">
-      <h2>Часть 3 · Как в бою</h2>
-      <div class="step">Топбар с пилюлями пресетов и плотный поток под активным режимом. Без подсказок — так это в работе.</div>
+      <h2 class="part-t">Часть 3 · Как в бою</h2>
+      <div class="step">Плотный ночной поток под группой «⊞ Вечер»: активный режим плюс два в выдаче, точки «чей улов», компактные строки. Без подсказок — так это в смене.</div>
     </div>
-    <div class="topbar-sim" id="p3pills" style="margin-bottom:8px"></div>
-    <div class="demo" style="padding:4px;overflow-x:auto">
-      <table class="dense">
-        <thead><tr><th>Arb%</th><th>Спорт</th><th>Событие</th><th>Market</th><th>БК 1</th><th>Кэф 1</th><th>БК 2</th><th>Кэф 2</th><th>Возр.</th></tr></thead>
-        <tbody id="p3rows"></tbody>
-      </table>
+    <div class="sc">
+      <div class="tb" id="p3-pills" style="justify-content:flex-start;margin-bottom:8px"></div>
+      <table class="scan dense"><thead><tr><th>Arb%</th><th>Age</th><th>Sport</th><th>Event</th><th>Market</th><th>BK1</th><th>BK2</th><th>Odds1</th><th>Odds2</th></tr></thead><tbody id="p3-rows"></tbody></table>
     </div>
-    <div class="pace">Активен «Soccer EU» — в потоке только футбол европейских лиг. Сменить пресет — сменится весь поток.</div>
+    <div class="demo-cap">Активна группа «⊞ Вечер»: «Ночной live» ведёт ленту, «Прематч-форы» и «Теннис-узкий» подмешаны (✓ на пилюлях, точки у процента). Пилюли живые — <b>кликни</b>, активный режим сменится и лента пересоберётся; «⊞ Вечер» возвращает всю группу. Сменить режим — сменится вся станция: тема, плотность, колонки, звук.</div>
   </section>
 
 </div>
 
 <script>
 /* ============================================================
-   Фильтры и пресеты — движок учебной главы (слой 4, Г4).
-   Механизмы/пресеты — из кода форка (R-3), см. r3-registry-g4.md:
-     5 системных пресетов [filter-overlay.helpers.ts:295-356]
-     применение [arbs.vue:495 handlePresetChange / :504 handlePresetApplied]
-     Alt+1..9 [arbs.vue:537-545] · pinnedPresets [arbs.vue:276]
-     пилюли/active [top-bar.vue:104-130] · быстрый фильтр типов [top-bar.vue:135-155]
-     MARKET_TYPES [helpers.ts:104] · FilterState [helpers.ts:8-74]
-   Имена контор — canon enum [bookmakers.ts:71-94], все soft. Math.random не используется.
+   Пресеты и режимы — движок учебной главы.
+   Механики/пресеты — из кода форка (R-3), см. r3-registry-g4.md:
+     5 системных [makeSystemPresets filter-overlay.helpers.ts:668-734; Tight :704]
+     мультипресеты union [use-multi-presets.ts; op-presets.vue isInFeed/toggle]
+     гиперпресеты-группы [use-hyper-presets.ts; op-presets.vue toggleGroupFeed; arbs.vue activateHyperPreset:1010]
+     дот «чей улов» [scanner-table.vue st-owner-dot:1238; arbs.vue unionOwnerBadges:622]
+     хоткеи Alt+1..9 по композиции [arbs.vue hotkeyTargets:1028, handleKeyDown:1074]
+     алерт-контракт 4 звука + 3 ступени [use-arb-alarm.ts ALARM_SOUNDS:82, AlarmAction:50]
+     черновик [filter-overlay.vue LS_FILTER_DRAFT:602-656; dirty-бар :1049-1075]
+   Имена контор — canon enum, все soft. Math.random НЕ используется (детерминированный seed).
    ============================================================ */
 
-// ── 5 системных пресетов: имя + предикат фильтра (из makeSystemPresets) ──
-const PRESETS = [
-  {id:"preset-all",      name:"All Sports",  test:()=>true},
-  {id:"preset-soccer-eu",name:"Soccer EU",   test:a=>a.sport==="Soccer"},
-  {id:"preset-basketball",name:"Basketball", test:a=>a.sport==="Basketball"},
-  {id:"preset-sharp",    name:"Sharp Only",  test:a=>a.pct<=3 && a.age<=30},   // maxArbPercent:3, maxAge:30
-  {id:"preset-exploration",name:"Exploration",test:()=>true}                    // пороги сняты — на дефолтном потоке = всё
-];
+// ── палитра уловов v3 (реальные значения PRESET_COLOR_PALETTE) ──
+const PV = { brass:"#d4a72c", olive:"#8fa653", slate:"#7a8ba6", rose:"#ad6a86", siena:"#b3763f", petrol:"#4e8098" };
 
-// ── демо-поток: canon-конторы (все soft), разные спорты/% /возраст ──
+// ── SVG-значки (тот же язык, что ui-icon; ⊞-группа = 4 квадрата, как hp-glyph в op-presets) ──
+function svg(inner, size){ size=size||13; return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ui-icon" aria-hidden="true">${inner}</svg>`; }
+const IC = {
+  group:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+  pencil:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+  palette:'<circle cx="13.5" cy="6.5" r="1.2"/><circle cx="17.5" cy="10.5" r="1.2"/><circle cx="8.5" cy="7.5" r="1.2"/><circle cx="6.5" cy="12.5" r="1.2"/><path d="M12 2a10 10 0 1 0 0 20c1 0 1.5-.8 1.5-1.5 0-1.6-1.5-1.6-1.5-3 0-.8.7-1.5 1.5-1.5H16a5 5 0 0 0 5-5c0-5-4-9-9-9Z"/>',
+  search:'<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
+  plus:'<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+  play:'<polygon points="7,4 20,12 7,20"/>',
+  save:'<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/>'
+};
+
+// ── 5 системных пресетов: имя + предикат (из makeSystemPresets) ──
+const SYS = [
+  {id:"preset-all",        name:"All Sports",  test:()=>true},
+  {id:"preset-soccer-eu",  name:"Soccer EU",   test:a=>a.sport==="Soccer"},
+  {id:"preset-basketball", name:"Basketball",  test:a=>a.sport==="Basketball"},
+  {id:"preset-sharp",      name:"Tight",       test:a=>a.pct<=3 && a.age<=30},   // maxArbPercent:3, maxAge:30
+  {id:"preset-exploration",name:"Exploration", test:()=>true}                    // пороги сняты — на дефолтном потоке = всё
+];
+const SYS_DESC = {
+  "preset-all":"весь поток — никаких ограничений",
+  "preset-soccer-eu":"только футбол + шесть европейских лиг",
+  "preset-basketball":"только баскетбол",
+  "preset-sharp":"узкие: профит ≤ 3% и возраст ≤ 30с (по числам, не по конторам)",
+  "preset-exploration":"всё нараспашку: пороги сняты, видно даже аномальное и старое"
+};
+
+// ── пользовательские пресеты (для union/групп) — цвет + предикат ──
+const USR = {
+  "u-night":   {id:"u-night",   name:"Ночной live",  color:PV.petrol, test:a=>a.live},
+  "u-prematch":{id:"u-prematch",name:"Прематч-форы", color:PV.olive,  test:a=>!a.live && /Ф|HC/.test(a.mkt)},
+  "u-tennis":  {id:"u-tennis",  name:"Теннис-узкий", color:PV.brass,  test:a=>a.sport==="Tennis"}
+};
+
+// ── демо-поток: canon-конторы (soft), разные спорты/%/возраст/live ──
 const POOL=[
-  {sport:"Soccer",league:"EPL",event:"Man City — Arsenal",mkt:"TO 2.5: O/U",pct:2.4,age:8, bk1:"bet365.com",bk2:"betonline.ag"},
-  {sport:"Soccer",league:"LAL",event:"Real — Barca",      mkt:"1X2: 1/X",   pct:1.8,age:14,bk1:"bet365.com",bk2:"virginbet.com"},
-  {sport:"Basketball",league:"NBA",event:"Lakers — Celtics",mkt:"HC -4.5",  pct:3.6,age:5, bk1:"vbet.co.uk",bk2:"bet365.com"},
-  {sport:"Tennis",league:"ATP",event:"Alcaraz — Sinner",  mkt:"MW: 1/2",    pct:2.1,age:40,bk1:"lottoland.co.uk",bk2:"bet365.com"},
-  {sport:"Hockey",league:"NHL",event:"Rangers — Bruins",  mkt:"TO 5.5: O/U",pct:4.9,age:22,bk1:"betonline.ag",bk2:"fon.bet"},
-  {sport:"Basketball",league:"EUL",event:"CSKA — Real",   mkt:"HC +3.5",    pct:2.8,age:9, bk1:"livescorebet.com",bk2:"betonline.ag"},
-  {sport:"Soccer",league:"SER",event:"Inter — Milan",     mkt:"TO 1.5: O/U",pct:5.5,age:3, bk1:"vbet.co.uk",bk2:"betonline.ag"},
-  {sport:"Tennis",league:"WTA",event:"Swiatek — Gauff",   mkt:"TO 21.5: O/U",pct:1.5,age:55,bk1:"bet365.com",bk2:"silverglow58.xyz"}
+  {sport:"Soccer",    league:"EPL", event:"Man City — Arsenal", mkt:"TO 2.5: O/U", pct:2.4,age:8, live:true,  bk1:"bet365.com",     bk2:"betonline.ag",  o1:2.08,o2:2.06},
+  {sport:"Soccer",    league:"LAL", event:"Real — Barca",       mkt:"Ф1(-0.5)",pct:1.8,age:14,live:false, bk1:"bet365.com",     bk2:"virginbet.com", o1:2.10,o2:2.05},
+  {sport:"Basketball",league:"NBA", event:"Lakers — Celtics",   mkt:"HC -4.5",pct:3.6,age:5, live:true,  bk1:"vbet.co.uk",     bk2:"bet365.com",    o1:1.95,o2:2.18},
+  {sport:"Tennis",    league:"ATP", event:"Alcaraz — Sinner",   mkt:"MW: 1/2", pct:2.1,age:40,live:true,  bk1:"lottoland.co.uk",bk2:"bet365.com",    o1:2.04,o2:2.09},
+  {sport:"Hockey",    league:"NHL", event:"Rangers — Bruins",   mkt:"TO 5.5: O/U", pct:4.9,age:22,live:false, bk1:"betonline.ag",   bk2:"fon.bet",       o1:2.00,o2:2.14},
+  {sport:"Basketball",league:"EUL", event:"CSKA — Real",        mkt:"HC +3.5",pct:2.8,age:9, live:false, bk1:"livescorebet.com",bk2:"betonline.ag",o1:2.12,o2:2.02},
+  {sport:"Soccer",    league:"SER", event:"Inter — Milan",      mkt:"TO 1.5: O/U", pct:5.5,age:3, live:true,  bk1:"vbet.co.uk",     bk2:"betonline.ag",  o1:1.90,o2:2.30},
+  {sport:"Tennis",    league:"WTA", event:"Swiatek — Gauff",    mkt:"Ф2(+3.5)",pct:1.5,age:55,live:false, bk1:"bet365.com",     bk2:"silverglow58.xyz",o1:2.06,o2:2.07}
 ];
 const SPORT_ABBR={Soccer:"SOC",Basketball:"BAS",Tennis:"TEN",Hockey:"HOC"};
-function ageCls(s){ return s<10?"st-age--fresh":(s<30?"st-age--alive":"st-age--dying"); }
-function fmtAge(s){ const r=Math.round(s); return r<60?`${r}s`:`${Math.floor(r/60)}m`; }
-// детерминированные кэфы по индексу (без Math.random)
-function odds(seed){ const x=((seed*1103515245+12345)&0x7fffffff)/0x7fffffff; return +(1.7+x*0.9).toFixed(2); }
-function rowHtml(a,i){
-  return `<tr>`+
-    `<td class="st-pct">${a.pct.toFixed(2)}%</td>`+
-    `<td>${SPORT_ABBR[a.sport]||a.sport}<span class="st-league">/${a.league}</span></td>`+
+
+function rowHtml(a, ownerColor){
+  const dot = ownerColor ? `<span class="st-owner-dot" style="background:${ownerColor}"></span>` : "";
+  return `<tr class="surv-${a.pct>4.5?'lo':a.pct<2?'hi':'md'}">`+
+    `<td class="st-pct${a.pct>4.5?' st-arb-palp':''}">${dot}${a.pct.toFixed(2)}%</td>`+
+    `<td style="color:${a.age<10?'#1a8a2e':(a.age<30?'#b45309':'#cc2222')}">${a.age}s</td>`+
+    `<td>${SPORT_ABBR[a.sport]||a.sport} <span class="st-league">${a.league}</span></td>`+
     `<td>${a.event}</td>`+
     `<td>${a.mkt}</td>`+
     `<td>${a.bk1}</td>`+
-    `<td class="st-odds">${odds(i*7+1).toFixed(2)}</td>`+
     `<td>${a.bk2}</td>`+
-    `<td class="st-odds">${odds(i*7+4).toFixed(2)}</td>`+
-    `<td class="st-age ${ageCls(a.age)}">${fmtAge(a.age)}</td>`+
+    `<td class="st-odds">${a.o1.toFixed(2)}</td>`+
+    `<td class="st-odds">${a.o2.toFixed(2)}</td>`+
   `</tr>`;
 }
 
-/* ---------- ① что такое пресет: фильтры → Save → пилюля ---------- */
+/* ---------- ① что входит в пресет (C2-12: статичная таблица — без кликов и повторяющихся подписей) ---------- */
 (function(){
+  const parts=[
+    {k:"Фильтры",v:"спорты, лиги, рынки, конторы, пороги %/кэфа/возраста, ч/б-списки лиг, исходы",grp:"что и как ловит"},
+    {k:"Тема",v:"день / ночь",grp:"вид"},
+    {k:"Плотность",v:"компактный / просторный",grp:"вид"},
+    {k:"Колонки + порядок",v:"какие колонки видны и в каком порядке",grp:"вид"},
+    {k:"Контракт алерта",v:"порог %, звук, ступень действия",grp:"как узнаю о вилке"}
+  ];
   document.getElementById("d1").innerHTML =
-    `<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:center">`+
-      `<div style="font-size:12.5px;border:1px solid var(--border);border-radius:8px;padding:8px 11px;background:var(--panel);line-height:1.7">`+
-        `<div style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-secondary);margin-bottom:3px">Активные фильтры</div>`+
-        `Спорт: <b>Футбол</b><br>Лиги: <b>АПЛ, Ла Лига, …</b><br>Профит: <b>≥ 2%</b><br>Возраст: <b>≤ 40с</b><br>Конторы: <b>мои 12</b>`+
-      `</div>`+
-      `<div style="font-size:22px;color:var(--accent)">→</div>`+
-      `<div style="text-align:center"><div class="pp-save" style="margin:0">+ Save current filters</div>`+
-        `<div style="font-size:18px;color:var(--accent);margin:4px 0">↓</div>`+
-        `<span class="preset-pill preset-pill--active"><span class="preset-dot" style="background:#2563eb"></span>Вечерний футбол<span class="preset-hotkey">⌥1</span></span>`+
-      `</div>`+
+    `<div style="display:grid;grid-template-columns:1fr;gap:5px">`+
+    parts.map(p=>
+      `<div style="display:flex;gap:9px;align-items:baseline;padding:6px 9px;border-radius:6px;border:1px solid var(--sc-border);background:var(--sc-s2)">`+
+        `<b style="color:var(--sc-text);font-size:12.5px;min-width:130px">${p.k}</b>`+
+        `<span class="sc-2" style="font-size:12px;flex:1">${p.v}</span>`+
+        `<span class="sc-3" style="font-size:10.5px;white-space:nowrap">${p.grp}</span>`+
+      `</div>`).join("")+
     `</div>`;
 })();
 
-/* ---------- ② 5 системных пресетов: КЛИК пилюлю → что делает с потоком ---------- */
+/* ---------- ② 5 системных пресетов ---------- */
 (function(){
-  const el=document.getElementById("d2");
-  const desc={
-    "preset-all":"весь поток — никаких ограничений",
-    "preset-soccer-eu":"только футбол + европейские лиги",
-    "preset-basketball":"только баскетбол",
-    "preset-sharp":"профит ≤ 3% и возраст ≤ 30с (по числам, не по конторам)",
-    "preset-exploration":"всё нараспашку: пороги сняты, видно даже аномальное и старое"
-  };
-  let i=0, pinned=null, hovering=false;
+  const pills=document.getElementById("d2-pills"), desc=document.getElementById("d2-desc");
+  let pinned=null, hovering=false, i=0;
   function show(p){
-    const k=PRESETS.indexOf(p);
-    el.innerHTML =
-      `<div style="text-align:center;padding:2px 0">`+
-        `<div class="topbar-sim" style="justify-content:center;border:none;background:transparent;padding:2px 0">`+
-          PRESETS.map((c,idx)=>`<span class="preset-pill${c.id===p.id?" preset-pill--active":""}" data-pid="${c.id}">${c.name}<span class="preset-hotkey">⌥${idx+1}</span></span>`).join("")+
-        `</div>`+
-        `<div style="font-size:12.5px;color:var(--text-secondary);margin-top:7px">${desc[p.id]}</div>`+
-        `<div style="font-size:12px;margin-top:5px">на демо-потоке из 8 вилок показывает: <b style="color:var(--accent)">${POOL.filter(p.test).length}</b></div>`+
-      `</div>`;
+    pills.innerHTML = `<span class="sc-3" style="font-size:11px;margin-right:2px">Режим:</span>`+
+      SYS.map((c,idx)=>`<button class="tb-pill${c.id===p.id?' active':''}" data-pid="${c.id}">${c.name}<span class="tb-hk">⌥${idx+1}</span></button>`).join("");
+    const n=POOL.filter(p.test).length;
+    desc.innerHTML = `<b style="color:var(--sc-text)">${p.name}</b> — ${SYS_DESC[p.id]}.<br><span class="sc-3" style="font-size:12px">на демо-потоке из 8 вилок показывает: <b style="color:var(--sc-cyan)">${n}</b></span>`;
   }
-  const presetOf=id=>PRESETS.find(c=>c.id===id);
-  el.addEventListener("click",e=>{ const pl=e.target.closest("[data-pid]"); if(pl){ pinned=pl.dataset.pid; show(presetOf(pinned)); } });
-  el.addEventListener("mouseover",e=>{ const pl=e.target.closest("[data-pid]"); if(pl){ hovering=true; if(!pinned) show(presetOf(pl.dataset.pid)); } });
-  el.addEventListener("mouseout",e=>{ if(!el.contains(e.relatedTarget)) hovering=false; });
-  function tour(){ if(pinned||hovering) return; i=(i+1)%PRESETS.length; show(PRESETS[i]); }
-  show(PRESETS[0]); setInterval(tour,2400);
+  const of=id=>SYS.find(c=>c.id===id);
+  pills.addEventListener("click",e=>{ const b=e.target.closest("[data-pid]"); if(b){ pinned=b.dataset.pid; show(of(pinned)); } });
+  pills.addEventListener("mouseover",e=>{ const b=e.target.closest("[data-pid]"); if(b){ hovering=true; if(!pinned) show(of(b.dataset.pid)); } });
+  pills.addEventListener("mouseout",e=>{ if(!pills.contains(e.relatedTarget)) hovering=false; });
+  function tour(){ if(pinned||hovering) return; i=(i+1)%SYS.length; show(SYS[i]); }
+  show(SYS[0]); setInterval(tour,2600);
 })();
 
-/* ---------- ③ пилюли с хоткеями: КЛИК → активный режим подсвечен ---------- */
+/* ---------- ③ переключение: пилюли + Alt (композиция [группа, одиночки]) ---------- */
 (function(){
-  const el=document.getElementById("d3");
-  const pills=["All Sports","Soccer EU","Basketball","Sharp Only","Exploration"];
+  const pills=document.getElementById("d3-pills"), status=document.getElementById("d3-status");
+  // композиция: группа «⊞ Вечер» первой (⌥1), затем одиночки сдвинуты
+  const targets=[
+    {hyper:true, name:"⊞ Вечер (3)"},
+    {name:"All Sports"},{name:"Soccer EU"},{name:"Tight"},{name:"Exploration"}
+  ];
   let active=1;
   function render(){
-    el.innerHTML = `<span style="font-size:11px;color:var(--text-secondary);margin-right:4px">Режим:</span>`+
-      pills.map((n,idx)=>`<span class="preset-pill${idx===active?" preset-pill--active":""}" data-idx="${idx}">${n}<span class="preset-hotkey">⌥${idx+1}</span></span>`).join("")+
-      `<span class="preset-pill" style="border-style:dashed;color:var(--text-secondary)">★ Manage presets</span>`;
+    pills.innerHTML = targets.map((t,idx)=>
+      `<button class="tb-pill${t.hyper?' hyper':''}${idx===active?' active':''}" data-idx="${idx}">${t.hyper?'':''}${t.name}<span class="tb-hk">⌥${idx+1}</span></button>`).join("");
+    status.innerHTML = targets[active].hyper
+      ? `Слот <b style="color:var(--sc-cyan)">⌥1</b> — группа <b>${targets[active].name}</b>: клик включит весь набор (первый член станет активным). Хоткей по композиции: ⌥1 у группы, одиночки сдвинуты на число групп (здесь на 1).`
+      : `Активен <b style="color:var(--sc-cyan)">${targets[active].name}</b>. Хоткей — по композиции: ⌥1 у группы, одиночки сдвинуты на число групп (здесь на 1).`;
   }
-  el.addEventListener("click",e=>{ const pl=e.target.closest("[data-idx]"); if(pl){ active=+pl.dataset.idx; render(); } });
+  pills.addEventListener("click",e=>{ const b=e.target.closest("[data-idx]"); if(b){ active=+b.dataset.idx; render(); } });
+  // ⌥ в тексте — эмуляция клавиатуры невозможна безопасно, поэтому клик по пилюле; статус объясняет
   render();
 })();
 
-/* ---------- ④ панель управления ★ Presets ---------- */
+/* ---------- ④ мультипресеты: union + дот «чей улов» ---------- */
 (function(){
-  const el=document.getElementById("d4");
-  const rows=[
-    {name:"All Sports",sys:true,active:true},
-    {name:"Soccer EU",sys:true},
-    {name:"Basketball",sys:true},
-    {name:"Sharp Only",sys:true},
-    {name:"Exploration",sys:true},
-    {name:"Вечерний футбол (мой)",sys:false,color:"#2563eb"}
+  const pills=document.getElementById("d4-pills"), rows=document.getElementById("d4-rows"),
+        count=document.getElementById("d4-count"), checks=document.getElementById("d4-checks");
+  const ALL=["u-night","u-prematch","u-tennis"];
+  let active="u-night";                       // активный — клик по пилюле меняет его (как в топбаре)
+  const inFeed=new Set();                     // включённые чекбоксом «в выдачу»
+  const others=()=>ALL.filter(id=>id!==active);
+  function pillsHtml(){
+    return ALL.map(id=>{ const p=USR[id];
+      const isA=id===active, isF=inFeed.has(id) && !isA;
+      return `<button class="tb-pill${isA?' active':isF?' in-feed':''}" data-pid="${id}" title="${isA?'активный режим — лента его':'клик — сделать активным'}">`+
+        `<span class="tb-dot" style="background:${p.color}"></span>${p.name}`+
+        (isF?`<span class="tb-mark">✓</span>`:"")+`</button>`;
+    }).join("");
+  }
+  function build(){
+    // база = активный; поверх — включённые (первый давший побеждает; активный без дота)
+    const seen=new Set(), out=[];
+    POOL.filter(USR[active].test).forEach(a=>{ seen.add(a.event); out.push({a,owner:null}); });
+    others().filter(id=>inFeed.has(id)).forEach(id=>{
+      POOL.filter(USR[id].test).forEach(a=>{ if(!seen.has(a.event)){ seen.add(a.event); out.push({a,owner:USR[id].color}); } });
+    });
+    return out;
+  }
+  function render(){
+    pills.innerHTML=pillsHtml();
+    const list=build();
+    rows.innerHTML=list.map(x=>rowHtml(x.a,x.owner)).join("");
+    const g=others().filter(id=>inFeed.has(id)).length, u=list.length;
+    count.innerHTML=`В ленте сейчас: <b>${1+g}</b> пресет${1+g===1?'':'а'} · <b>${u}</b> вилок. Активный «${USR[active].name}» без дота — лента его; подмешанные — с дотом своего цвета.`;
+    checks.innerHTML=others().map(id=>{ const p=USR[id];
+      return `<label style="display:inline-flex;align-items:center;gap:6px;margin-right:14px;font-size:12px;color:var(--sc-2);cursor:pointer">`+
+        `<input type="checkbox" data-id="${id}" ${inFeed.has(id)?'checked':''} style="accent-color:var(--sc-cyan)">`+
+        `<span class="tb-dot" style="background:${p.color}"></span>${p.name} — в выдачу</label>`;
+    }).join("");
+  }
+  pills.addEventListener("click",e=>{ const b=e.target.closest("[data-pid]"); if(b){ active=b.dataset.pid; inFeed.delete(active); render(); } });
+  checks.addEventListener("change",e=>{ const c=e.target.closest("[data-id]"); if(c){ if(c.checked) inFeed.add(c.dataset.id); else inFeed.delete(c.dataset.id); render(); } });
+  render();
+})();
+
+/* ---------- ⑤ алерт-контракт: 4 звука (реальные паттерны) + 3 ступени ---------- */
+(function(){
+  let audioCtx=null;
+  function tone(startS,freq,endS,peak){ peak=peak||0.2;
+    const ctx=audioCtx; const osc=ctx.createOscillator(), gain=ctx.createGain();
+    osc.type="sine"; osc.frequency.value=freq;
+    const t0=ctx.currentTime+startS;
+    gain.gain.setValueAtTime(0.0001,t0);
+    gain.gain.exponentialRampToValueAtTime(Math.max(0.0001,peak),t0+0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001,t0+endS);
+    osc.connect(gain).connect(ctx.destination); osc.start(t0); osc.stop(t0+endS+0.02);
+  }
+  // ALARM_SOUNDS (use-arb-alarm.ts:82) — воспроизведено по нотам кода
+  const SOUNDS=[
+    {id:"ping",  label:"Пинг", play:()=>tone(0,880,0.12)},
+    {id:"double",label:"Дабл", play:()=>{ tone(0,880,0.07); tone(0.11,880,0.07); }},
+    {id:"low",   label:"Низкий",play:()=>tone(0,440,0.2)},
+    {id:"trill", label:"Трель",play:()=>{ tone(0,660,0.08); tone(0.09,880,0.1); }}
   ];
-  el.innerHTML =
-    `<div class="pp-list">`+
-      rows.map(r=>
-        `<div class="pp-row${r.active?" pp-row--active":""}">`+
-          `<span class="preset-dot" style="background:${r.color||"transparent"};border:1px solid var(--border)"></span>`+
-          `<span class="pp-name">${r.name}${r.sys?'<span class="pp-sys">sys</span>':""}</span>`+
-          `<span class="pp-actions">`+
-            `<span title="Закрепить на топбар">📌</span><span title="Цвет">🎨</span><span title="Переименовать">✎</span>`+
-            (r.sys?`<span title="Сбросить к дефолту">↻</span>`:`<span title="Удалить" style="color:var(--red)">✕</span>`)+
-          `</span>`+
-        `</div>`
-      ).join("")+
-    `</div>`+
-    `<div class="pp-save">+ Save current filters</div>`;
-})();
-
-/* ---------- ⑤ быстрый фильтр типов рынка: КЛИК → тип показан/скрыт (toggleMarket, top-bar.vue:135-155) ---------- */
-(function(){
-  const el=document.getElementById("d5");
-  // MARKET_TYPES (helpers.ts:104)
-  const types=["Match Result","1X2","Total","Handicap","Double Chance","Goals"];
-  const state={"Match Result":false,"1X2":true,"Total":true,"Handicap":true,"Double Chance":false,"Goals":false};
-  function render(){ el.innerHTML = types.map(t=>`<span class="mkt-btn${state[t]?" mkt-btn--active":""}" data-mkt="${t}">${t}</span>`).join(""); }
-  el.addEventListener("click",e=>{ const b=e.target.closest("[data-mkt]"); if(b){ state[b.dataset.mkt]=!state[b.dataset.mkt]; render(); } });
+  const STEPS=[{id:"toast",label:"Тост (тихо)"},{id:"sound",label:"Звук + тост"},{id:"push",label:"+ Уведомление"}];
+  let selSound="ping", selStep="sound";
+  const sEl=document.getElementById("d5-sounds"), stEl=document.getElementById("d5-steps"), status=document.getElementById("d5-status");
+  function play(id){
+    try{ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)(); if(audioCtx.state==="suspended") audioCtx.resume();
+      const s=SOUNDS.find(x=>x.id===id)||SOUNDS[0]; s.play(); }catch(e){/* нет AudioContext — тост-след остаётся, звук молчит */}
+  }
+  function render(){
+    sEl.innerHTML=SOUNDS.map(s=>`<button class="snd-btn${s.id===selSound?' sel':''}" data-snd="${s.id}"><span class="snd-play">${svg(IC.play,11)}</span>${s.label}</button>`).join("");
+    stEl.innerHTML=STEPS.map(s=>`<button class="${s.id===selStep?'on':''}" data-step="${s.id}">${s.label}</button>`).join("");
+    const stepTxt={toast:"тихий тост в углу",sound:"звук + тост",push:"звук + тост + системный пуш (если разрешён)"}[selStep];
+    status.innerHTML=`Контракт этого режима: звук <b style="color:var(--sc-cyan)">«${SOUNDS.find(x=>x.id===selSound).label}»</b>, ступень <b style="color:var(--sc-cyan)">${stepTxt}</b>. У соседнего режима — свой.`;
+  }
+  sEl.addEventListener("click",e=>{ const b=e.target.closest("[data-snd]"); if(b){ selSound=b.dataset.snd; play(selSound); render(); } });
+  stEl.addEventListener("click",e=>{ const b=e.target.closest("[data-step]"); if(b){ selStep=b.dataset.step; render(); } });
   render();
 })();
 
-/* ---------- общий рендер потока под пресетом ---------- */
-function renderFlow(tbId, preset, dense){
-  const rows = POOL.filter(preset.test);
-  document.getElementById(tbId).innerHTML = rows.map((a,i)=>rowHtml(a,i)).join("");
-  return rows.length;
-}
-
-/* ---------- ЧАСТЬ 2 — КЛИК пилюли пресета → поток перестраивается (сердце Г4, поведенческая «жми→эффект») ----------
-   Привод — рука читателя: клик/наведи пилюлю → renderFlow под этот пресет + счётчик «N из M» + легенда.
-   Пока не трогаешь — медленный автокруг как подсказка (в работе это твой клик или ⌥+цифра). */
+/* ---------- ⑥ гиперпресеты: группа + память атрибуции ---------- */
 (function(){
-  const carousel=[PRESETS[0],PRESETS[1],PRESETS[2],PRESETS[3]]; // All → Soccer EU → Basketball → Sharp Only
-  let i=0, pinned=null, hovering=false;
-  const pillsEl=document.getElementById("p2pills"), countEl=document.getElementById("p2count");
-  function applyPreset(p){
-    // пилюли с подсветкой активной (как top-bar: id===activePresetId), data-pid для делегирования клика
-    pillsEl.innerHTML=`<span style="font-size:11px;color:var(--text-secondary);margin-right:4px">Режим:</span>`+
-      carousel.map((c,idx)=>`<span class="preset-pill${c.id===p.id?" preset-pill--active":""}" data-pid="${c.id}">${c.name}<span class="preset-hotkey">⌥${idx+1}</span></span>`).join("");
-    const shown=renderFlow("p2rows",p,false);
-    countEl.innerHTML=`Активен <b>${p.name}</b> — в потоке <b>${shown}</b> из ${POOL.length} вилок.`;
-    document.querySelectorAll(".legend-static .item.lit").forEach(e=>e.classList.remove("lit"));
-    const lg=document.querySelector(`.legend-static .item[data-lg="${p.id}"]`); if(lg) lg.classList.add("lit");
+  const pills=document.getElementById("d6-pills"), membersEl=document.getElementById("d6-members"),
+        status=document.getElementById("d6-status"), groupChk=document.getElementById("d6-group");
+  const GROUP={name:"⊞ Вечер (3)", members:["u-night","u-prematch","u-tennis"]};
+  let active="u-night";                   // первый член — активный по умолчанию; клик по пилюле-члену меняет
+  const inFeed=new Set();                 // включённые в выдачу (кроме активного)
+  let groupOn=false, addedByGroup=[];     // память: кого добавила именно группа
+  function pillsHtml(){
+    return `<button class="tb-pill hyper${groupOn?' active':''}" id="d6-hyperpill" title="клик — включить группу (первый член активным, остальные в выдачу)">${GROUP.name}<span class="tb-hk">⌥1</span></button>`+
+      GROUP.members.map(id=>{ const p=USR[id]; const isA=id===active, isF=inFeed.has(id)&&!isA;
+        return `<button class="tb-pill${isA?' active':isF?' in-feed':''}" data-pid="${id}" title="${isA?'активный режим':'клик — сделать активным'}"><span class="tb-dot" style="background:${p.color}"></span>${p.name}${isF?'<span class="tb-mark">✓</span>':''}</button>`;
+      }).join("");
   }
-  const presetOf=id=>carousel.find(c=>c.id===id);
-  pillsEl.addEventListener("click",e=>{ const pl=e.target.closest("[data-pid]"); if(pl){ pinned=pl.dataset.pid; applyPreset(presetOf(pinned)); } });
-  pillsEl.addEventListener("mouseover",e=>{ const pl=e.target.closest("[data-pid]"); if(pl){ hovering=true; if(!pinned) applyPreset(presetOf(pl.dataset.pid)); } });
-  pillsEl.addEventListener("mouseout",e=>{ if(!pillsEl.contains(e.relatedTarget)) hovering=false; });
-  function tour(){ if(pinned||hovering) return; i=(i+1)%carousel.length; applyPreset(carousel[i]); }
-  applyPreset(carousel[0]); setInterval(tour,3000);
+  function membersHtml(){
+    return GROUP.members.filter(id=>id!==active).map(id=>{ const p=USR[id];
+      return `<label style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--sc-2);cursor:pointer;padding:2px 0">`+
+        `<input type="checkbox" data-id="${id}" ${inFeed.has(id)?'checked':''} style="accent-color:var(--sc-cyan)">`+
+        `<span class="tb-dot" style="background:${p.color}"></span>${p.name}`+
+        (addedByGroup.includes(id)?' <span class="sc-3" style="font-size:10px">(добавлен группой)</span>':(inFeed.has(id)?' <span class="sc-3" style="font-size:10px">(вручную)</span>':''))+`</label>`;
+    }).join("");
+  }
+  function render(){
+    pills.innerHTML=pillsHtml();
+    membersEl.innerHTML=membersHtml();
+    groupChk.checked=groupOn;
+    status.innerHTML = groupOn
+      ? `Группа включена. Добавила в выдачу: <b style="color:var(--sc-cyan)">${addedByGroup.length? addedByGroup.map(id=>USR[id].name).join(', '):'никого нового'}</b>. Снимешь чекбокс группы — погаснут только они.`
+      : `Группа выключена. Ручные галки в выдаче: <b style="color:var(--sc-cyan)">${[...inFeed].filter(id=>id!==active).map(id=>USR[id].name).join(', ')||'нет'}</b>.`;
+  }
+  function groupEnable(setActiveFirst){
+    if(setActiveFirst) active=GROUP.members[0];         // пилюля группы = первый член активным
+    addedByGroup=[];
+    GROUP.members.forEach(id=>{ if(id!==active && !inFeed.has(id)){ inFeed.add(id); addedByGroup.push(id); } });
+    groupOn=true;
+  }
+  function groupDisable(){ addedByGroup.forEach(id=>inFeed.delete(id)); addedByGroup=[]; groupOn=false; }  // гасим ТОЛЬКО добавленных группой
+  groupChk.addEventListener("change",()=>{ if(groupChk.checked) groupEnable(false); else groupDisable(); render(); });
+  membersEl.addEventListener("change",e=>{ const c=e.target.closest("[data-id]"); if(c){
+    if(c.checked) inFeed.add(c.dataset.id); else { inFeed.delete(c.dataset.id); const k=addedByGroup.indexOf(c.dataset.id); if(k>=0) addedByGroup.splice(k,1); }
+    render();
+  }});
+  pills.addEventListener("click",e=>{
+    if(e.target.closest("#d6-hyperpill")){ groupEnable(true); render(); return; }        // пилюля группы — активация всего набора
+    const b=e.target.closest("[data-pid]"); if(b){ active=b.dataset.pid; inFeed.delete(active); const k=addedByGroup.indexOf(active); if(k>=0) addedByGroup.splice(k,1); render(); }
+  });
+  render();
 })();
 
-/* ---------- ЧАСТЬ 3 — КАК В БОЮ: КЛИК пилюли → поток под режимом (без подсказок) ---------- */
+/* ---------- ⑦ дом управления: центр «Режимы» ---------- */
 (function(){
-  const pillsEl=document.getElementById("p3pills"), tb=document.getElementById("p3rows");
-  let activeId="preset-soccer-eu", rows=[];
-  function renderPills(){
-    pillsEl.innerHTML=`<span style="font-size:11px;color:var(--text-secondary);margin-right:4px">Режим:</span>`+
-      PRESETS.map((p,idx)=>`<span class="preset-pill${p.id===activeId?" preset-pill--active":""}" data-pid="${p.id}">${p.name}<span class="preset-hotkey">⌥${idx+1}</span></span>`).join("");
+  const el=document.getElementById("d7");
+  const group={id:"g-evening",name:"Вечер",members:["u-night","u-prematch"]};
+  let presets=[
+    {id:"preset-all",name:"All Sports",system:true,live:0},
+    {id:"preset-soccer-eu",name:"Soccer EU",system:true,live:5},
+    {id:"preset-sharp",name:"Tight",system:true,live:2},
+    {id:"u-night",name:"Ночной live",color:PV.petrol,live:4},
+    {id:"u-prematch",name:"Прематч-форы",color:PV.olive,live:3},
+    {id:"u-tennis",name:"Теннис-узкий",color:PV.brass,live:1}
+  ];
+  let active="u-night";
+  const inFeed=new Set(["u-prematch"]);
+  let search="";
+  const grouped=new Set(group.members);
+  function match(n){ return search===""||n.toLowerCase().includes(search.toLowerCase()); }
+  function rowHtml(p,inGroup){
+    const isA=p.id===active, isF=isA||inFeed.has(p.id);
+    return `<div class="p-row${isA?' p-row--active':''}">`+
+      `<input type="checkbox" data-feed="${p.id}" ${isF?'checked':''} ${isA?'disabled':''} title="${isA?'Активный режим всегда в выдаче':'В выдачу: улов пресета показывается вместе с активным'}">`+
+      `<span class="p-dot" style="background:${p.color||'transparent'}"></span>`+
+      `<span class="p-name" data-edit="${p.id}">${p.name}${p.system?'<span class="p-sys">системный</span>':''}</span>`+
+      `<span class="p-live">·${p.live}</span>`+
+      (p.live>0?`<span class="own-dot" title="улов этого пресета в ленте"></span>`:'')+
+      (isA?`<span class="edit-note">← редактируется</span>`:'')+
+      `<span class="p-actions">`+
+        (isA?'':`<button class="p-act" data-edit="${p.id}" title="редактировать (сделать активным)">${svg(IC.pencil,12)}</button>`)+
+        `<button class="p-act" data-note="Палитра: задаёт цвет улова пресета — этим цветом метятся его строки в объединённой ленте." title="цвет улова">${svg(IC.palette,12)}</button>`+
+        `<button class="p-act" data-note="Переименовать пресет." title="переименовать">${svg(IC.pencil,12)}</button>`+
+        (p.system?`<button class="p-act" data-note="Сброс: вернуть системный пресет к заводским настройкам." title="сбросить к дефолту">↻</button>`:`<button class="p-act p-act--danger" data-note="Удалить свой пресет (системный удалить нельзя — только сбросить)." title="удалить">✕</button>`)+
+      `</span>`+
+    `</div>`;
   }
-  function applyActive(){ const a=PRESETS.find(p=>p.id===activeId); rows=POOL.filter(a.test).map(x=>({...x})); renderPills(); }
-  pillsEl.addEventListener("click",e=>{ const pl=e.target.closest("[data-pid]"); if(pl){ activeId=pl.dataset.pid; applyActive(); } });
-  function tick(){ rows.forEach(a=>a.age++); tb.innerHTML=rows.map((a,i)=>rowHtml(a,i)).join(""); }
-  applyActive(); tick(); setInterval(tick,1500);
+  function render(){
+    const solo=presets.filter(p=>!grouped.has(p.id)&&match(p.name));
+    const groupMatch = match(group.name)||group.members.some(id=>{const p=presets.find(x=>x.id===id);return p&&match(p.name);});
+    const gLive=group.members.reduce((s,id)=>s+(presets.find(p=>p.id===id)?.live||0),0);
+    const feedIds=[...inFeed].filter(id=>id!==active);           // активный не двоится в счётах
+    const feedPresets=1+feedIds.length;
+    const feedVilki=(presets.find(p=>p.id===active)?.live||0)+feedIds.reduce((s,id)=>s+(presets.find(p=>p.id===id)?.live||0),0);
+    el.innerHTML =
+      `<div class="op-head"><h4>Пресеты</h4><span class="cnt">в ленте: 0 груп. + ${feedPresets}</span>`+
+        `<button class="op-new" data-note="«+ Новый»: создаёт копию активного пресета — задаёшь имя, и новый режим готов (потом можно в группу и на хоткей).">${svg(IC.plus,12)} Новый</button></div>`+
+      `<div style="position:relative"><input class="op-search" placeholder="найти пресет… (Alt — только 9 слотов)" value="${search}"></div>`+
+      // группа
+      (groupMatch?`<div class="hyper-block">`+
+        `<div class="hyper-head"><input type="checkbox" data-groupfeed="1" ${group.members.every(id=>id===active||inFeed.has(id))?'checked':''} style="accent-color:var(--sc-cyan)" title="Включить группу: члены в выдачу; снятие гасит включённых ею">`+
+          `<span class="hp-glyph">${svg(IC.group,12)}</span><b style="color:var(--sc-text)">${group.name}</b>`+
+          `<span class="cnt" style="color:var(--sc-3);font-size:10.5px">${group.members.length} пресета · ${gLive} вилок</span>`+
+          `<span class="hotkey">⌥1</span>`+
+          `<span class="p-actions"><button class="p-act" data-note="Состав группы: какие пресеты в неё входят." title="состав группы">${svg(IC.pencil,12)}</button><button class="p-act p-act--danger" data-note="Удалить группу — сами пресеты остаются." title="удалить группу (пресеты остаются)">✕</button></span>`+
+        `</div>`+
+        `<div class="hyper-kids">`+group.members.map(id=>rowHtml(presets.find(p=>p.id===id),true)).join("")+`</div>`+
+      `</div>`:"")+
+      // одиночки
+      solo.map(p=>rowHtml(p,false)).join("")+
+      `<div class="op-total">В ленте сейчас: <b>${feedPresets} пресет${feedPresets===1?'':feedPresets<5?'а':'ов'}</b> · <b>${feedVilki}</b> вилок<br>`+
+        `<span class="sc-cnt">чекбокс = в выдачу · клик по имени = редактировать (активным) · ⌥1..9 — группы, потом одиночки</span></div>`;
+  }
+  const note=document.getElementById("d7-note"); let noteTimer=null;
+  function showNote(txt){ note.innerHTML=`<div class="toast">${txt}</div>`; clearTimeout(noteTimer); noteTimer=setTimeout(()=>{note.innerHTML="";},3600); }
+  el.addEventListener("click",e=>{
+    const ed=e.target.closest("[data-edit]"); if(ed){ active=ed.dataset.edit; render(); return; }
+    const nb=e.target.closest("[data-note]"); if(nb){ showNote(nb.dataset.note); return; }
+  });
+  el.addEventListener("change",e=>{
+    const gf=e.target.closest("[data-groupfeed]"); if(gf){ if(gf.checked) group.members.forEach(id=>inFeed.add(id)); else group.members.forEach(id=>{ if(id!==active) inFeed.delete(id); }); render(); return; }
+    const f=e.target.closest("[data-feed]"); if(f){ if(f.checked) inFeed.add(f.dataset.feed); else inFeed.delete(f.dataset.feed); render(); }
+  });
+  el.addEventListener("input",e=>{ if(e.target.classList.contains("op-search")){ search=e.target.value; render(); const inp=el.querySelector(".op-search"); if(inp){ inp.focus(); inp.setSelectionRange(search.length,search.length);} } });
+  render();
+})();
+
+/* ---------- ⑧ черновик: dirty-бар + тост восстановления ---------- */
+(function(){
+  const bar=document.getElementById("d8-bar"), toast=document.getElementById("d8-toast"), status=document.getElementById("d8-status");
+  let dirty=0;
+  function render(){
+    const clean=dirty===0;
+    bar.innerHTML =
+      `<span class="db-dot${clean?' clean':''}"></span>`+
+      `<span class="db-txt${clean?' clean':''}">● изменено: <b>${clean?'0 — всё сохранено':dirty}</b></span>`+
+      `<button class="db-btn" data-act="edit">правка +1 поле</button>`+
+      `<button class="db-btn save${clean?'':' hot'}" data-act="save">${svg(IC.save,12)} Сохранить в пресет</button>`+
+      `<button class="db-btn" data-act="cancel">Отменить</button>`+
+      `<button class="db-btn" data-act="asnew">Сохранить как новый…</button>`+
+      `<button class="db-btn" data-act="reload" style="margin-left:6px">⟳ перезагрузка</button>`;
+    status.innerHTML = clean ? `Всё сохранено. Правь поля слева на экране «Режимы» — счётчик оживёт.` :
+      `<b style="color:var(--sc-cyan)">${dirty}</b> несохранённых пол${dirty===1?'е':dirty<5?'я':'ей'}. «Сохранить в пресет» зафиксирует · «Отменить» откатит · переключение режима отбросит черновик.`;
+  }
+  bar.addEventListener("click",e=>{
+    const b=e.target.closest("[data-act]"); if(!b) return;
+    const a=b.dataset.act;
+    if(a==="edit") dirty++;
+    else if(a==="save"||a==="cancel"||a==="asnew"){ dirty=0; }
+    else if(a==="reload"){
+      toast.innerHTML=`<div class="toast">${svg(IC.save,12)} Восстановлен несохранённый черновик режима — «Сохранить в пресет» зафиксирует, переключение режима отбросит.</div>`;
+      setTimeout(()=>{toast.innerHTML="";},4200);
+      return;
+    }
+    if(a==="save") toast.innerHTML=`<div class="toast">Сохранён: Ночной live</div>`, setTimeout(()=>{toast.innerHTML="";},2600);
+    render();
+  });
+  render();
+})();
+
+/* ---------- ЧАСТЬ 2 — живой union с группой ---------- */
+(function(){
+  const pills=document.getElementById("p2-pills"), rows=document.getElementById("p2-rows"),
+        count=document.getElementById("p2-count"), checks=document.getElementById("p2-checks");
+  const targets=[{hyper:true,name:"⊞ Вечер (3)",id:"g"},
+                 {id:"u-night",p:USR["u-night"]},{id:"u-prematch",p:USR["u-prematch"]},{id:"u-tennis",p:USR["u-tennis"]}];
+  let active="u-night";
+  const inFeed=new Set();
+  let hovering=false, touched=false, i=0;
+  function pillsHtml(){
+    return targets.map((t,idx)=>{
+      if(t.hyper) return `<button class="tb-pill hyper" data-t="g">${t.name}<span class="tb-hk">⌥1</span></button>`;
+      const isA=t.id===active, isF=inFeed.has(t.id);
+      return `<button class="tb-pill${isA?' active':isF?' in-feed':''}" data-t="${t.id}"><span class="tb-dot" style="background:${t.p.color}"></span>${t.p.name}${isF?'<span class="tb-mark">✓</span>':''}<span class="tb-hk">⌥${idx+1}</span></button>`;
+    }).join("");
+  }
+  function build(){
+    const seen=new Set(), out=[];
+    POOL.filter(USR[active].test).forEach(a=>{ seen.add(a.event); out.push({a,owner:null}); });
+    [...inFeed].forEach(id=>{ if(id!==active) POOL.filter(USR[id].test).forEach(a=>{ if(!seen.has(a.event)){ seen.add(a.event); out.push({a,owner:USR[id].color}); } }); });
+    return out;
+  }
+  function render(){
+    pills.innerHTML=pillsHtml();
+    const list=build();
+    rows.innerHTML=list.map(x=>rowHtml(x.a,x.owner)).join("");
+    count.innerHTML=`Активен <b>${USR[active].name}</b> · в выдаче ещё <b>${[...inFeed].filter(id=>id!==active).length}</b> · всего <b>${list.length}</b> вилок.`;
+    checks.innerHTML=["u-prematch","u-tennis"].map(id=>{ const p=USR[id];
+      return `<label style="display:inline-flex;align-items:center;gap:6px;margin-right:14px;font-size:12px;color:var(--sc-2);cursor:pointer"><input type="checkbox" data-id="${id}" ${inFeed.has(id)?'checked':''} style="accent-color:var(--sc-cyan)"><span class="tb-dot" style="background:${p.color}"></span>${p.name} — в выдачу</label>`;
+    }).join("");
+    // подсветка легенды по составу
+    document.querySelectorAll('.legend-static .item.lit').forEach(x=>x.classList.remove('lit'));
+    const lit = inFeed.size>0 ? 'feed' : 'active';
+    const lg=document.querySelector(`.legend-static .item[data-lg="${lit}"]`); if(lg) lg.classList.add('lit');
+  }
+  function activateGroup(){ active="u-night"; inFeed.clear(); inFeed.add("u-prematch"); inFeed.add("u-tennis"); }
+  pills.addEventListener("click",e=>{ const b=e.target.closest("[data-t]"); if(b){ touched=true; if(b.dataset.t==="g") activateGroup(); else active=b.dataset.t; render(); } });
+  pills.addEventListener("mouseover",()=>hovering=true);
+  pills.addEventListener("mouseout",e=>{ if(!pills.contains(e.relatedTarget)) hovering=false; });
+  checks.addEventListener("change",e=>{ const c=e.target.closest("[data-id]"); if(c){ touched=true; if(c.checked) inFeed.add(c.dataset.id); else inFeed.delete(c.dataset.id); render(); } });
+  // легенда ⇄ демо: клик по карточке демонстрирует концепт и подсвечивает элемент сверху (С2+С4)
+  function highlight(key){
+    const sel={hyper:'#p2-pills [data-t="g"]',active:'#p2-pills .tb-pill.active',feed:'#p2-pills .tb-pill.in-feed',owner:'#p2-rows .st-owner-dot'}[key];
+    const nodes=sel?document.querySelectorAll(sel):[];
+    nodes.forEach(n=>n.classList.add('sc-hl'));
+    setTimeout(()=>nodes.forEach(n=>n.classList.remove('sc-hl')),1400);
+  }
+  const legend=document.querySelector('.legend-static');
+  if(legend) legend.addEventListener("click",e=>{
+    const item=e.target.closest('.item[data-lg]'); if(!item) return;
+    touched=true; const key=item.dataset.lg;
+    if(key==='hyper') activateGroup();
+    else if(key==='active') inFeed.clear();
+    else if(key==='feed'||key==='owner'){ if([...inFeed].filter(id=>id!==active).length===0) inFeed.add(active==='u-prematch'?'u-tennis':'u-prematch'); }
+    render();
+    document.querySelectorAll('.legend-static .item.lit').forEach(x=>x.classList.remove('lit'));
+    item.classList.add('lit'); highlight(key);
+  });
+  const carousel=["u-night","u-prematch","u-tennis"];
+  function tour(){ if(touched||hovering) return; i=(i+1)%carousel.length; active=carousel[i]; inFeed.clear(); render(); }
+  render(); setInterval(tour,3200);
+})();
+
+/* ---------- ЧАСТЬ 3 — боевой union под группой (C2-15: пилюли живые — клик переключает; C2-14: возраст перерождается, не растёт бесконечно) ---------- */
+(function(){
+  const pills=document.getElementById("p3-pills"), rows=document.getElementById("p3-rows");
+  let active="u-night", inFeed=new Set(["u-prematch","u-tennis"]);
+  const IDS=["u-night","u-prematch","u-tennis"];
+  function pillsHtml(){
+    const grpOn=(active==="u-night"&&inFeed.has("u-prematch")&&inFeed.has("u-tennis"));
+    return `<button class="tb-pill hyper${grpOn?' active':''}" data-t="g" title="Вся группа разом: Ночной live активным, остальные в выдачу">⊞ Вечер (3)</button>`+
+      IDS.map(id=>{ const p=USR[id]; const isA=id===active, isF=inFeed.has(id);
+        return `<button class="tb-pill${isA?' active':isF?' in-feed':''}" data-t="${id}" title="${isA?'Активный режим':'Сделать активным'}"><span class="tb-dot" style="background:${p.color}"></span>${p.name}${(!isA&&isF)?'<span class="tb-mark">✓</span>':''}</button>`; }).join("");
+  }
+  function build(){
+    const seen=new Set(), out=[];
+    POOL.filter(USR[active].test).forEach(a=>{ seen.add(a.event); out.push({...a,owner:null}); });
+    [...inFeed].forEach(id=>{ if(id!==active) POOL.filter(USR[id].test).forEach(a=>{ if(!seen.has(a.event)){ seen.add(a.event); out.push({...a,owner:USR[id].color}); } }); });
+    return out;
+  }
+  let live=build();
+  function render(){ pills.innerHTML=pillsHtml(); rows.innerHTML=live.map(a=>rowHtml(a,a.owner)).join(""); }
+  pills.addEventListener("click",e=>{ const b=e.target.closest("[data-t]"); if(!b) return;
+    if(b.dataset.t==="g"){ active="u-night"; inFeed=new Set(["u-prematch","u-tennis"]); }
+    else active=b.dataset.t;
+    live=build(); render();
+  });
+  // вилка не живёт вечно: дозрела — на её месте свежая (возраст реалистичный, а не тысячи секунд)
+  function tick(){ live.forEach(a=>{ a.age++; if(a.age>36) a.age=2+(((a.pct*10)|0)%7); }); rows.innerHTML=live.map(a=>rowHtml(a,a.owner)).join(""); }
+  render(); setInterval(tick,1600);
 })();
 </script>
 </body>
