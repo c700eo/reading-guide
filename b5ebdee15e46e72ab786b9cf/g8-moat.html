@@ -66,17 +66,31 @@
   .coupon .clip{font-weight:600}
   .coupon .read{font-family:var(--mono);font-size:12px;margin-top:3px}
   .break-btn{padding:6px 14px;border:1px solid var(--danger-border);background:var(--danger-bg);color:var(--danger-text);border-radius:6px;font-weight:600}
-  .recov{margin-top:10px;border:1px solid var(--border);border-radius:8px;overflow:hidden;display:none}
+  /* демо=реал (волна-3.1, скрин-13 партнёра): дроп перекрытий — ОВЕРЛЕЙ ИЗ ячейки БК мёртвой
+     ноги (leg-card.vue: .calc-swap-drop в .calc-cell-bk; calculator.vue:2033-2050 — absolute,
+     top 100%+4px, z-index 100, раскрытие из ячейки), НЕ отдельный блок в потоке ниже */
+  .recov{position:absolute;top:calc(100% + 4px);right:0;z-index:100;width:max-content;min-width:250px;max-width:100%;background:#fff;border:1px solid var(--border);border-radius:8px;overflow:hidden;display:none}  /* нога 2 → right:0, раскрытие влево — calculator.vue:2050, как g6⑤/g7② */
   .recov.show{display:block}
   .recov-h{background:var(--danger-bg);color:var(--danger-text);padding:8px 11px;font-size:12.5px;border-bottom:1px solid var(--danger-border)}
   .opt{display:flex;align-items:center;gap:9px;padding:8px 11px;border-bottom:1px solid var(--border);font-size:13px}
   .opt:last-child{border-bottom:none}
   .opt .rank{width:18px;height:18px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
   .opt .bk{flex:1}
-  .badge{display:inline-block;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;vertical-align:middle}
-  .badge.b-high{background:#e7f6ea;color:var(--green)}
-  .badge.b-mid{background:#fbf3e0;color:var(--amber)}
+  /* бейдж класса надёжности — ОДНОРОДЕН (в коде .calc-rel-badge без пер-тир цвета: класс несёт ТЕКСТ метки + порядок строк, не цвет) */
+  .badge{display:inline-block;font-size:10px;letter-spacing:.3px;padding:1px 6px;border-radius:4px;font-weight:700;vertical-align:middle;color:var(--text-secondary);background:#f2f2f0;border:1px solid var(--border)}
   .opt .pnl{font-family:var(--mono);font-size:12px;color:var(--text-secondary)}
+  /* ячейка БК ноги в матрице пары: живая → смена конторы; мёртвая → красная + бейдж (recovery = дроп ЭТОЙ ячейки, не панель);
+     position:relative — якорь оверлея .recov (дроп раскрывается ИЗ ячейки, демо=реал волна-3.1) */
+  .bkcell{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:9px;padding:8px 11px;background:#fff;border:1px solid var(--border);border-radius:6px;font-size:13.5px}
+  .bkcell--dead{background:var(--danger-bg);border-color:var(--danger-border)}
+  .bkcell-tag{font-size:11px;color:var(--text-secondary)}
+  .bkcell-bk{font-weight:600;font-family:var(--mono);font-size:13px}
+  .bkcell-badge{font-size:11px;font-weight:700;color:var(--danger-text);background:#fff;border:1px solid var(--danger-border);border-radius:4px;padding:1px 7px}
+  /* полоса «голос системы» — приглушена (заливка 4% / рамка 22%, как в калькуляторе); зеркало g7 .sysline под светлую тему g8. При смерти ноги считает перекрытия */
+  .sysline{display:none;align-items:center;gap:10px;max-width:420px;margin-top:8px;padding:5px 10px;background:rgba(37,99,235,.04);border:1px solid rgba(37,99,235,.22);border-left:3px solid var(--accent);border-radius:5px;font-size:11px;color:var(--text-secondary)}
+  .sysline.show{display:flex}
+  .sysline span{flex:1;min-width:0}
+  .sysline b{color:var(--accent);font-weight:700;white-space:nowrap}
   /* Часть 2 — замкнутый цикл */
   .cycle{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin:6px 0 2px}
   .node{flex:1;min-width:130px;border:1px solid var(--border);border-radius:8px;padding:10px 11px;background:#fff;text-align:left;transition:background .2s,border-color .2s}
@@ -106,7 +120,7 @@
   <p class="lead">Решение, которое обслуживает эта глава, — не про чтение строки, а про вопрос, который владелец обязан уметь объяснить сам: <b>почему наш сканер фундаментально другой — и что из этого уже работает, а что мы только строим</b>. Без рекламы: где есть преимущество — скажем где, где это ещё впереди — скажем честно.</p>
 
   <div class="bigidea">
-    <b>Главная мысль.</b> Моат — это не три фичи, «которых ни у кого нет». Это одна <b>система</b> за ними: бот, который восемь лет стоит по обе стороны клика и записал 31&nbsp;миллион ставок. Конкурент может скопировать отдельную фичу. Систему — нет. Ниже три места, где эта система выходит на экран, а потом — сам механизм, который их связывает.
+    <b>Главная мысль.</b> Мы не продаём сканер — <b>мы сами зарабатываем на ставках восемь лет и знаем всё изнутри</b>. Сканер — не инструмент программиста и маркетолога, а <b>часть нашей системы</b>. Поэтому recovery и расширение — не моат, а максимально оптимизированные функции; моат — сама система за ними: бот, который восемь лет стоит по обе стороны клика и записал 31&nbsp;миллион ставок. Отдельную функцию можно скопировать. Систему — нет. Ниже три места, где эта система выходит на экран, а потом — сам механизм, который их связывает.
   </div>
 
   <!-- ============ ЧАСТЬ 1 — УЧЁБА ИЗОЛИРОВАННО: ТРИ ОПОРЫ ============ -->
@@ -119,7 +133,7 @@
     <!-- ОПОРА 1 — SURVIVAL -->
     <div class="pillar">
       <h3>① За цветом строки — данные бота</h3>
-      <p class="why">Слева у строки — цветная граница: <b>прогноз выживаемости вилки</b> — доживёт ли она до закрытия обеих ног. Это та же черта во всём сканере и во всех главах (в «Цветах и рисках» она разобрана по уровням). Прогноз пляшет от живых сигналов пары — переключи ситуацию и смотри на границу и причину.</p>
+      <p class="why">Слева у строки — цветная граница: <b>прогноз выживаемости вилки</b> — доживёт ли она до закрытия обеих ног. Это та же черта во всём сканере и во всех главах (в «Цветах и рисках» она разобрана по уровням). Прогноз пляшет от живых сигналов пары — переключи ситуацию и смотри на границу и причину. Тот же прогноз идёт за вилкой и в калькулятор: под матрицей пары зажигается тихая полоса <b>«голос системы»</b> — уровень выживаемости с причиной, а когда нога умирает, та же полоса считает перекрытия (мост к третьей опоре ниже). Полоса говорит только то, что система реально знает, — без выдумки на пустом месте.</p>
       <div class="demo">
         <div class="tgl" id="t-surv">
           <button data-lv="high" class="on">Стабильная пара + sharp/биржевая нога</button>
@@ -135,6 +149,7 @@
       </div>
       <div class="behind"><b>Что за этим:</b> бот годами проходил расхождения и записывал, что было дальше. Сейчас эта память живёт в двух местах: <b>прогноз выживаемости строки</b> — эвристика на живых сигналах (движение кэфов, маржа, тип контор пары) — и <b>веса надёжности в перекрытии</b> — три числа выше. Сам код это и называет: эвристика-набросок, а полная модель — в данных бота (31&nbsp;миллион ставок).</div>
       <details class="honest"><summary><b>Честная граница: что работает сейчас, а что — куда идём</b></summary>Сканер пока <b>не</b> говорит «эта вилка проживёт N секунд». Зелёная граница = стабильная пара с надёжной (sharp/биржевой) ногой — прогноз уровня того, что вилочник и сам прикидывает за годы работы. Полная сила — «эта конкретная вилка на этой конторе в этот час живёт столько-то» — придёт с моделью на 31M (лаборатория Tipsters). Это <b>куда идём</b>, не то, что уже работает. И «посчитать потолок ставки автоматически» сканер тоже не обещает — лимиты контора прячет; из 31M мы поймём природу вилки, а не угадаем её скрытый лимит.</details>
+      <div class="behind"><b>Ещё грань качества — честность потока:</b> вырожденный кэф — ноль, битое число, значение ≤&nbsp;1 (нога, которой в вилке нет) — в ленту не попадает вообще. Сканер не показывает кэф, которого нет: строка «вилки» на таком числе не строится. Честная граница: фантом с <i>валидным, но устаревшим</i> числом сканер по самому числу отличить не может — но устаревание не прячется: <b>возраст вилки виден в колонке Age</b>: у несвежей пары число возраста меняет цвет (зелёное → янтарное → красное), сама строка остаётся яркой. Дальше — работа профи: возраст и прогноз выживаемости строки, а не одно голое число.</div>
     </div>
 
     <!-- ОПОРА 2 — EXTENSION -->
@@ -142,15 +157,14 @@
       <h3>② Путь постановки — сканер видит купон конторы</h3>
       <p class="why">Решение: <b>«поставить обе ноги быстрее, чем кэф уйдёт»</b>. Жми GO — и смотри, что появляется.</p>
       <div class="demo">
-        <button class="go-btn" id="go-btn">GO · нога 1 (bet365)</button>
+        <button class="go-btn" id="go-btn">GO · нога 1 (bet365.com)</button>
         <div class="coupon" id="coupon">
-          <div class="clip">📋 Купон bet365 · Alcaraz — Sinner · ТБ 22.5</div>
+          <div class="clip">📋 Купон bet365.com · Alcaraz — Sinner · ТБ 22.5</div>
           <div class="read">сканер читает купон обратно → кэф конторы вживую: <b>1.92</b></div>
         </div>
         <div class="demo-cap">GO кладёт исход в купон конторы через расширение; сканер подписан на купон и читает его обратно — двусторонняя связь.</div>
       </div>
-      <div class="behind"><b>Что за этим:</b> расширение в антидетект-браузере кладёт исход в купон конторы <b>и</b> читает купон обратно — двусторонняя связь. У всех остальных — deeplink: открыл сайт конторы, дальше сам. Важная граница механизма: в купон уходит только событие и контора, <b>без суммы</b> — сумму вводит вилочник, и финальную кнопку жмёт вилочник, не сканер.</div>
-      <details class="honest"><summary><b>Честно: расширение — не «то, чего нет ни у кого»</b></summary>Сам факт «расширение для постановки» — <b>не</b> то, чего нет у конкурентов: у BetBurger есть arbhelp. Что именно тут наше преимущество и где мы быстрее — детальное сравнение с конкурентами — впереди.</details>
+      <div class="behind"><b>Что за этим:</b> расширение в антидетект-браузере кладёт исход в купон конторы <b>и</b> читает купон обратно — двусторонняя связь. Важная граница механизма: в купон уходит только событие и контора, <b>без суммы</b> — сумму вводит вилочник, и финальную кнопку жмёт вилочник, не сканер. И главное: <b>расширение будет работать со всеми БК — на этих БК годами ставит наш валютный бот, всё отработано.</b> Мы сами ставим, а не только предоставляем возможность, — поэтому каждый шаг постановки проверен своей шкурой.</div>
     </div>
 
     <!-- ОПОРА 3 — RECOVERY -->
@@ -158,17 +172,24 @@
       <h3>③ Нога слетела — чем перекрыть</h3>
       <p class="why">Момент паники: первая нога стоит, вторая ушла. Решение: <b>«чем закрыть, чтобы перекрытие точно прошло»</b>. Сломай вторую ногу в демо.</p>
       <div class="demo">
-        <button class="break-btn" id="break-btn">⚠ Нога 2 слетела</button>
-        <div class="recov" id="recov">
-          <div class="recov-h">Recovery · нога 1: €500 @ 1.92 (bet365 · Alcaraz ТБ 22.5)</div>
-          <div class="opt"><span class="rank">1</span><span class="bk">pinnacle <span class="badge b-high">Sharp · 0.95</span></span><span class="pnl">перекрытие €476 · в ноль</span></div>
-          <div class="opt"><span class="rank">2</span><span class="bk">betfair <span class="badge b-mid">Биржа · 0.92</span></span><span class="pnl">перекрытие €489 · в ноль</span></div>
-          <div class="opt"><span class="rank">3</span><span class="bk">1xbet <span class="badge b-mid">Обычная · 0.85</span></span><span class="pnl">перекрытие €462 · в ноль</span></div>
+        <!-- демо=реал (волна-3.1): дроп перекрытий ВШИТ в ячейку БК мёртвой ноги — оверлей из неё, не блок снизу -->
+        <div class="bkcell" id="bkcell">
+          <span class="bkcell-tag">нога 2 · ячейка БК</span>
+          <span class="bkcell-bk">vbet.co.uk · Alcaraz ТМ 22.5</span>
+          <span class="bkcell-badge" id="bkcell-badge" hidden></span>
+          <div class="recov" id="recov">
+            <div class="recov-h">перекрыть 500 € · bet365.com @ 1.92 → Alcaraz ТБ 22.5</div>
+            <div class="opt"><span class="bk">pinnacle.com <span class="badge">SHARP</span></span><span class="pnl">перекрытие 476 € · слетевшую в ноль</span></div>
+            <div class="opt"><span class="bk">betfair.com <span class="badge">EXCH</span></span><span class="pnl">перекрытие 489 € · слетевшую в ноль</span></div>
+            <div class="opt"><span class="bk">1xbet.kz <span class="badge">REG</span></span><span class="pnl">перекрытие 462 € · слетевшую в ноль</span></div>
+          </div>
         </div>
-        <div class="demo-cap">Панель появляется только когда нога мертва; перебирает конторы события, ранжирует по <b>надёжности</b> (Sharp→Exchange→Regular), даёт топ-3.</div>
+        <div class="sysline" id="recov-sys"><span>нога 2 мертва — перекрытия в дропе её ячейки БК</span><b id="recov-sys-n">3 перекрытий</b></div>
+        <button class="break-btn" id="break-btn">Нога 2 слетела</button>
+        <div class="demo-cap">Не отдельная панель — <b>тот же дроп, что смена конторы</b>, только в режиме перекрытий. Ячейка БК слетевшей ноги краснеет и получает бейдж «нога мертва · N перекрытий»; клик открывает перекрытия, ранжир по <b>надёжности</b> (SHARP→EXCH→REG, веса 0.95→0.92→0.85), лучшее — первым. В живом дропе строка ведёт кэф и профит живой ноги; полный расклад — в главе про recovery.</div>
       </div>
       <div class="behind"><b>Что за этим:</b> в аварии сканер ставит первым критерием <b>надёжность</b>, а не лишнюю копейку прибыли — важнее, чтобы перекрытие прошло. Сумму считает от <b>реально поставленной</b> ноги 1 (её замороженного кэфа), а не от живого кэфа мёртвой пары.</div>
-      <details class="honest"><summary><b>Честные границы recovery</b></summary>Панель перебирает конторы события из потока — фильтра «есть ли депозит в этой конторе» в самом механизме <b>нет</b> (это настройка контор, отдельная глава). И насколько recovery уникален против конкурентов — снова предмет детального сравнения, не голословное «ни у кого нет».</details>
+      <details class="honest"><summary><b>Честные границы recovery</b></summary>Дроп перебирает конторы события из потока — фильтра «есть ли депозит в этой конторе» в самом механизме <b>нет</b> (это настройка контор, отдельная глава). Recovery — не магия и не «моат сам по себе»: это максимально оптимизированная функция, выросшая из того, как мы сами закрываем слетевшие ноги.</details>
     </div>
   </section>
 
@@ -190,7 +211,7 @@
       <button class="node" data-k="users"><div class="t">Пользователи → данные</div><div class="s">вилки двумя ногами + синдикат</div></button>
     </div>
     <div class="node-detail" id="cycle-detail"></div>
-    <div class="honest"><b>Честно про перенос:</b> не всё от бота переносится на вилочника напрямую. Переносится — время жизни расхождения, скорость фикса конкретной конторы, вероятность принятия ставки, лимиты. Не переносится — ROI и конверсия (бот ставит value одной ногой, вилочник — обе ноги для гарантии). Мы работаем с тем, что переносится, и честно отделяем то, что нет. <span class="src">(источник — DNA: «данные от бота питают сканер, но не напрямую»)</span></div>
+    <div class="honest"><b>Честно про перенос:</b> не всё от бота переносится на вилочника напрямую. Переносится — время жизни расхождения, скорость фикса конкретной конторы, вероятность принятия ставки, лимиты. Не переносится — ROI и конверсия (бот ставит value одной ногой, вилочник — обе ноги для гарантии). Мы работаем с тем, что переносится, и честно отделяем то, что нет.</div>
   </section>
 
   <!-- ============ ЧАСТЬ 3 — КАК В БОЮ: ЧТО КОПИРУЕМО / НЕТ ============ -->
@@ -204,8 +225,8 @@
         <h4>Может скопировать</h4>
         <ul>
           <li>Отдельные фичи и элементы интерфейса</li>
-          <li>Даже грубую версию оценки выживаемости — конкуренты уже двигаются в эту сторону (у кого-то в коде появляются зачатки оценки длительности вилки)</li>
-          <li>Расширение для постановки — у BetBurger есть arbhelp</li>
+          <li>Грубую версию оценки выживаемости</li>
+          <li>Расширение для постановки как факт</li>
         </ul>
       </div>
       <div class="col cant">
@@ -217,7 +238,7 @@
         </ul>
       </div>
     </div>
-    <p class="src" style="margin-top:10px">Источник колонок — DNA betsynd (раздел «Что мы строим»: что конкуренты могут и не могут повторить). Моат — не фича, а система: одну фичу копируют, систему, выросшую из восьми лет реальной работы, — нет.</p>
+    <p style="margin-top:10px"><b>Моат — не фича, а система:</b> мы не продаём сканер — мы сами зарабатываем на ставках восемь лет, знаем всё изнутри, и сканер — часть нашей системы. Одну функцию копируют; систему, выросшую из восьми лет реальной работы, — нет.</p>
   </section>
 
 </div>
@@ -229,7 +250,11 @@
      надёжность по типу конторы: SHARP 0.95 / EXCHANGE 0.92 / REGULAR 0.85 [survival-config.ts:12-16]
      постановка без суммы: takeBet({eventId,bookmaker}) [calculator.vue:939]
      чтение купона обратно: subscribeToCoupon [use-coupon-stream.ts:59]
+     recovery-вход = дроп ячейки БК слетевшей ноги (НЕ панель): recoveryMode/recoveryOpts [leg-card.vue:61-63,229-286]; метка надёжности SHARP/EXCH/REG relBadgeLabel [leg-card.vue:141-142]; sim-пульт [calculator-pair-tracking.vue:6-7]
      recovery ранжир по надёжности + топ-3: findAlternativeLegs [interpretation.ts:274,330-345,438]
+     голос системы (survival + причина; при смерти ноги — счёт перекрытий; только реальные данные) [calculator.vue:1210-1233,1525-1526]
+     фантом-гард: вырожденный кэф 0/NaN/≤1 не строит строку вилки [use-real-api-stream.ts:281-289]
+     против устаревания валидного числа — возраст вилки: колонка Age (сортируемая) + цвет колонки + fade строки + stale-arrow [scanner-table-header.vue:57-67; arb-row.vue:87,95,177-179,344-349]
    Концепция моата (цикл, 31M, копируемо/нет) — DNA betsynd.
    Конкретные вилки/суммы в демо — иллюстрация (синтетика); из кода берутся МЕХАНИЗМ и числа-факторы.
    Math.random не используется.
@@ -263,17 +288,39 @@
   const cp = document.getElementById('coupon');
   btn.addEventListener('click', ()=>{
     const shown = cp.classList.toggle('show');
-    btn.textContent = shown ? 'GO · исход в купоне ✓' : 'GO · нога 1 (bet365)';
+    btn.textContent = shown ? 'GO · исход в купоне ✓' : 'GO · нога 1 (bet365.com)';
   });
 })();
 
-/* ③ RECOVERY — «нога слетела» → панель топ-3 (ранжир по надёжности) */
+/* ③ RECOVERY — дроп в ячейке БК слетевшей ноги (НЕ панель): ячейка краснеет + бейдж,
+   тот же дроп раскрывает перекрытия (ранжир по надёжности SHARP→EXCH→REG).
+   Полоса «голос системы» (зеркало g7 .sysline) при смерти ноги считает перекрытия — calculator.vue:1223-1225.
+   N перекрытий = число строк дропа (демо=реал: длина выхода findAlternativeLegs). */
 (function recovDemo(){
   const btn = document.getElementById('break-btn');
   const panel = document.getElementById('recov');
+  const cell = document.getElementById('bkcell');
+  const badge = document.getElementById('bkcell-badge');
+  const sys = document.getElementById('recov-sys');
+  const sysN = document.getElementById('recov-sys-n');
+  const n = document.querySelectorAll('#recov .opt').length;
   btn.addEventListener('click', ()=>{
-    const shown = panel.classList.toggle('show');
-    btn.textContent = shown ? '↺ Сбросить демо' : '⚠ Нога 2 слетела';
+    const dead = panel.classList.toggle('show');
+    cell.classList.toggle('bkcell--dead', dead);
+    badge.hidden = !dead;
+    badge.textContent = 'нога мертва · ' + n + ' перекрытий';
+    sys.classList.toggle('show', dead);
+    sysN.textContent = n + ' перекрытий';
+    btn.textContent = dead ? 'Вернуть «пара жива»' : 'Нога 2 слетела';
+    // дроп — оверлей из ячейки (демо=реал): выпирает вниз — отступ отдаёт место, чтобы
+    // sysline/кнопка (учебный хром) не накрывались и оставались кликабельны
+    cell.style.marginBottom = '';
+    if (dead){
+      requestAnimationFrame(()=>{
+        const over = panel.getBoundingClientRect().bottom - cell.getBoundingClientRect().bottom;
+        if (over > 0) cell.style.marginBottom = Math.ceil(over + 10) + 'px';
+      });
+    }
   });
 })();
 
