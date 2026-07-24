@@ -3,481 +3,945 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Калькулятор — где деньги (учебная глава, 3 части)</title>
+<title>Г5 · Калькулятор — где деньги</title>
 <style>
-  /* Цвета/токены воссозданы из кода форка. Формулы и пороги (равный профит,
-     округление к шагу, перекос >3%, налог, эффективный кэф) — из кода; координаты — в r3-registry-g5.md.
-     Конкретные вилки и суммы в демо — иллюстрация (синтетика), из кода берутся ФОРМУЛЫ и пороги. */
   :root{
-    --bg:#fafafa; --panel:#ffffff; --border:#e0e0e0; --text:#1a1a1a; --text-secondary:#666;
-    --green:#1a8a2e; --red:#cc2222; --amber:#b8860b;
-    --accent:#2563eb; --hl:rgba(37,99,235,.12);
-    --info-bg:#e8f1fb; --info-border:#c8ddf0; --info-text:#1d4f7a;
-    --warn-bg:#fff7ed; --warn-border:#fed7aa; --warn-text:#9a5a23;
-    --danger-bg:#fff0f0; --danger-border:#e88a8a; --danger-text:#991b1b;
-    --mono:ui-monospace,Menlo,monospace;
-    /* слой-2: каркас страницы (дизайн-паттерн учебника, пилот Г2 2026-07-02) */
+    /* каркас страницы — читательская рама учебника (единая для всех глав) */
     --ink:#14161a; --paper:#f7f7f5; --hairline:#e7e7e4;
-    --note-bg:#fff8e6; --note-border:#f0d99a; --note-text:#6b5418;
+    --panel:#ffffff; --surface2:#f4f4f5; --border:#e0e0e0;
+    --text:#1a1a1a; --text-secondary:#666; --text-tertiary:#8a8a8a;
+    --accent:#0a76ad; --hl:rgba(10,118,173,.08);
+    --green:#1a8a2e; --amber:#b45309; --amber-bg:#fff7ed; --amber-border:#e0b070;
     --shadow-1:0 1px 2px rgba(20,22,26,.05); --shadow-2:0 4px 16px rgba(20,22,26,.06);
     --r-panel:12px; --r-block:8px;
     --font-display:"Avenir Next","Segoe UI",system-ui,sans-serif;
-    /* слой-1 (цвета продукта, для риск-ленты): survival-триада сканера */
+    --mono:ui-monospace,Menlo,monospace;
+    /* survival-триада продукта (risk-ribbon) */
     --surv-high:#16a34a; --surv-med:#ca8a04; --surv-low:#dc2626;
+    /* ДЕМО — дневная палитра сканера (светлый канон :root из src/index.css) */
+    --t-bg:#f6f7f9; --t-row:#ffffff; --t-row2:#f4f4f5; --t-card:#ffffff; --t-border:#dde2ea;
+    --t-text:#1a1a1a; --t-dim:#4d5765;
+    --cyan:#0a76ad;
+    --t-amber:#f59e0b; --t-green:#19776c; --t-red:#c53a36;
+    /* цвет НОГИ (не конторы, не циан) — те же токены, что в коде сканера, одинаковы день/ночь */
+    --leg-1:#16a34a; --leg-2:#dc2626;
   }
   *{box-sizing:border-box}
-  html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+  html{-webkit-font-smoothing:antialiased}
   body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--paper);color:var(--text);font-size:15px;line-height:1.6}
-  .wrap{max-width:780px;margin:0 auto;padding:28px 18px 80px}
+  .wrap{max-width:820px;margin:0 auto;padding:28px 18px 80px}
   h1{font-family:var(--font-display);font-size:28px;font-weight:700;letter-spacing:-0.01em;margin:0 0 6px;text-wrap:balance}
-  h1::after{content:"";display:block;width:120px;height:3px;margin-top:10px;border-radius:2px;background:linear-gradient(90deg,var(--surv-high) 0 33%,var(--surv-med) 33% 66%,var(--surv-low) 66% 100%)} /* risk-ribbon */
-  h2{font-size:12px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--ink);margin:0 0 4px}
-  h3{font-family:var(--font-display);font-size:18px;font-weight:600;margin:0 0 4px;text-wrap:balance}
+  h1::after{content:"";display:block;width:120px;height:3px;margin-top:10px;border-radius:2px;background:linear-gradient(90deg,var(--surv-high) 0 33%,var(--surv-med) 33% 66%,var(--surv-low) 66% 100%)}
   .lead{color:var(--text-secondary);font-size:16px;margin:0 0 8px;text-wrap:pretty}
   .bigidea{background:#f0f5ff;border:1px solid #cfe0ff;border-left:3px solid var(--accent);border-radius:8px;padding:13px 15px;margin:14px 0 4px;font-size:14.5px}
   .bigidea b{color:#1a3a7a}
-  .part{background:var(--panel);border:1px solid var(--hairline);border-radius:var(--r-panel);padding:20px 20px 22px;margin:18px 0;box-shadow:var(--shadow-1),var(--shadow-2)}
-  .part-head{border-left:3px solid var(--accent);padding-left:10px;margin-bottom:14px}
-  .part-head{border-image:linear-gradient(180deg,var(--surv-high),var(--surv-med),var(--surv-low)) 1} /* risk-ribbon */
-  .part-head .step{font-size:12px;color:var(--text-secondary)}
-  .blk{border-top:1px solid var(--border);padding:18px 0 6px}
-  .blk:first-of-type{border-top:none;padding-top:4px}
-  .why{color:var(--text-secondary);font-size:14px;margin:2px 0 10px;text-wrap:pretty}
-  .behind{font-size:13px;margin:8px 0 0;padding:9px 11px;background:var(--bg);border:1px solid var(--border);border-radius:7px}
-  .behind b{color:var(--text)}
-  .demo{background:var(--paper);border:1px solid var(--border);border-radius:var(--r-block);padding:12px;overflow-x:auto} /* mobile: клип колонки возраста — таблица скроллится, не режется краем экрана */
-  .demo-cap{font-size:11px;color:var(--text-secondary);margin:6px 2px 0}
-  .honest{background:var(--note-bg);border:1px solid var(--note-border);border-radius:var(--r-block);padding:8px 10px;font-size:12.5px;color:var(--note-text);margin-top:8px}
-  .honest b{color:var(--note-text)}
+  h2.part{font-family:var(--font-display);font-size:13px;letter-spacing:.02em;font-weight:700;color:var(--ink);margin:32px 0 4px;border-bottom:1px solid var(--hairline);padding-bottom:6px}
+  .part-sub{font-size:13px;color:var(--text-secondary);margin:0 0 14px}
+  .blk{background:var(--panel);border:1px solid var(--hairline);border-radius:var(--r-panel);box-shadow:var(--shadow-1);padding:16px 18px;margin:0 0 14px}
+  .blk h3{font-size:16px;margin:0 0 6px;font-weight:650}
+  .why{font-size:13.5px;color:var(--text-secondary);margin:0 0 10px;text-wrap:pretty}
+  .why b{color:var(--text)}
+  .demo{background:var(--t-bg);border-radius:var(--r-block);padding:12px;overflow-x:auto}
+  .demo,.demo *{font-family:var(--mono);font-size:12.5px;color:var(--t-text)}
+  .cap{font-size:11px;color:var(--t-dim);margin:8px 2px 0}
+  .note{margin:10px 0 0;font-size:12.5px;color:var(--text-secondary)}
+  details{margin:10px 0 0;font-size:13px;color:var(--text-secondary)}
+  details summary{cursor:pointer;color:var(--text);font-weight:600;font-size:13px}
+  .honest{margin:12px 0 0;padding:9px 12px;border-left:3px solid var(--amber-border);background:var(--amber-bg);border-radius:0 var(--r-block) var(--r-block) 0;font-size:12.5px;color:var(--amber)}
+  .honest b{color:var(--amber)}
   button{font:inherit;cursor:pointer}
-  /* калькулятор-поля */
-  .calc{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .leg{border:1px solid var(--border);border-radius:8px;padding:10px;background:#fff}
-  .leg h4{margin:0 0 6px;font-size:13px;color:var(--text-secondary)}
-  .leg .bk{font-weight:600;font-size:13px}
-  .fld{display:flex;align-items:center;gap:6px;margin-top:6px}
-  .fld label{font-size:11px;color:var(--text-secondary);width:54px}
-  input[type=number],input[type=text]{font:inherit;width:100%;padding:5px 7px;border:1px solid var(--border);border-radius:5px;font-variant-numeric:tabular-nums}
-  input.locked{background:#f0f5ff;border-color:var(--accent)}
-  .stake{font-family:var(--mono);font-weight:700;font-size:15px}
-  .row-total{display:flex;align-items:center;gap:8px;margin:0 0 10px}
-  .row-total label{font-size:12px;color:var(--text-secondary)}
-  .row-total input{max-width:120px}
-  .summary{margin-top:10px;padding:9px 11px;border-radius:7px;background:var(--info-bg);border:1px solid var(--info-border);color:var(--info-text);font-size:13px}
-  .summary .pf{font-family:var(--mono)}
-  .warn{margin-top:8px;padding:8px 10px;border-radius:6px;background:var(--warn-bg);border:1px solid var(--warn-border);color:var(--warn-text);font-size:12.5px;display:none}
-  .warn.show{display:block}
-  .gasnet{margin-top:8px;padding:8px 10px;border-radius:6px;background:var(--danger-bg);border:1px solid var(--danger-border);color:var(--danger-text);font-size:12.5px;display:none}
-  .gasnet.show{display:block}
-  .tgl{display:inline-flex;gap:6px;flex-wrap:wrap;margin:2px 0 8px}
-  .tgl button{padding:5px 11px;border:1px solid var(--border);border-radius:6px;background:#fff;color:var(--text)}
-  .tgl button.on{border-color:var(--accent);background:var(--hl);color:#1a3a7a;font-weight:600}
-  .lockbtn{padding:4px 10px;border:1px solid var(--border);border-radius:5px;background:#fff;font-size:12px}
-  .lockbtn.on{border-color:var(--accent);background:var(--hl);color:#1a3a7a;font-weight:600}
-  /* sparkline Odd History */
-  .spark{display:flex;align-items:center;gap:8px;padding:6px 0}
-  .spark .lbl{font-size:12px;width:60px;color:var(--text-secondary)}
-  .spark svg{background:#fff;border:1px solid var(--border);border-radius:4px}
-  .spark .dl{font-family:var(--mono);font-size:12px}
-  .up{color:var(--green)} .down{color:var(--red)} .flat{color:var(--text-secondary)}
-  /* ALL BOOKS grid */
-  table{width:100%;border-collapse:collapse;font-size:13px}
-  th{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-secondary);text-align:left;padding:4px 6px;border-bottom:1px solid var(--border)}
-  td{padding:4px 6px;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums}
-  td.best{color:var(--green);font-weight:700}
-  .legend-static{font-size:12.5px;margin-top:10px}
-  .legend-static .item{padding:7px 9px;border-radius:7px;border:1px solid var(--border);margin-bottom:7px;transition:background .25s,border-color .25s}
-  .legend-static .item.lit{background:var(--hl);border-color:var(--accent)}
-  .legend-static .item b{display:block;font-size:13px;margin-bottom:1px}
-  .legend-static .item span{color:var(--text-secondary)}
-  @media(max-width:560px){.calc{grid-template-columns:1fr}}
+  .btn{display:inline-block;background:#f4f4f5;border:1px solid var(--t-border);border-radius:6px;color:var(--t-text);padding:5px 12px;user-select:none;font-size:12px}
+  .btn:hover{border-color:var(--cyan)}
+  .btn--on{border-color:var(--cyan);color:var(--cyan)}
+  .btn--sm{padding:3px 9px;font-size:11px}
+  .tgl{display:inline-flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
+  .ic{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px}
+
+  /* ── МАТРИЦА ПАРЫ (демо, день) — разметка/токены зеркалят calculator.vue:
+     панель = surface #fff, ячейки = БОКСЫ с воздухом (surface-2, радиус 6px, gap 5×6),
+     подписи капсом БЕЗ бокса (.calc-matrix-label), деньги/значения — sans+tnum,
+     mono только служебное (кнопки R, символ валюты) — V5 §Типографика. ── */
+  .mx{max-width:420px;background:#ffffff;border:1px solid var(--t-border);border-radius:8px;padding:8px 10px;font-size:12.5px}
+  .demo .mx,.demo .mx *{font-family:-apple-system,"Segoe UI",system-ui,sans-serif;font-variant-numeric:tabular-nums}
+  .mx-head{display:flex;align-items:baseline;gap:8px;padding:2px 2px 8px;flex-wrap:wrap}
+  .mx-event{font-size:14px;font-weight:700;color:var(--t-text)}
+  .mx-meta{font-size:11px;color:var(--t-dim)}
+  .mx-live{margin-left:auto;color:var(--cyan);font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:3px}
+  .mx-grid{display:grid;grid-template-columns:auto 1fr 1fr;gap:5px 6px}
+  .mx-grid>div{display:flex;flex-direction:column;justify-content:center;min-width:0}
+  .rh{color:var(--t-dim);font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.4px}
+  .cell{position:relative;background:var(--t-row2,#f4f4f5);border:1px solid var(--t-border);border-radius:6px;padding:6px 9px;min-height:34px}
+  .cell-bk{cursor:pointer}
+  .cell-bk:hover{border-color:#8a94a5}
+  .bk-top{display:flex;align-items:center;gap:4px;min-height:18px}
+  .ord{display:inline-flex;padding:0 4px;height:14px;border-radius:3px;align-items:center;justify-content:center;font-size:9px;font-weight:700;border:1px solid var(--t-border);color:var(--t-dim);letter-spacing:.2px;white-space:nowrap;flex:0 0 auto}
+  .ord--1st{border:0;background:color-mix(in srgb,var(--cyan) 15%,transparent);color:var(--cyan)}
+  .legdot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:0 0 auto}
+  .bkname{color:var(--t-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bksel{display:flex;justify-content:flex-end;color:var(--t-dim);font-size:10.5px;margin-top:2px;min-height:15px}
+  .caret{color:var(--t-dim);display:inline-flex}
+  .copy{background:transparent;border:0;color:var(--t-dim);padding:0;margin-left:auto;display:inline-flex;cursor:pointer}
+  .copy:hover{color:var(--cyan)}
+  .sel{width:100%;font-size:11px;color:var(--t-dim);margin-top:2px}
+
+  /* ячейка кэф — компакт-юнит источников (ячейка right-aligned, как .calc-cell-odds) */
+  .odds-unit{display:flex;align-items:center;justify-content:flex-end;gap:6px}
+  .odds-val{font-size:15px;font-weight:700;color:var(--t-text)}
+  .odds-val--edited{color:var(--cyan)}
+  .dots{display:inline-flex;gap:3px;align-items:center}
+  .sdot{width:6px;height:6px;border-radius:50%;display:inline-block;border:1px solid var(--t-dim);background:transparent;opacity:.5;cursor:help}
+  .sdot--has{background:var(--t-dim);opacity:.85}
+  .sdot--on{background:var(--t-green);border-color:var(--t-green);opacity:1}
+  .sdot--susp{background:var(--t-amber);border-color:var(--t-amber);opacity:1}
+  .altn{color:var(--t-dim);font-size:11px}
+  .ex{font-size:10px;color:var(--t-dim);margin-top:2px;text-align:right}
+
+  /* ячейка ставка — инпут sans+tnum 13px (V5: деньги sans, mono служебное), валюта mono */
+  .stake-in{background:#ffffff;border:1px solid var(--t-border);border-radius:4px;color:var(--t-text);padding:3px 24px 3px 6px;font-size:13px;font-family:-apple-system,"Segoe UI",system-ui,sans-serif;font-variant-numeric:tabular-nums;width:100%;text-align:right}
+  .stake-wrap{position:relative}
+  .demo .mx .stake-cur{font-family:var(--mono)}
+  .stake-cur{position:absolute;right:7px;top:50%;transform:translateY(-50%);color:var(--t-dim);font-size:11px;pointer-events:none}
+  .stake-in--entry{border-color:var(--cyan);background:color-mix(in srgb,var(--cyan) 12%,#ffffff)}
+  .stake-in--over{border-color:var(--t-amber);background:color-mix(in srgb,var(--t-amber) 10%,#ffffff)}
+  .placed{margin-left:4px;background:transparent;border:1px solid var(--t-border);border-radius:4px;color:var(--t-dim);width:20px;height:20px;line-height:1;font-size:12px}
+  .placed--on{border-color:var(--cyan);color:var(--cyan)}
+  .stake-static{display:inline-flex;align-items:center;gap:5px;color:var(--t-text);font-weight:700}
+  .stake-io{display:flex;align-items:center;gap:5px}
+  .stake-io .stake-wrap{flex:1}
+
+  /* Total + Округление R — копия calculator-stake-input.vue: строка Total (рельс подписи
+     52px) и ОТДЕЛЬНАЯ тихая подстрока R, прижатая ВПРАВО (justify-content:flex-end) */
+  .total-row{display:flex;align-items:center;gap:6px;min-height:22px;margin:0 2px}
+  .total-lbl{width:52px;flex-shrink:0;text-transform:none;font-size:11px;letter-spacing:0}
+  .roundto{display:flex;align-items:center;justify-content:flex-end;gap:4px;opacity:.75;margin:2px 2px 8px}
+  .roundto-lbl{font-size:9px;color:var(--t-dim);white-space:nowrap}
+  .rbtn{padding:2px 6px;border:1px solid var(--t-border);background:#ffffff;font-family:var(--mono);font-size:11px;color:var(--t-dim);border-radius:4px;cursor:pointer}
+  .rbtn:hover{background:#f4f4f5}
+  .rbtn--on{color:var(--t-text);font-weight:600;background:#e8e8e8;border-color:var(--t-dim)}
+
+  /* ячейка профит — бокс как остальные, значение к правому краю (клик-жест перелива) */
+  .pf{text-align:right;width:100%;display:flex;flex-direction:row!important;align-items:center;justify-content:flex-end;gap:6px;cursor:pointer}
+  .cell-pf{align-items:flex-end}
+  .pf-val{font-size:13px;font-weight:700}
+  .pos{color:var(--t-green)} .neg{color:var(--t-red)}
+  .maxb{font-size:9.5px;font-weight:700;color:#ffffff;background:var(--cyan);border-radius:3px;padding:0 4px}
+  .taxb{font-size:9.5px;color:var(--t-dim)}
+
+  /* дом состояний ноги */
+  .state{grid-column:span 1;background:var(--t-bg)!important;min-height:0!important;padding:2px 9px 6px!important}
+  .drift{display:inline-flex;align-items:center;gap:3px;font-size:10.5px;color:var(--t-amber);border:1px solid var(--t-amber);border-radius:4px;padding:0 5px;margin-right:5px}
+  .susp{display:inline-flex;font-size:10px;font-weight:700;color:var(--t-amber);border:1px solid var(--t-amber);border-radius:4px;padding:0 5px;letter-spacing:.03em}
+
+  /* дроп смены конторы / recovery */
+  .drop{margin-top:8px;border:1px solid var(--t-border);border-radius:6px;background:#ffffff;max-width:300px;overflow:hidden;box-shadow:var(--shadow-2)}
+  .drop-head{padding:5px 9px;font-size:11px;color:var(--t-dim);border-bottom:1px solid var(--t-border)}
+  .drop-head--rec{color:var(--t-amber)}
+  .drow{display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center;width:100%;background:transparent;border:0;border-bottom:1px solid var(--t-border);padding:6px 9px;color:var(--t-text);text-align:left}
+  .drow:hover{background:#f4f4f5}
+  .drow--alt{padding-left:18px;color:var(--t-dim)}
+  .relb{font-size:9.5px;color:var(--t-dim);border:1px solid var(--t-border);border-radius:3px;padding:0 4px}
+  .drop-note{padding:6px 9px;font-size:10.5px;color:var(--t-dim)}
+  .glyph{color:var(--t-dim);display:inline-flex}
+
+  /* герой Min profit */
+  .hero{display:flex;align-items:baseline;gap:10px;padding:8px 4px 2px;cursor:pointer;border-radius:6px}
+  .hero:hover{background:#f4f4f5}
+  .hero-lbl{font-size:12px;color:var(--t-dim);display:inline-flex;align-items:center;gap:5px}
+  .hero-cyc{background:#f4f4f5;border:1px solid var(--t-border);border-radius:4px;color:var(--t-dim);width:20px;height:18px;font-size:11px;line-height:1}
+  .hero-val{font-size:24px;font-weight:800;letter-spacing:-.01em;margin-left:auto}
+  .hero-sub{display:flex;gap:14px;padding:0 4px 4px;font-size:11px;color:var(--t-dim)}
+  .skew-warn{margin:4px 0 0;padding:5px 9px;border-radius:5px;background:var(--amber-bg);border:1px solid var(--amber-border);color:var(--amber);font-size:11px}
+  .flash{animation:fl .6s ease}
+  @keyframes fl{0%{background:rgba(10,118,173,.14)}100%{background:transparent}}
+
+  /* терминал GO — ОДИН ряд той же сеткой, что матрица (.calc-open-all-row): спейсер-подпись,
+     фланги под колонками ног (полоса цвета ноги — inset НИЗОМ, 2px dim), BOTH наложением
+     в центре зоны колонок (grid-column 2/span 2) */
+  .go-row{display:grid;grid-template-columns:auto 1fr 1fr;gap:5px 6px;margin-top:10px;align-items:center}
+  .go-spacer{grid-column:1;grid-row:1;visibility:hidden}
+  .go-flank{background:#ffffff;border:1px solid #8a94a5;border-radius:6px;color:var(--t-text);padding:3px 14px;min-width:64px;height:22px;display:inline-flex;align-items:center;justify-content:center;text-align:center;font-weight:700;font-size:12px;grid-row:1}
+  .go-flank:hover{background:#f4f4f5}
+  .go-flank--1{grid-column:2;justify-self:start;box-shadow:inset 0 -2px 0 color-mix(in srgb,var(--leg-1) 45%,transparent)}
+  .go-flank--2{grid-column:3;justify-self:end;box-shadow:inset 0 -2px 0 color-mix(in srgb,var(--leg-2) 45%,transparent)}
+  .go-both{grid-column:2 / span 2;grid-row:1;justify-self:center;white-space:nowrap;background:var(--t-green);border:0;color:#ffffff;font-weight:700;letter-spacing:.5px;border-radius:6px;padding:7px 14px;font-size:12.5px}
+  .go-both:hover{filter:brightness(1.08)}
+  .go-grid2{display:grid;grid-template-columns:auto 1fr 1fr;gap:5px 6px;margin-top:6px;align-items:center}
+  .go-dis{opacity:.4;cursor:not-allowed}
+
+  /* голос системы */
+  .sysline{display:flex;align-items:center;gap:7px;margin-top:10px;padding:5px 9px;border-radius:5px;background:#f6f7f9;border:1px solid var(--t-border);font-size:11.5px;color:var(--t-dim)}
+  .sysline--high{border-color:color-mix(in srgb,var(--t-green) 45%,var(--t-border));color:var(--t-green)}
+  .sysline--low{border-color:color-mix(in srgb,var(--t-red) 45%,var(--t-border));color:var(--t-red)}
+  .sysline-val{margin-left:auto;color:var(--t-text)}
+
+  /* легенда источников / состояний (светлая рама) */
+  .legend2{display:grid;grid-template-columns:1fr;gap:7px;margin-top:10px}
+  @media(min-width:560px){.legend2{grid-template-columns:1fr 1fr}}
+  .legend2 .card{background:var(--panel);border:1px solid var(--hairline);border-radius:var(--r-block);padding:8px 11px;font-size:12.5px;transition:background .25s,border-color .25s}
+  .legend2 .card.lit{background:var(--hl);border-color:var(--accent)}
+  .legend2 .card b{display:block;font-size:12.5px;margin-bottom:1px}
+  .legend2 .card span{color:var(--text-secondary);font-size:12px}
+  .toast{display:inline-block;margin-top:8px;background:#2c2c2c;border:1px solid #2c2c2c;color:#f0f0f0;border-radius:6px;padding:5px 10px;font-size:11px;white-space:pre-line}
 </style>
 </head>
 <body>
 <div class="wrap">
 
   <h1>Калькулятор — где деньги</h1>
-  <p class="lead">Решение, которое обслуживает эта функция, двойное: <b>«сколько ставить на каждую ногу, чтобы профит был ровным при любом исходе»</b> и <b>«сколько контора реально примет»</b>. Первое — арифметика равного профита. Второе — приземление этой арифметики в реальность конкретной конторы: её шаг ставки, её валюта, её налог. Калькулятор делает обе вещи и честно гаснет там, где данных не хватает.</p>
+  <p class="lead">Вилка найдена — теперь секундное решение: <b>брать или нет</b>, <b>какой ногой первой</b>, <b>сколько на каждую</b>, <b>что делать, если одно плечо (плечо = нога, одна сторона вилки) умерло на лету</b>. Калькулятор собран так, чтобы все эти ответы стояли на одном экране и читались одним движением глаз. Он устроен как <b>матрица пары</b>: две ноги колонками рядом.</p>
 
   <div class="bigidea">
-    <b>Главная мысль.</b> Калькулятор не «подбирает суммы красиво». Он решает <b>equal-profit</b>: распределить ставку так, чтобы выигрыш был одинаков, какая бы нога ни сыграла. А потом честно приземляет результат — округляет к шагу <b>в валюте самой конторы</b>, предупреждает о перекосе, и <b>гасит расчёт плашкой</b>, если нет курса валют, вместо того чтобы подсунуть выдуманные числа.
+    <b>Главная мысль.</b> Две ноги стоят <b>колонками рядом</b>, параметры идут <b>строками через оба плеча</b>: БК → Кэф → Ставка → Профит. Кэфы обеих контор читаются одним взглядом, а не прыжком между карточками. Внизу — кнопки проставления сразу под строками пары, а под ними <b>вердикт крупным числом</b> (минимальный профит при любом исходе): проверил цифры → нажал → видишь итог. Всё, чего система не знает наверняка (курс валют, скрытый лимит конторы), она <b>честно не выдумывает</b>.
   </div>
 
-  <!-- ============ ЧАСТЬ 1 — УЧЁБА ИЗОЛИРОВАННО ============ -->
-  <section class="part">
-    <div class="part-head">
-      <h2>Часть 1 · По одному решению</h2>
-      <div class="step">Каждый кусок калькулятора — отдельно: какое решение вилочника он обслуживает, что за ним в коде, где честная граница. Поля живые — покрути руками.</div>
-    </div>
+  <!-- ============ ЧАСТЬ 1 — ПО ОДНОМУ РЕШЕНИЮ ============ -->
+  <h2 class="part">Часть 1 · По одному решению</h2>
+  <p class="part-sub">Каждая часть матрицы — отдельно: какое решение вилочника она обслуживает и где честная граница. Контролы живые — покрутить руками.</p>
 
-    <!-- А equal-profit -->
-    <div class="blk">
-      <h3>① Сколько ставить — равный профит</h3>
-      <p class="why">Ввёл одну сумму — калькулятор разнёс её по двум ногам так, чтобы профит был <b>одинаков при любом исходе</b>. Реши, от чего считать: от общей суммы, или от уже введённой ноги.</p>
-      <div class="demo">
-        <div class="tgl" id="ep-mode">
-          <button data-m="total" class="on">От общей суммы</button>
-          <button data-m="leg1">От ноги 1</button>
+  <!-- ① Матрица -->
+  <div class="blk">
+    <h3>① Матрица пары — оба кэфа одним взглядом</h3>
+    <p class="why">Решение «брать?» держится на двух кэфах сразу. Пока они лежат в разных карточках — глаз прыгает и теряет секунду. В матрице <b>обе конторы стоят колонками рядом</b>, а кэф, ставка и профит идут строками через оба плеча; событие вынесено в шапку. Ввести общую сумму — калькулятор разнесёт её по ногам <b>равным профитом</b> (выигрыш одинаков, какая бы нога ни сыграла).</p>
+    <div class="demo">
+      <div class="mx">
+        <div class="mx-head">
+          <span class="mx-event">Наполи — Интер</span>
+          <span class="mx-meta">Soccer · Italy. Serie A · TO 2.5: O/U</span>
+          <span class="mx-live"><svg class="ic" viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg>LIVE</span>
         </div>
-        <div class="row-total" id="ep-total-row"><label>Сумма €</label><input type="number" id="ep-total" value="1000" step="50"></div>
-        <div class="calc">
-          <div class="leg"><div class="bk">bet365 · кэф 2.10</div><div class="fld"><label>ставка €</label><input type="number" id="ep-s1" value="" readonly></div></div>
-          <div class="leg"><div class="bk">pinnacle · кэф 1.95</div><div class="fld"><label>ставка €</label><input type="number" id="ep-s2" value="" readonly></div></div>
+        <div class="total-row">
+          <span class="rh total-lbl">Total</span>
+          <div class="stake-wrap" style="width:96px"><input class="stake-in stake-in--entry" id="m1-total" value="1 000"><span class="stake-cur">€</span></div>
         </div>
-        <div class="summary">Профит при любом исходе: <span class="pf" id="ep-profit">—</span></div>
-        <div class="demo-cap">Формула равного профита: <code>ставка1 = сумма × кэф2 / (кэф1 + кэф2)</code>. В боевом калькуляторе точек входа пять: от суммы, от ноги 1, от ноги 2, обе заморожены, одна залочена.</div>
+        <div class="roundto" id="m1-round" title="Шаг округления ставки — в валюте конторы каждой ноги (настройка «Округление» per-БК в Settings имеет приоритет над этим общим шагом)">
+          <span class="roundto-lbl">Округление R:</span>
+          <button class="rbtn rbtn--on" data-r="1">1</button>
+          <button class="rbtn" data-r="5">5</button>
+          <button class="rbtn" data-r="10">10</button>
+          <button class="rbtn" data-r="50">50</button>
+        </div>
+        <div class="mx-grid" id="m1-grid">
+          <div class="rh">БК</div>
+          <div class="cell cell-bk">
+            <div class="bk-top"><span class="ord ord--1st" title="Эту ногу ставим первой (порядок из настроек: сперва менее надёжная)">1-я</span><span class="legdot" style="background:var(--leg-1)"></span><span class="bkname" title="bet365.com — клик: замена конторы этой ноги">bet365.com</span><span class="caret"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></span><button class="copy" title="Скопировать ссылку bet365.com + событие — вставить в свой браузер"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button></div>
+            <div class="bksel">TO(2.5)</div>
+          </div>
+          <div class="cell cell-bk">
+            <div class="bk-top"><span class="ord" title="Эту ногу ставим второй">2-я</span><span class="legdot" style="background:var(--leg-2)"></span><span class="bkname" title="pinnacle.com — клик: замена конторы этой ноги">pinnacle.com</span><span class="caret"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></span><button class="copy" title="Скопировать ссылку pinnacle.com + событие — вставить в свой браузер"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button></div>
+            <div class="bksel">TU(2.5)</div>
+          </div>
+          <div class="rh">Кэф</div>
+          <div class="cell"><div class="odds-unit"><span class="odds-val">2.10</span><span class="dots"><span class="sdot sdot--has" title="купон (расширение)"></span><span class="sdot sdot--on" title="live (сканер) — идёт в расчёт"></span><span class="sdot sdot--has" title="вилка (поток)"></span></span><span class="altn" title="живые альтернативы этого исхода в других конторах">·3</span></div></div>
+          <div class="cell"><div class="odds-unit"><span class="odds-val">2.05</span><span class="dots"><span class="sdot sdot--has" title="купон (расширение)"></span><span class="sdot sdot--on" title="live (сканер) — идёт в расчёт"></span><span class="sdot sdot--has" title="вилка (поток)"></span></span><span class="altn" title="живые альтернативы этого исхода в других конторах">·2</span></div></div>
+          <div class="rh">Ставка</div>
+          <div class="cell"><div class="stake-io"><div class="stake-wrap"><input class="stake-in" id="m1-s1" value="494" readonly title="В бою поле редактируемо (точка входа «от ноги») — демо считает от Total"><span class="stake-cur">€</span></div><button class="placed" id="m1-pl1" title="Отметить ногу поставленной — ставка и кэф замораживаются">○</button></div></div>
+          <div class="cell"><div class="stake-io"><div class="stake-wrap"><input class="stake-in" id="m1-s2" value="506" readonly title="В бою поле редактируемо (точка входа «от ноги») — демо считает от Total"><span class="stake-cur">€</span></div><button class="placed" id="m1-pl2" title="Отметить ногу поставленной — ставка и кэф замораживаются">○</button></div></div>
+          <div class="rh">Профит</div>
+          <div class="cell cell-pf"><span class="pf-val pos" id="m1-p1">+37.40 €</span></div>
+          <div class="cell cell-pf"><span class="pf-val pos" id="m1-p2">+37.30 €</span></div>
+        </div>
+        <div class="go-row">
+          <span class="rh go-spacer">Профит</span>
+          <button class="go-flank go-flank--1" id="m1-go1" title="Поставить ногу 1 — bet365.com">GO 1</button>
+          <button class="go-both" id="m1-both" title="Поставить оба плеча (⌘↵ / Ctrl+Enter)">GO BOTH · ⌘↵</button>
+          <button class="go-flank go-flank--2" id="m1-go2" title="Поставить ногу 2 — pinnacle.com">GO 2</button>
+        </div>
+        <div id="m1-toast"></div>
+        <div class="sysline sysline--high" style="margin-top:10px">
+          <svg class="ic" width="13" height="13" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+          <span>Вилка стабильна, есть надёжная нога (sharp/exchange)</span>
+          <span class="sysline-val">survival HIGH</span>
+        </div>
+        <div class="hero" style="cursor:default"><span class="hero-lbl">Min profit <button class="hero-cyc" title="Формат вердикта: € → % → доли ног (разбор — блок ⑦)">€</button></span><span class="hero-val pos" id="m1-hero">+37.30 €</span></div>
+        <div class="hero-sub"><span id="m1-sub">Total 1 000 €   ·   Arb 3.60%   ·   перекос 0.10</span></div>
       </div>
+      <div class="cap">Это весь калькулятор, как он стоит в сканере: шапка события → Total и шаг округления → матрица → кнопки GO → голос системы → вердикт. Конторы в потоке живут <b>доменами</b> (bet365.com — сканер работает по зеркалам), исход под именем — <b>кодом бэкенда</b>: TO(2.5) = тотал больше 2.5, TU = меньше. Пилюля «1-я / 2-я» = <b>порядок постановки</b>, не номер плеча; номер несут цвет-точка и фланги GO. У кэфа тихие точки-источники, у ставки кружок ○ (пометить поставленной), значок ⧉ копирует ссылку конторы — разбор в блоках ниже. Кнопки <b>Округление R</b> меняют шаг прямо в этой матрице.</div>
+      <div class="mx" style="max-width:420px;margin-top:12px">
+        <div class="mx-grid">
+          <div class="rh">БК</div>
+          <div class="cell cell-bk"><div class="bk-top"><span class="ord">2-я</span><span class="legdot" style="background:var(--leg-1)"></span><span class="bkname">bet365.com</span><span class="caret"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></span></div><div class="bksel">TO(2.5)</div></div>
+          <div class="cell cell-bk"><div class="bk-top"><span class="ord ord--1st">1-я</span><span class="legdot" style="background:var(--leg-2)"></span><span class="bkname">pinnacle.com</span><span class="caret"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></span></div><div class="bksel">TU(2.5)</div></div>
+        </div>
+      </div>
+      <div class="cap"><b>Порядок ≠ номер.</b> Та же пара, но первой ставим ногу 2 — пилюля «1-я» встаёт на красную колонку, а цвет-точки ног не двигаются. Пилюля метит очередь постановки (какое плечо ставим первым), точка метит само плечо.</div>
     </div>
+    <details><summary>Как считается равный профит</summary>Сумма делится по формуле <code>ставка&#8321; = сумма × кэф&#8322; / (кэф&#8321; + кэф&#8322;)</code> — так, что выигрыш совпадает на обоих исходах. При кэфах 2.10 и 2.05 на 1000&nbsp;€ выходит 494 и 506, профит ≈ +37&nbsp;€ при любом исходе. Точек входа в боевом калькуляторе несколько (от суммы, от плеча, от поставленной ноги) — суть одна.</details>
+  </div>
 
-    <!-- Б сколько примут: шаг + налог + эфф.кэф -->
-    <div class="blk">
-      <h3>② Сколько контора реально примет — шаг и налог</h3>
-      <p class="why">Идеальная сумма из формулы — дробная. Но контора принимает ставку <b>кратно своему шагу</b>, и шаг этот — <b>в её валюте</b>. Переключи валюту ноги 2 — увидишь, как сумма подгоняется под шаг конторы.</p>
-      <div class="demo">
-        <div class="tgl" id="step-cur">
-          <button data-c="EUR" class="on">нога 2 в EUR (шаг 1)</button>
-          <button data-c="RUB">нога 2 в ₽ (шаг 50)</button>
-        </div>
-        <div class="calc">
-          <div class="leg"><div class="bk">bet365 · EUR · шаг 1</div><div class="fld"><label>ставка</label><span class="stake" id="st-s1">—</span></div></div>
-          <div class="leg"><div class="bk" id="st-bk2">pinnacle · EUR · шаг 1</div><div class="fld"><label>ставка</label><span class="stake" id="st-s2">—</span></div></div>
-        </div>
-        <details class="demo-cap"><summary>Почему именно в валюте купона + про налог и эффективный кэф</summary>Округление к шагу идёт <b>в валюте купона</b>: кратность в EUR не переживает конвертацию (50 EUR × 97.3 ≈ 4865 ₽ при шаге 50 ₽). Налог конторы и комиссия биржи срезают «эффективный кэф» — расчёт идёт от него, не от номинала на табло.</details>
+  <!-- ② Ячейка Кэф -->
+  <div class="blk">
+    <h3>② Ячейка Кэф — какому числу верить</h3>
+    <p class="why">У одного кэфа <b>до трёх источников</b>: купон из расширения на сайте конторы, live-кэф из сканера, кэф из самой вилки. Решение момента — <b>какое число идёт в расчёт</b>. Компакт-юнит показывает активное значение крупно, а три микро-точки у края — что вообще пришло и что выбрано. Переключить источник.</p>
+    <div class="demo">
+      <div class="tgl">
+        <button class="btn btn--sm" data-src="coupon">купон активен</button>
+        <button class="btn btn--sm btn--on" data-src="actual">live активен</button>
+        <button class="btn btn--sm" data-src="arb">вилка активна</button>
+        <button class="btn btn--sm" id="o2-susp">купон suspended</button>
       </div>
-      <div class="honest"><b>Честная граница (важно):</b> сколько контора примет МАКСИМУМ — её скрытый лимит — сканер <b>не знает и не считает автоматически</b>. Лимит контора прячет политикой, поля лимита в калькуляторе нет. Лимит вилочник держит в голове сам; автоподстановка придёт позже, с данными бота, а не «из потолка».</div>
+      <div class="mx" style="max-width:230px">
+        <div class="mx-grid" style="grid-template-columns:auto 1fr">
+          <div class="rh">Кэф</div>
+          <div class="cell">
+            <div class="odds-unit">
+              <span class="odds-val" id="o2-val">2.11</span>
+              <span class="dots">
+                <span class="sdot sdot--has" id="o2-d1" title="купон (расширение)"></span>
+                <span class="sdot sdot--on" id="o2-d2" title="live (сканер)"></span>
+                <span class="sdot sdot--has" id="o2-d3" title="вилка (поток)"></span>
+              </span>
+              <span class="altn" title="живые альтернативы этого исхода в других конторах">·3</span>
+            </div>
+            <div class="ex" id="o2-ex" style="display:none">EX −2.0% (eff 2.08)</div>
+          </div>
+        </div>
+      </div>
+      <div class="cap" id="o2-cap">Крупное число — то, что идёт в расчёт прямо сейчас. «·3» — три живые альтернативы исхода в других конторах.</div>
     </div>
+    <div class="legend2">
+      <div class="card" id="lg2-coupon"><b>Точка 1 — купон</b><span>цена из расширения на сайте конторы</span></div>
+      <div class="card" id="lg2-live"><b>Точка 2 — live</b><span>цена из сканера (поток бэкенда)</span></div>
+      <div class="card" id="lg2-arb"><b>Точка 3 — вилка</b><span>цена, на которой вилка была найдена</span></div>
+      <div class="card" id="lg2-color"><b>Цвет точки</b><span>яркая зелёная — идёт в расчёт · серая — пришла, но не выбрана · жёлтая — suspended · пустая — не пришла</span></div>
+    </div>
+    <div class="note">У биржи под кэфом тихо стоит строка комиссии (EX −%): расчёт всегда идёт от <b>эффективного</b> кэфа после комиссии, не от номинала на табло — включить «купон suspended» и увидеть жёлтую точку.</div>
+  </div>
 
-    <!-- В валюта гаснет -->
-    <div class="blk">
-      <h3>③ Когда курса нет — расчёт честно гаснет</h3>
-      <p class="why">Ноги в разных валютах считаются по курсу. Решение момента: <b>можно ли доверять цифре</b>. Если курса нет — калькулятор не подставляет «1 к 1», он <b>гасит расчёт</b> и говорит об этом. Нажми «убрать курс».</p>
-      <div class="demo">
-        <button class="lockbtn" id="rate-btn">Убрать курс EUR→₽</button>
-        <div class="calc" id="rate-calc">
-          <div class="leg"><div class="bk">bet365 · EUR</div><div class="fld"><label>ставка</label><span class="stake" id="rt-s1">476 €</span></div></div>
-          <div class="leg"><div class="bk">winline · ₽</div><div class="fld"><label>ставка</label><span class="stake" id="rt-s2">51 000 ₽</span></div></div>
+  <!-- ③ Ячейка БК -->
+  <div class="blk">
+    <h3>③ Ячейка БК — кем ставить, как открыть контору</h3>
+    <p class="why">Иногда контора даёт мало, режет аккаунт или просто хочется поставить в другую. Решение — <b>сменить контору, не пересчитывая всё вручную</b>. Счётчик «·N» у кэфа означает: есть живые альтернативы этого исхода. Клик по имени конторы (каретка ▾ приглашает) открывает список — там сразу видно <b>кэф и профит пары после замены</b>. Значок копирования кладёт ссылку конторы в буфер — вставить в свой антидетект-браузер, не переходя по ней.</p>
+    <div class="demo">
+      <div class="mx" style="max-width:260px">
+        <div class="mx-grid" style="grid-template-columns:auto 1fr">
+          <div class="rh">БК</div>
+          <div class="cell cell-bk">
+            <div class="bk-top">
+              <span class="ord">2-я</span><span class="legdot" style="background:var(--leg-2)"></span>
+              <button class="bkname" id="bk-open" style="background:transparent;border:0;color:var(--t-text);padding:0;cursor:pointer">pinnacle.com</button>
+              <span class="caret"><svg class="ic" width="9" height="9" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+              <button class="copy" id="bk-copy" title="Скопировать ссылку конторы + событие — вставить в свой браузер"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button>
+            </div>
+            <div class="bksel">TU(2.5)</div>
+          </div>
         </div>
-        <div class="gasnet" id="rate-gasnet">⚠ Нет курса EUR→₽ — расчёт по этой ноге погашен. Молчаливого «1 к 1» не будет: лучше пустое поле, чем выдуманная сумма на деньги.</div>
-        <div class="demo-cap">Без курса конвертер не возвращает число → ветка расчёта гаснет и показывает плашку вместо суммы. Молчаливого курса «1 к 1» в коде нет: лучше пустое поле, чем выдуманная цифра на деньги.</div>
+        <div id="bk-drop"></div>
+        <div id="bk-toast"></div>
       </div>
+      <div class="cap">Профит справа от кэфа — <b>тот, что калькулятор возьмёт по цепочке источников после клика</b> (превью совпадает с фактом, рассинхрона нет). В списке — только другие конторы этого исхода.</div>
     </div>
+    <div class="honest"><b>Честная граница — почему копируется текст, а не открывается само событие.</b> Кнопка ⧉ сейчас собирает две вещи: вход в контору (твоё зеркало из профиля парка или канон-домен) и строку «событие — исход». Вставил в свой браузер → нашёл событие поиском на сайте конторы. Прямой ссылки на само событие у потока пока нет, а подсовывать фейковую ссылку-404 нечестно — поэтому копируется текст. Расширение тут ни при чём — оно про следующий шаг: когда расширение подключено в антидетект-браузере, выбранный исход по кнопке GO ложится прямо в купон конторы (и купон читается обратно) — искать событие руками не нужно вовсе. Пока расширение не подключено, путь такой: скопировал → вставил → нашёл → поставил.</div>
+  </div>
 
-    <!-- Г перекос -->
-    <div class="blk">
-      <h3>④ Перекос — когда профит разъехался</h3>
-      <p class="why">Формула делит сумму ровно — но контора принимает ставку <b>кратно своему шагу</b>, и округление сдвигает профит на исходах в разные стороны (налог добавляет своё). Решение: <b>замечать, когда вилка перестала быть ровной</b>. Калькулятор предупреждает, если перекос больше 3%. Переключи шаг ноги 2 — крупный шаг конторы разгоняет перекос.</p>
-      <div class="demo">
-        <div class="tgl" id="sk-step">
-          <button data-s="1" class="on">нога 2: шаг 1 € (ровно)</button>
-          <button data-s="50">нога 2: шаг 50 € (грубо)</button>
+  <!-- ④ Дом состояний -->
+  <div class="blk">
+    <h3>④ Дом состояний ноги — можно ли ещё ставить</h3>
+    <p class="why">Между «увидел» и «поставил» проходит секунда, и за неё плечо может измениться: кэф уехал (<b>дрейф</b>) или исход заморозили на стороне конторы (<b>suspended</b>). Решение — <b>заметить это до клика</b>. Оба сигнала живут тонкой строкой <b>под колонкой</b> ноги, не двигая ячейку кэфа. Suspended при этом <b>гасит кнопку GO</b> — поставить замороженный исход нельзя.</p>
+    <div class="demo">
+      <div class="tgl">
+        <button class="btn btn--sm" id="st-drift">кэф уехал</button>
+        <button class="btn btn--sm" id="st-susp">исход заморожен</button>
+      </div>
+      <div class="mx" style="max-width:230px">
+        <div class="mx-grid" style="grid-template-columns:auto 1fr">
+          <div class="rh">Кэф</div>
+          <div class="cell"><div class="odds-unit"><span class="odds-val">2.05</span></div></div>
         </div>
-        <div class="summary">Профит нога 1: <span class="pf" id="sk-p1">—</span> · нога 2: <span class="pf" id="sk-p2">—</span></div>
-        <div class="warn" id="sk-warn">⚠ Перекос исходов (округление/налог): <span id="sk-d">—</span></div>
-        <div class="demo-cap">Предупреждение зажигается, когда реальный процент перекоса профитов между исходами превышает 3%.</div>
-      </div>
-      <div class="honest"><b>Честно:</b> калькулятор перекос <b>показывает</b>, но сам его <b>не переливает</b> — авто-выравнивание маржи на одну ногу пока не сделано (в планах). Сейчас перекос — это сигнал вилочнику, решение остаётся за ним.</div>
-    </div>
-
-    <!-- Д lock -->
-    <div class="blk">
-      <h3>⑤ «Поставлено» — кружок у GO, который держит поставленную ногу</h3>
-      <p class="why">Поставил первую ногу — её сумма и кэф уже зафиксированы реальностью. Решение: <b>чтобы пересчёт второй ноги не трогал первую</b>. В сканере это <b>маленький кружок рядом с кнопкой GO</b>: пустой ○ — нога свободна, отметил постановку — в кружке появляется галочка ✓, ставка и кэф ноги бетонируются, вторая пересчитывается заново. Если кэф в потоке после этого уезжает — над ногой загорается плашка сдвига, но числа держатся. Отметь ногу 1.</p>
-      <div class="demo">
-        <button class="lockbtn" id="lk-btn">○ Поставлено · нога 1</button>
-        <div class="calc">
-          <div class="leg"><div class="bk">bet365 · кэф 2.10</div><div class="fld"><label>ставка €</label><input type="number" id="lk-s1" value="476" step="10"></div></div>
-          <div class="leg"><div class="bk">pinnacle · кэф 1.95</div><div class="fld"><label>ставка €</label><input type="number" id="lk-s2" value="" readonly></div></div>
+        <div style="margin-top:5px;background:var(--t-row2,#f4f4f5);border:1px solid var(--t-border);border-radius:6px;padding:4px 9px;min-height:24px;display:flex;align-items:center;gap:5px;flex-wrap:wrap" id="st-house">
+          <span class="cap" style="margin:0">состояний нет — плечо чистое</span>
         </div>
-        <div class="demo-cap">Кружок в сканере совсем небольшой — он живёт в карточке ноги рядом с GO, а не отдельной крупной кнопкой. Отмеченная нога держит сумму и кэф, вторая пересчитывается равным профитом. Режим кружка настраивается (глава «Настройки калькулятора»): «Поставлено» — по умолчанию, старая «Блокировка» — выключенный режим со значком замка.</div>
-      </div>
-    </div>
-
-    <!-- Е Odd History -->
-    <div class="blk">
-      <h3>⑥ Odd History — куда движется кэф</h3>
-      <p class="why">Прежде чем ставить — решение: <b>кэф растёт или падает прямо сейчас</b>. Если падает — вилка схлопывается, можно не успеть. Маленький график рисует траекторию кэфа по каждой ноге. Живёт он в панели деталей <b>ниже калькулятора</b> — к нему надо прокрутить.</p>
-      <div class="demo">
-        <div class="spark"><span class="lbl">bet365</span><svg id="sp1" width="160" height="34"></svg><span class="dl up" id="dl1">↑ +0.06</span></div>
-        <div class="spark"><span class="lbl">pinnacle</span><svg id="sp2" width="160" height="34"></svg><span class="dl down" id="dl2">↓ −0.04</span></div>
-        <div class="demo-cap">График в сканере намеренно сдержанный: <b>линии серые</b>, цветом горит только последняя дельта (зелёная вверх / красная вниз) — глаз ловит направление, не разглядывая кривую. История хранит до 30 последних точек.</div>
-      </div>
-    </div>
-
-    <!-- Ж ALL BOOKS -->
-    <div class="blk">
-      <h3>⑦ All Books on this Market — все конторы на рынке</h3>
-      <p class="why">Решение: <b>не лучшая ли цена есть у другой конторы</b>, прежде чем ставить на эти две. Грид живёт в панели деталей <b>ниже калькулятора</b> (прокрутить) и держит три вкладки — как в сканере: <b>BEST</b> — лучшие цены по каждому исходу, <b>AVERAGE</b> — отклонение каждой конторы от среднего по рынку, <b>ALL</b> — весь список. Переключи.</p>
-      <div class="demo">
-        <div class="tgl" id="ab-mode">
-          <button data-m="best" class="on">BEST</button>
-          <button data-m="avg">AVERAGE</button>
-          <button data-m="all">ALL</button>
+        <!-- демо=реал (волна-3.1, находка B-1): GO стоит ПОД колонкой своей ноги — ряд внутри
+             панели, тот же грид, что мини-матрица (auto 1fr), спейсер-клон подписи держит col1;
+             GO 2 у правого края колонки ноги [calculator.vue:2689-2721] -->
+        <div class="go-grid2" id="st-go" style="grid-template-columns:auto 1fr">
+          <span class="rh go-spacer">Кэф</span>
+          <button class="go-flank go-flank--2" style="grid-column:2;justify-self:end" id="st-gobtn">GO 2</button>
         </div>
-        <table><thead><tr><th>Контора</th><th>Исх 1</th><th>Δ%</th><th>Исх 2</th><th>Δ%</th></tr></thead><tbody id="ab-rows"></tbody></table>
-        <div class="demo-cap">Как в сканере: таблица контор с ценами обоих исходов и отклонением Δ% от среднего (зелёное = выгоднее рынка), внизу — строка AVERAGE. ★ — эталонная контора, EX — биржа (цена после комиссии).</div>
       </div>
-      <div class="honest"><b>Честная граница:</b> в боевом сканере грид уже живой — реальные конторы рынка, шире списка подписки (на реальном рынке видно полтора десятка книг). В демо главы список условный, учебный — механизм тот же.</div>
+      <div id="st-toast"></div>
+      <div class="cap">Дрейф-плашка держит числа поставленной ноги забетонированными, но подсвечивает, что кэф в потоке сдвинулся (стрелка + величина). SUSP + серая GO = исход недоступен для проставления; хоткей тоже отсечён.</div>
     </div>
-  </section>
+    <div class="note">Дальше при SUSP: ждать разморозки (кэф вернётся сам), сменить контору через дроп в ячейке БК, а если нога умерла совсем — перекрытия там же (разбор — глава Recovery).</div>
+  </div>
 
-  <!-- ============ ЧАСТЬ 2 — ЖИВОЙ КАЛЬКУЛЯТОР + ПОДСВЕТКА ============ -->
-  <section class="part">
-    <div class="part-head">
-      <h2>Часть 2 · Живой калькулятор</h2>
-      <div class="step">Всё вместе, как в работе. Введи сумму или поменяй кэф — справа подсветится, какое решение калькулятор сейчас обслуживает.</div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 200px;gap:14px" id="p2grid">
-      <div class="demo">
-        <div class="row-total"><label>Сумма €</label><input type="number" id="p2-total" value="1000" step="50"></div>
-        <div class="calc">
-          <div class="leg"><div class="bk">bet365</div>
-            <div class="fld"><label>кэф</label><input type="number" id="p2-o1" value="2.10" step="0.05"></div>
-            <div class="fld"><label>ставка €</label><span class="stake" id="p2-s1">—</span></div></div>
-          <div class="leg"><div class="bk">pinnacle</div>
-            <div class="fld"><label>кэф</label><input type="number" id="p2-o2" value="1.95" step="0.05"></div>
-            <div class="fld"><label>ставка €</label><span class="stake" id="p2-s2">—</span></div></div>
+  <!-- ⑤ Ставка -->
+  <div class="blk">
+    <h3>⑤ Ставка — сколько влезет и в какой валюте</h3>
+    <p class="why">Идеальная сумма из формулы дробная, но контора принимает ставку <b>кратно своему шагу</b> и <b>в своей валюте</b>. Решения два: <b>что тут моё, а что математика</b> (поле последнего ввода подсвечивается голубым), и <b>не выше ли это моего лимита</b>. Переключить валюту ноги 2 — сумма подгонится под шаг конторы; включить лимит — рамка предупредит, но сумму <b>не урежет</b>.</p>
+    <div class="demo">
+      <div class="tgl">
+        <button class="btn btn--sm btn--on" data-cur="EUR">нога 2 в € (шаг 1)</button>
+        <button class="btn btn--sm" data-cur="RUB">нога 2 в ₽ (шаг 500)</button>
+        <button class="btn btn--sm" id="mx-lim">мой лимит 400 €</button>
+      </div>
+      <div class="mx" style="max-width:340px">
+        <div class="mx-grid" style="grid-template-columns:auto 1fr 1fr">
+          <div class="rh">БК</div>
+          <div class="cell cell-bk"><div class="bk-top"><span class="legdot" style="background:var(--leg-1)"></span><span class="bkname">bet365.com · €</span></div></div>
+          <div class="cell cell-bk"><div class="bk-top"><span class="legdot" style="background:var(--leg-2)"></span><span class="bkname" id="mx-bk2">fon.bet · €</span></div></div>
+          <div class="rh">Ставка</div>
+          <div class="cell"><div class="stake-io"><div class="stake-wrap"><input class="stake-in" id="mx-in1" value="494"><span class="stake-cur">€</span></div><button class="placed" id="mx-pl1" title="Отметить ногу поставленной — ставка и кэф замораживаются">○</button></div></div>
+          <div class="cell"><div class="stake-io"><div class="stake-wrap"><input class="stake-in" id="mx-in2" value="506"><span class="stake-cur" id="mx-cur2">€</span></div><button class="placed" id="mx-pl2" title="Отметить ногу поставленной — ставка и кэф замораживаются">○</button></div></div>
         </div>
-        <div class="summary">Профит при любом исходе: <span class="pf" id="p2-profit">—</span></div>
-        <div class="warn" id="p2-warn">⚠ Перекос исходов: <span id="p2-d">—</span></div>
       </div>
-      <div class="legend-static">
-        <div class="item" id="lg-ep"><b>Равный профит</b><span>сумма разнесена по ногам поровну по выигрышу</span></div>
-        <div class="item" id="lg-step"><b>Шаг конторы</b><span>сумма кратна шагу в валюте БК</span></div>
-        <div class="item" id="lg-skew"><b>Перекос &gt;3%</b><span>профит разъехался — предупреждение</span></div>
+      <div class="cap" id="mx-cap">Голубая рамка = поле последнего ввода: «это я задал руками». Второе плечо пересчитывается равным профитом.</div>
+    </div>
+    <div class="note">Профит всегда меряется в евро через <b>единый курс каждой валюты к евро</b>: разные валюты контор приводятся к одной базе. Поэтому при <b>равных эффективных кэфах профиты по ногам тоже равны</b> — курс не перекашивает вилку.</div>
+    <div class="honest"><b>Честная граница (важно):</b> сколько контора примет <b>максимум</b> — её скрытый лимит — сканер не знает и не считает. Лимит держится в голове; предупреждение о превышении сравнивает ставку с личным лимитом из профиля парка и <b>ничего не урезает</b> — деньги решает вилочник. Шаг округления идёт <b>в валюте конторы</b> (кратность в евро не переживает конвертацию).</div>
+  </div>
+
+  <!-- ⑥ Профит + перелив -->
+  <div class="blk">
+    <h3>⑥ Профит — жест перелива маржи</h3>
+    <p class="why">По умолчанию профит ровный на оба исхода. Но иногда <b>хочешь перелить весь профит на одну ногу</b> — на тот исход, в который веришь больше. Решение — <b>клик по ячейке профита</b>: вся маржа уходит этой ноге (метка «max»), второй исход выходит ровно в ноль. Повторный клик — снова поровну. Какая колонка чья — читается по цвет-точке в ячейке БК (нога 1 зелёная, нога 2 красная), как в блоке ①; сама ячейка профита точку не несёт.</p>
+    <div class="demo">
+      <div class="mx" style="max-width:340px">
+        <div class="mx-grid" style="grid-template-columns:auto 1fr 1fr">
+          <div class="rh">БК</div>
+          <div class="cell cell-bk"><div class="bk-top"><span class="legdot" style="background:var(--leg-1)"></span><span class="bkname">bet365.com · 2.10</span></div></div>
+          <div class="cell cell-bk"><div class="bk-top"><span class="legdot" style="background:var(--leg-2)"></span><span class="bkname">pinnacle.com · 2.05</span></div></div>
+          <div class="rh">Профит</div>
+          <button class="cell pf" id="pf-1"><span class="pf-val pos" id="pf-v1">+37.40 €</span><span class="maxb" id="pf-m1" style="display:none">max</span></button>
+          <button class="cell pf" id="pf-2"><span class="pf-val pos" id="pf-v2">+37.30 €</span><span class="maxb" id="pf-m2" style="display:none">max</span></button>
+        </div>
+      </div>
+      <div class="cap">Клик по левой ячейке — вся маржа ноге 1 (второй исход в ноль). Клик по правой — ноге 2. Ещё раз — назад к равному. Когда обе ноги уже поставлены, перелив недоступен (числа не приглушаются).</div>
+      <div class="mx" style="max-width:340px;margin-top:12px">
+        <div class="mx-grid" style="grid-template-columns:auto 1fr 1fr">
+          <div class="rh">БК</div>
+          <div class="cell cell-bk"><div class="bk-top"><span class="ord">2-я</span><span class="legdot" style="background:var(--leg-1)"></span><span class="bkname">lottoland.co.uk</span></div><div class="bksel">ATU(6)</div></div>
+          <div class="cell cell-bk"><div class="bk-top"><span class="ord ord--1st">1-я</span><span class="legdot" style="background:var(--leg-2)"></span><span class="bkname">livescorebet.com</span></div><div class="bksel">TO(5.5)</div></div>
+          <div class="rh">Кэф</div>
+          <div class="cell"><div class="odds-unit"><span class="odds-val">1.58</span><span class="dots"><span class="sdot sdot--has"></span><span class="sdot sdot--on"></span><span class="sdot sdot--has"></span></span></div></div>
+          <div class="cell"><div class="odds-unit"><span class="odds-val">3.45</span><span class="dots"><span class="sdot"></span><span class="sdot sdot--on"></span><span class="sdot sdot--has"></span></span></div></div>
+          <div class="rh">Ставка</div>
+          <div class="cell"><div class="stake-io"><div class="stake-wrap"><input class="stake-in" value="50" readonly><span class="stake-cur">£</span></div><button class="placed" title="Отметить ногу поставленной">○</button></div></div>
+          <div class="cell"><div class="stake-io"><div class="stake-wrap"><input class="stake-in" value="50" readonly><span class="stake-cur">£</span></div><button class="placed" title="Отметить ногу поставленной">○</button></div></div>
+          <div class="rh">Профит</div>
+          <div class="cell cell-pf"><span class="pf-val neg">−24.42 €</span></div>
+          <div class="cell cell-pf"><span class="pf-val pos">+84.30 €</span></div>
+        </div>
+      </div>
+      <div class="cap"><b>Минус в ноге — не поломка.</b> Здесь шаг округления R = 50 при далёких кэфах (1.58 против 3.45) прижал обе ставки к 50 £ — исходы разъехались: сыграет нога 1 — <span class="neg">−24.42 €</span>, нога 2 — <span class="pos">+84.30 €</span>. Профит ноги может быть отрицательным и при ручном переливе. Вернуть ровный расчёт: шаг R меньше или клик по герою Min profit (снова поровну).</div>
+    </div>
+  </div>
+
+  <!-- ⑦ Герой -->
+  <div class="blk">
+    <h3>⑦ Герой Min profit — брать вообще?</h3>
+    <p class="why">Самый первый вопрос — <b>сколько заработаю в худшем исходе</b>. Это одно число, и оно стоит <b>крупнее всего</b>: минимальный профит пары. Вся строка героя — жест «<b>клик = снова поровну</b>». Маленькая кнопка у подписи гоняет формат: евро → процент вклада → доли по ногам. Ниже тихая подстрока: Total (общая сумма), Arb (процент вилки) и перекос.</p>
+    <div class="demo">
+      <div class="mx" style="max-width:340px">
+        <div class="hero" id="hero-row">
+          <span class="hero-lbl">Min profit <button class="hero-cyc" id="hero-cyc" title="формат: € → % → доли ног">€</button></span>
+          <span class="hero-val pos" id="hero-val">+37.30 €</span>
+        </div>
+        <div class="hero-sub">
+          <span>Total 1&#8201;000&nbsp;€</span>
+          <span>Arb 3.60%</span>
+          <span>перекос 0.10</span>
+        </div>
+      </div>
+      <div class="cap">Процент вилки считается по эффективным кэфам: <code>(1 − 1/кэф&#8321; − 1/кэф&#8322;) × 100</code>. Кнопка формата — отдельная цель (клик по ней не выравнивает). Перекос в подстроке — тихое число; когда округление или налог разгоняют исходы <b>больше 3%</b>, герой добавляет строку-предупреждение с причиной.</div>
+    </div>
+    <div class="note">Отдельная тонкость честности: если маржа <b>намеренно</b> переброшена на одну ногу (жест перелива выше), предупреждение о перекосе молчит — иначе оно врало бы причиной «округление/налог», хотя перекос запрошен вручную.</div>
+  </div>
+
+  <!-- ⑧ Терминал GO -->
+  <div class="blk">
+    <h3>⑧ Терминал GO — какой ногой первой</h3>
+    <p class="why">Решение поставлено, осталось <b>жать</b>. Ряд стоит <b>сразу под строкой профита</b>: точка, на которую смотрит глаз, — точка действия. По краям — <b>GO 1</b> и <b>GO 2</b> с полосой цвета своей ноги (встают ровно под колонками), в центре — доминантный <b>GO BOTH</b> оба плеча разом (хоткей ⌘↵ подписан прямо на кнопке). Какой ногой первой — подсказывает пилюля порядка вверху.</p>
+    <div class="demo">
+      <div class="mx" style="max-width:340px">
+        <div class="mx-grid" style="grid-template-columns:auto 1fr 1fr;border-bottom:0;border-radius:7px 7px 0 0">
+          <div class="rh">Профит</div>
+          <div class="cell"><span class="pf-val pos">+37.40 €</span></div>
+          <div class="cell"><span class="pf-val pos">+37.30 €</span></div>
+        </div>
+        <div class="go-row" style="margin-top:8px">
+          <span class="rh go-spacer">Профит</span>
+          <button class="go-flank go-flank--1" id="g8-go1" title="Поставить ногу 1">GO 1</button>
+          <button class="go-both" id="g8-both" title="Поставить оба плеча (⌘↵ / Ctrl+Enter)">GO BOTH · ⌘↵</button>
+          <button class="go-flank go-flank--2" id="g8-go2" title="Поставить ногу 2">GO 2</button>
+        </div>
+        <div id="g8-toast"></div>
+      </div>
+      <div class="cap">Фланги маркированы цветом ноги (тот же, что у точек и колонок), BOTH — истинный центр, доминантная кнопка. Больная нога (suspended) красит свою GO серой, а BOTH серым — при любой больной ноге.</div>
+    </div>
+  </div>
+
+  <!-- ⑨ Голос системы -->
+  <div class="blk">
+    <h3>⑨ Голос системы — сколько живёт и что при смерти ноги</h3>
+    <p class="why">Под матрицей — тихая полоса, где система говорит <b>только то, что реально знает</b>. В обычном режиме это уровень выживаемости вилки с причиной (стабильна ли, есть ли надёжная нога). Когда одно плечо умирает на лету — полоса переключается на <b>счёт перекрытий</b>: сколькими способами вторую сторону ещё можно закрыть (сам разбор — в главе про recovery).</p>
+    <div class="demo">
+      <div class="tgl">
+        <button class="btn btn--sm btn--on" data-sys="high">вилка держится</button>
+        <button class="btn btn--sm" data-sys="low">кэфы вниз</button>
+        <button class="btn btn--sm" data-sys="dead">нога умерла</button>
+      </div>
+      <div class="mx" style="max-width:360px">
+        <div class="sysline sysline--high" id="sys-line">
+          <svg class="ic" width="13" height="13" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+          <span id="sys-text">Вилка стабильна, есть надёжная нога (sharp/exchange)</span>
+          <span class="sysline-val" id="sys-val">survival HIGH</span>
+        </div>
+      </div>
+      <div class="cap">Полоса приглушена намеренно — яркая перебивала бы матрицу. Нет данных выживаемости — нет полосы (не выдумывается).</div>
+    </div>
+    <div class="honest"><b>Честная граница:</b> чисел вида «вилка живёт ещё N секунд» или вероятностей у сканера <b>нет</b> — это отдельная модель (живёт в аналитике синдиката, не в сканере). Полоса показывает уровень эвристики и причину словом, не притворяется точным прогнозом.</div>
+  </div>
+
+  <!-- ============ ЧАСТЬ 2 — ЖИВАЯ МАТРИЦА + ПОДСВЕТКА ============ -->
+  <h2 class="part">Часть 2 · Живая матрица</h2>
+  <p class="part-sub">Всё вместе, как в работе. <b>Что здесь крутить:</b> сумму <b>Total</b>, оба поля <b>Кэф</b>, шаг <b>Округление R</b> и кружок <b>○</b> у ставки (отметить ногу поставленной). Считается вживую; карточки под матрицей — индикаторы: загорается та, что описывает текущее состояние расчёта.</p>
+  <div class="blk">
+    <div class="demo">
+      <div class="mx" style="max-width:100%">
+        <div class="mx-head">
+          <span class="mx-event">Наполи — Интер</span>
+          <span class="mx-meta">Soccer · Italy. Serie A · TO 2.5: O/U</span>
+          <span class="mx-live"><svg class="ic" viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg>LIVE</span>
+        </div>
+        <div class="total-row">
+          <span class="rh total-lbl">Total</span>
+          <div class="stake-wrap" style="width:96px"><input class="stake-in stake-in--entry" id="p2-total" value="1 000"><span class="stake-cur">€</span></div>
+        </div>
+        <div class="roundto" id="p2-round" title="Шаг округления ставки — в валюте конторы каждой ноги">
+          <span class="roundto-lbl">Округление R:</span>
+          <button class="rbtn rbtn--on" data-r="1">1</button>
+          <button class="rbtn" data-r="5">5</button>
+          <button class="rbtn" data-r="10">10</button>
+          <button class="rbtn" data-r="50">50</button>
+        </div>
+        <div class="mx-grid" style="grid-template-columns:auto 1fr 1fr">
+          <div class="rh">БК</div>
+          <div class="cell cell-bk"><div class="bk-top"><span class="ord ord--1st">1-я</span><span class="legdot" style="background:var(--leg-1)"></span><span class="bkname">bet365.com</span></div><div class="bksel">TO(2.5)</div></div>
+          <div class="cell cell-bk"><div class="bk-top"><span class="ord">2-я</span><span class="legdot" style="background:var(--leg-2)"></span><span class="bkname">pinnacle.com</span></div><div class="bksel">TU(2.5)</div></div>
+          <div class="rh">Кэф</div>
+          <div class="cell"><div class="stake-wrap" style="width:80px;margin-left:auto"><input class="stake-in" id="p2-o1" value="2.10" style="padding-right:6px" title="Демо: кэф редактируем — покрути и смотри на профит"></div></div>
+          <div class="cell"><div class="stake-wrap" style="width:80px;margin-left:auto"><input class="stake-in" id="p2-o2" value="2.05" style="padding-right:6px" title="Демо: кэф редактируем — покрути и смотри на профит"></div></div>
+          <div class="rh">Ставка</div>
+          <div class="cell"><div class="stake-io"><div class="stake-wrap"><input class="stake-in" id="p2-s1" readonly title="Считается от Total"><span class="stake-cur">€</span></div><button class="placed" id="p2-pl1" title="Отметить ногу поставленной — ставка и кэф замораживаются">○</button></div></div>
+          <div class="cell"><div class="stake-io"><div class="stake-wrap"><input class="stake-in" id="p2-s2" readonly title="Считается от Total"><span class="stake-cur">€</span></div><button class="placed" id="p2-pl2" title="Отметить ногу поставленной — ставка и кэф замораживаются">○</button></div></div>
+          <div class="rh">Профит</div>
+          <div class="cell cell-pf"><span class="pf-val pos" id="p2-p1"></span></div>
+          <div class="cell cell-pf"><span class="pf-val pos" id="p2-p2"></span></div>
+        </div>
+        <div class="hero" style="cursor:default"><span class="hero-lbl">Min profit</span><span class="hero-val pos" id="p2-hero"></span></div>
+        <div class="hero-sub"><span id="p2-sub"></span></div>
+        <div class="skew-warn" id="p2-warn" style="display:none"></div>
+      </div>
+      <div class="legend2">
+        <div class="card" id="lg-eq"><b>Равный профит</b><span>норма: выигрыш одинаков, какой бы исход ни сыграл</span></div>
+        <div class="card" id="lg-arb"><b>Процент вилки</b><span>профит пары по эффективным кэфам; ушёл в минус — вилки больше нет</span></div>
+        <div class="card" id="lg-skew"><b>Перекос &gt; 3%</b><span>исходы разъехались из-за округления или налога — под матрицей загорится предупреждение</span></div>
+        <div class="card" id="lg-dead"><b>Вилка протухла</b><span>кэфы сблизились, Min profit покраснел — не ставить</span></div>
       </div>
     </div>
-    <div class="demo-cap">Тот же equal-profit и порог перекоса 3%, что в коде. Меняй кэф ноги 2 в сторону — увидишь, как загорается «Перекос».</div>
-  </section>
+    <div class="cap">Проверь сам: опусти кэф ноги 2 до 1.90 — процент вилки уйдёт в минус, Min profit покраснеет, загорится «Вилка протухла». Переключи <b>Округление R</b> на 50 — ставки лягут кратно 50, и когда исходы разъедутся больше 3%, загорится «Перекос». Формула равного профита и порог 3% — как в боевом калькуляторе.</div>
+  </div>
 
   <!-- ============ ЧАСТЬ 3 — КАК В БОЮ ============ -->
-  <section class="part">
-    <div class="part-head">
-      <h2>Часть 3 · Как в бою</h2>
-      <div class="step">Полный калькулятор без подсказок. Сумма, две ноги, профит, перекос, кружок «Поставлено» — так это выглядит в работе.</div>
-    </div>
+  <h2 class="part">Часть 3 · Как в бою</h2>
+  <p class="part-sub">Плотная матрица без подсказок — так это выглядит в секунду решения. Всё живое, как в сканере: клик по <b>конторе</b> открывает альтернативы исхода, клик по <b>профиту</b> переливает маржу на ногу, ⧉ копирует ссылку.</p>
+  <div class="blk">
     <div class="demo">
-      <div class="row-total"><label>Сумма €</label><input type="number" id="p3-total" value="800" step="50"><button class="lockbtn" id="p3-lk">○ 1</button></div>
-      <div class="calc">
-        <div class="leg"><div class="bk">betonline · 2.05</div><div class="fld"><label>€</label><input type="number" id="p3-s1" value="" ></div></div>
-        <div class="leg"><div class="bk">pinnacle · 2.02</div><div class="fld"><label>€</label><input type="number" id="p3-s2" value="" readonly></div></div>
+      <div class="mx" style="max-width:100%">
+        <div class="mx-head">
+          <span class="mx-event">Лейкерс — Селтикс</span>
+          <span class="mx-meta">Basketball · USA. NBA · TO 215.5: O/U</span>
+          <span class="mx-live"><svg class="ic" viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg>LIVE</span>
+        </div>
+        <div class="total-row">
+          <span class="rh total-lbl">Total</span>
+          <div class="stake-wrap" style="width:96px"><input class="stake-in stake-in--entry" id="p3-total" value="800"><span class="stake-cur">€</span></div>
+        </div>
+        <div class="roundto" id="p3-round" title="Шаг округления ставки — в валюте конторы каждой ноги">
+          <span class="roundto-lbl">Округление R:</span>
+          <button class="rbtn rbtn--on" data-r="1">1</button>
+          <button class="rbtn" data-r="5">5</button>
+          <button class="rbtn" data-r="10">10</button>
+          <button class="rbtn" data-r="50">50</button>
+        </div>
+        <div class="mx-grid" style="grid-template-columns:auto 1fr 1fr">
+          <div class="rh">БК</div>
+          <div class="cell cell-bk"><div class="bk-top"><span class="ord ord--1st">1-я</span><span class="legdot" style="background:var(--leg-1)"></span><button class="bkname" id="p3-bk1" style="background:transparent;border:0;color:var(--t-text);padding:0;cursor:pointer;font:inherit" title="Открыть альтернативные конторы этого исхода">betonline.ag</button><span class="caret"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></span><button class="copy" id="p3-copy1" title="Скопировать ссылку конторы + событие"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button></div><div class="bksel">TO(215.5)</div></div>
+          <div class="cell cell-bk"><div class="bk-top"><span class="ord">2-я</span><span class="legdot" style="background:var(--leg-2)"></span><button class="bkname" id="p3-bk2" style="background:transparent;border:0;color:var(--t-text);padding:0;cursor:pointer;font:inherit" title="Открыть альтернативные конторы этого исхода">Matchbook</button><span class="caret"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></span><button class="copy" id="p3-copy2" title="Скопировать ссылку конторы + событие"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button></div><div class="bksel">TU(215.5)</div></div>
+          <div class="rh">Кэф</div>
+          <div class="cell"><div class="odds-unit"><span class="odds-val" id="p3-o1v">2.10</span><span class="dots"><span class="sdot sdot--has"></span><span class="sdot sdot--on"></span><span class="sdot sdot--has"></span></span><span class="altn" title="живые альтернативы этого исхода в других конторах">·3</span></div></div>
+          <div class="cell"><div class="odds-unit"><span class="odds-val" id="p3-o2v">2.02</span><span class="dots"><span class="sdot"></span><span class="sdot sdot--on"></span><span class="sdot sdot--has"></span></span><span class="altn" title="живые альтернативы этого исхода в других конторах">·3</span></div><div class="ex" id="p3-ex2" style="text-align:right">EX −1.5% (eff 2.00)</div></div>
+          <div class="rh">Ставка</div>
+          <div class="cell"><div class="stake-io"><div class="stake-wrap"><input class="stake-in" id="p3-s1" readonly title="Считается от Total"><span class="stake-cur">€</span></div><button class="placed" id="p3-pl1" title="Отметить ногу поставленной — ставка и кэф замораживаются">○</button></div></div>
+          <div class="cell"><div class="stake-io"><div class="stake-wrap"><input class="stake-in" id="p3-s2" readonly title="Считается от Total"><span class="stake-cur">€</span></div><button class="placed" id="p3-pl2" title="Отметить ногу поставленной — ставка и кэф замораживаются">○</button></div></div>
+          <div class="rh">Профит</div>
+          <button class="cell cell-pf" id="p3-pf1" style="cursor:pointer;text-align:inherit;font:inherit" title="Клик — перелить всю маржу на ногу 1; повторный — снова поровну"><span class="pf-val pos" id="p3-p1"></span><span class="maxb" id="p3-m1" style="display:none">max</span></button>
+          <button class="cell cell-pf" id="p3-pf2" style="cursor:pointer;text-align:inherit;font:inherit" title="Клик — перелить всю маржу на ногу 2; повторный — снова поровну"><span class="pf-val pos" id="p3-p2"></span><span class="maxb" id="p3-m2" style="display:none">max</span></button>
+        </div>
+        <div id="p3-drop"></div>
+        <div class="go-row" style="margin-top:8px">
+          <span class="rh go-spacer">Профит</span>
+          <button class="go-flank go-flank--1" id="p3-go1" title="Поставить ногу 1 — betonline.ag">GO 1</button>
+          <button class="go-both" id="p3-both" title="Поставить оба плеча (⌘↵ / Ctrl+Enter)">GO BOTH · ⌘↵</button>
+          <button class="go-flank go-flank--2" id="p3-go2" title="Поставить ногу 2 — Matchbook">GO 2</button>
+        </div>
+        <div id="p3-toast"></div>
+        <div class="sysline sysline--high" style="margin-top:10px">
+          <svg class="ic" width="13" height="13" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+          <span>Вилка стабильна, есть надёжная нога (sharp/exchange)</span>
+          <span class="sysline-val">survival HIGH</span>
+        </div>
+        <div class="hero" style="cursor:default"><span class="hero-lbl">Min profit</span><span class="hero-val pos" id="p3-hero"></span></div>
+        <div class="hero-sub"><span id="p3-sub"></span></div>
       </div>
-      <div class="summary">Профит: <span class="pf" id="p3-profit">—</span> <span id="p3-warn"></span></div>
     </div>
-  </section>
+  </div>
 
 </div>
 
 <script>
 /* ============================================================
-   Г5 «Калькулятор» — движок учебной главы.
-   Формулы/пороги — из кода форка (R-3), см. r3-registry-g5.md:
-     equal-profit: stake1 = total*o2/(o1+o2)         [calculator-stakes.ts:20,191]
-     округление к шагу в валюте купона                [roundStakeToBkStep :43]
-     нет курса → null → гаснет (молч. 1 нет, R-11)    [ConvertFn :33,142]
-     перекос: |profit1-profit2|/total*100 > 3%        [roundingImpact :245,252]
-     lock = drift-protection, frozen-нога держит stake [lockSemantic calculator.vue:45]
-     Odd History sparkline per-плечо                   [detail-history.vue:7]
-     All Books 3 режима BEST/AVERAGE/ALL               [detail-grid.vue:13,74]
-   Конкретные вилки/суммы — иллюстрация (синтетика). Math.random не используется.
+   Г5 «Калькулятор» — движок учебной главы (мини-реплика матрицы).
+   R-3: формулы/пороги из кода форка (координаты — r3-registry-g5.md):
+     равный профит  ставка1 = total·o2/(o1+o2)        [calculator-stakes.ts]
+     процент вилки  (1 − 1/o1 − 1/o2)·100 по eff-кэфам [arbs.ts:278]
+     эфф-кэф биржи  eff = 1+(кэф−1)·(1−c) на чистый выигрыш [arbs.ts:231-237]
+     округление к шагу В ВАЛЮТЕ конторы               [calculator-stakes.ts:43]
+     перекос-предупреждение >3% (гаснет при переливе)  [calculator-summary.vue]
+     перелив маржи: bias → вся маржа ноге, второй в 0  [calculator.vue profitBias]
+     единый курс X→EUR (профит в EUR)                  [api/currency-rates.ts:57]
+   Демо-числа — иллюстрация; математика честная (профи пересчитает). Math.random нет.
    ============================================================ */
-const round = (x, step) => Math.max(0, Math.round(x / step) * step);
-const eqStake1 = (total, o1, o2) => total * o2 / (o1 + o2);
-const profitOf = (s, o, total) => s * o - total;
+var MINUS = "−";
+function money(v){ var s = v < 0 ? MINUS : ""; var g = Math.round(Math.abs(v)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " "); return s + g + " €"; }
+function signed(v, d){ d = (d === undefined) ? 2 : d; return (v < 0 ? MINUS : "+") + Math.abs(v).toFixed(d); }
+function eqStake1(t, o1, o2){ return t * o2 / (o1 + o2); }
+function profitOf(s, o, t){ return s * o - t; }
+function roundStep(x, step){ return Math.max(0, Math.round(x / step) * step); }
+function arbPct(o1, o2){ return (1 - 1 / o1 - 1 / o2) * 100; }
+function parseNum(s){ return parseFloat(String(s).replace(/[^\d.\-]/g, "")) || 0; }
+/* тост по клику GO — учебная имитация «команда ушла в контору» (в бою takeBet → расширение) */
+function goToast(host, msg){ if(!host) return; host.innerHTML = '<span class="toast">' + msg + '</span>'; setTimeout(function(){ host.innerHTML = ""; }, 2200); }
+function wireGo(ids){
+  var host = document.getElementById(ids.toast);
+  var b1 = document.getElementById(ids.go1), b2 = document.getElementById(ids.go2), bb = document.getElementById(ids.both);
+  if(b1) b1.addEventListener("click", function(){ goToast(host, "GO 1 — ставка ушла в первую контору"); });
+  if(b2) b2.addEventListener("click", function(){ if(b2.classList.contains("go-dis")) return; goToast(host, "GO 2 — ставка ушла во вторую контору"); });
+  if(bb) bb.addEventListener("click", function(){ goToast(host, "GO BOTH — обе ноги ушли разом (⌘↵)"); });
+}
 
-/* ① equal-profit */
-(function ep(){
-  const o1 = 2.10, o2 = 1.95;
-  const totalRow = document.getElementById('ep-total-row');
-  const tEl = document.getElementById('ep-total');
-  const s1El = document.getElementById('ep-s1'), s2El = document.getElementById('ep-s2');
-  const pEl = document.getElementById('ep-profit');
-  let mode = 'total';
-  function recompute(){
-    let s1, s2, total;
-    if(mode === 'total'){ total = +tEl.value||0; s1 = eqStake1(total,o1,o2); s2 = total - s1; }
-    else { s1 = +s1El.value||0; s2 = s1 * o1 / o2; total = s1 + s2; }   // от ноги 1: equal-profit hedge
+/* ① матрица — живой ввод суммы + округление R; равный профит по ногам, пометка ○ поставленной */
+(function(){
+  var O1 = 2.10, O2 = 2.05, STEP = 1;
+  var tEl = document.getElementById("m1-total");
+  var s1El = document.getElementById("m1-s1"), s2El = document.getElementById("m1-s2"), p1El = document.getElementById("m1-p1"), p2El = document.getElementById("m1-p2");
+  var heroEl = document.getElementById("m1-hero");
+  function render(){
+    var total = parseNum(tEl.value);
+    var s1 = roundStep(eqStake1(total, O1, O2), STEP), s2 = roundStep(total - s1, STEP), t = s1 + s2;
+    var p1 = profitOf(s1, O1, t), p2 = profitOf(s2, O2, t), mn = Math.min(p1, p2);
     s1El.value = s1.toFixed(0); s2El.value = s2.toFixed(0);
-    const p = Math.min(profitOf(s1,o1,total), profitOf(s2,o2,total));
-    pEl.textContent = (p>=0?'+':'') + p.toFixed(1) + ' € (≈' + (total>0?(p/total*100).toFixed(1):'0') + '%)';
+    p1El.textContent = signed(p1) + " €"; p1El.className = "pf-val " + (p1 >= 0 ? "pos" : "neg");
+    p2El.textContent = signed(p2) + " €"; p2El.className = "pf-val " + (p2 >= 0 ? "pos" : "neg");
+    heroEl.textContent = signed(mn) + " €"; heroEl.className = "hero-val " + (mn >= 0 ? "pos" : "neg");
+    document.getElementById("m1-sub").textContent = "Total " + money(total) + "   ·   Arb " + arbPct(O1, O2).toFixed(2) + "%   ·   перекос " + Math.abs(p1 - p2).toFixed(2);
   }
-  document.querySelectorAll('#ep-mode button').forEach(b=>b.addEventListener('click',()=>{
-    document.querySelectorAll('#ep-mode button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
-    mode = b.dataset.m;
-    totalRow.style.display = mode==='total'?'flex':'none';
-    s1El.readOnly = mode!=='leg1'; s2El.readOnly = true;
-    s1El.classList.toggle('locked', mode==='leg1');
-    if(mode==='leg1' && !(+s1El.value)) s1El.value = 476;
-    recompute();
-  }));
-  tEl.addEventListener('input', recompute);
-  s1El.addEventListener('input', ()=>{ if(mode==='leg1') recompute(); });
-  recompute();
+  tEl.addEventListener("input", render);
+  wireGo({ go1: "m1-go1", go2: "m1-go2", both: "m1-both", toast: "m1-toast" });
+  var rwrap = document.getElementById("m1-round");
+  rwrap.querySelectorAll(".rbtn").forEach(function(b){ b.addEventListener("click", function(){
+    STEP = parseFloat(b.dataset.r); rwrap.querySelectorAll(".rbtn").forEach(function(x){ x.classList.remove("rbtn--on"); }); b.classList.add("rbtn--on"); render();
+  }); });
+  ["m1-pl1", "m1-pl2"].forEach(function(id){ var el = document.getElementById(id); el.addEventListener("click", function(){
+    var on = el.classList.toggle("placed--on"); el.textContent = on ? "✓" : "○";
+    el.title = on ? "Нога отмечена поставленной — клик снимает пометку" : "Отметить ногу поставленной — ставка и кэф замораживаются";
+  }); });
+  render();
 })();
 
-/* ② шаг в валюте конторы */
-(function step(){
-  const RATE = 97.3;             // EUR→RUB иллюстративный
-  const o1 = 2.10, o2 = 1.95, total = 1000;
-  const s1 = eqStake1(total,o1,o2), s2raw = total - s1;
-  const s1El = document.getElementById('st-s1'), s2El = document.getElementById('st-s2'), bk2 = document.getElementById('st-bk2');
-  function render(cur){
-    s1El.textContent = round(s1,1).toFixed(0) + ' €';
-    if(cur === 'EUR'){ s2El.textContent = round(s2raw,1).toFixed(0) + ' €'; bk2.textContent='pinnacle · EUR · шаг 1'; }
-    else { const rub = round(s2raw*RATE, 50); s2El.textContent = rub.toFixed(0) + ' ₽'; bk2.textContent='pinnacle · ₽ · шаг 50'; }
+/* ② ячейка Кэф — переключение активного источника + suspended */
+(function(){
+  var val = document.getElementById("o2-val"), ex = document.getElementById("o2-ex"), cap = document.getElementById("o2-cap");
+  var d1 = document.getElementById("o2-d1"), d2 = document.getElementById("o2-d2"), d3 = document.getElementById("o2-d3");
+  /* нижний пояснительный блок — карточки-точки: подсветка следует за активным источником
+     (переключил вкладку сверху → снизу загорелась соответствующая карточка; suspended → карточка «Цвет точки»). */
+  var cards = { coupon: document.getElementById("lg2-coupon"), actual: document.getElementById("lg2-live"), arb: document.getElementById("lg2-arb") };
+  var cardColor = document.getElementById("lg2-color");
+  var VALS = { coupon: "2.13", actual: "2.11", arb: "2.10" };
+  var susp = false;
+  function setActive(src){
+    val.textContent = susp && src === "coupon" ? VALS.arb : VALS[src];
+    d1.className = "sdot " + (susp ? "sdot--susp" : (src === "coupon" ? "sdot--on" : "sdot--has"));
+    d2.className = "sdot " + (src === "actual" ? "sdot--on" : "sdot--has");
+    d3.className = "sdot " + (src === "arb" ? "sdot--on" : "sdot--has");
+    document.querySelectorAll("[data-src]").forEach(function(b){ b.classList.toggle("btn--on", b.dataset.src === src && !(susp && src === "coupon")); });
+    [cards.coupon, cards.actual, cards.arb, cardColor].forEach(function(c){ if(c) c.classList.remove("lit"); });
+    if(susp){ if(cardColor) cardColor.classList.add("lit"); }
+    else if(cards[src]){ cards[src].classList.add("lit"); }
+    cap.textContent = susp
+      ? "Купон suspended — жёлтая точка; расчёт падает на следующий доступный источник, исход недоступен для проставления."
+      : "Крупное число — то, что идёт в расчёт прямо сейчас. «·3» — три живые альтернативы исхода в других конторах.";
   }
-  document.querySelectorAll('#step-cur button').forEach(b=>b.addEventListener('click',()=>{
-    document.querySelectorAll('#step-cur button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); render(b.dataset.c);
-  }));
-  render('EUR');
+  var cur = "actual";
+  document.querySelectorAll("[data-src]").forEach(function(b){ b.addEventListener("click", function(){ cur = b.dataset.src; setActive(cur); }); });
+  document.getElementById("o2-susp").addEventListener("click", function(){ susp = !susp; this.classList.toggle("btn--on", susp); ex.style.display = susp ? "block" : "none"; setActive(cur); });
+  setActive("actual");
 })();
 
-/* ③ валюта гаснет — суммы заменяются на «—» (в коде расчёт гаснет: плашка вместо чисел, не затемнение) */
-(function rate(){
-  const btn = document.getElementById('rate-btn'), g = document.getElementById('rate-gasnet');
-  const s1El = document.getElementById('rt-s1'), s2El = document.getElementById('rt-s2');
-  const S1 = s1El.textContent, S2 = s2El.textContent;
-  let off = false;
-  btn.addEventListener('click', ()=>{
-    off = !off;
-    g.classList.toggle('show', off);
-    s1El.textContent = off ? '—' : S1;
-    s2El.textContent = off ? '—' : S2;
-    btn.textContent = off ? 'Вернуть курс' : 'Убрать курс EUR→₽';
-    btn.classList.toggle('on', off);
+/* ③ ячейка БК — дроп смены конторы + профит-превью + копировать ссылку */
+(function(){
+  var drop = document.getElementById("bk-drop"), toast = document.getElementById("bk-toast");
+  var bkEl = document.getElementById("bk-open");
+  var open = false, TOTAL = 1000, O1 = 2.10, SEL = "TU(2.5)";
+  var ALTS = [ ["betsson.com", 2.06], ["ladbrokes.com", 2.03], ["1xbet.kz", 2.00] ];
+  function preview(o2){ var s1 = roundStep(eqStake1(TOTAL, O1, o2), 1), s2 = TOTAL - s1; return Math.min(profitOf(s1, O1, TOTAL), profitOf(s2, o2, TOTAL)); }
+  function render(){
+    if(!open){ drop.innerHTML = ""; return; }
+    var rows = ALTS.map(function(a){
+      var p = preview(a[1]);
+      return '<button class="drow" data-bk="' + a[0] + '" data-odd="' + a[1].toFixed(2) + '"><span>' + a[0] + '</span><span class="relb">REG</span><span>' + a[1].toFixed(2) + '</span><span class="' + (p >= 0 ? "pos" : "neg") + '">' + signed(p) + " €</span></button>";
+    }).join("");
+    drop.innerHTML = '<div class="drop"><div class="drop-head">Сменить контору (та же ставка)</div>' + rows + '<div class="drop-note">Цифра справа — мин-профит пары после замены. Клик по строке — заменить контору.</div></div>';
+  }
+  bkEl.addEventListener("click", function(){ open = !open; render(); });
+  /* строки дропа кликабельны: клик = заменить контору этой ноги (имя обновляется, дроп закрывается) */
+  drop.addEventListener("click", function(e){
+    var row = e.target.closest(".drow"); if(!row) return;
+    bkEl.textContent = row.dataset.bk; open = false; render();
+    toast.innerHTML = '<span class="toast">Контора заменена:\n' + row.dataset.bk + ' · кэф ' + row.dataset.odd + '</span>';
+    setTimeout(function(){ toast.innerHTML = ""; }, 2600);
+  });
+  document.getElementById("bk-copy").addEventListener("click", function(){
+    toast.innerHTML = '<span class="toast">Скопировано:\nhttps://' + bkEl.textContent + '\nНаполи — Интер — ' + SEL + '</span>';
+    setTimeout(function(){ toast.innerHTML = ""; }, 2600);
   });
 })();
 
-/* ④ перекос — драйвер ШАГ конторы (перекос от округления к шагу, НЕ от величины кэфа) */
-(function skew(){
-  const o1 = 2.10, o2 = 1.95, total = 1000;
-  const p1El=document.getElementById('sk-p1'), p2El=document.getElementById('sk-p2');
-  const warn = document.getElementById('sk-warn'), dEl = document.getElementById('sk-d');
-  function recompute(step2){
-    let s1 = round(eqStake1(total,o1,o2),1);            // нога 1 — шаг 1 €
-    let s2 = round(total - s1, step2);                  // нога 2 — шаг step2: крупный шаг двигает профит
-    const p1 = profitOf(s1,o1,s1+s2), p2 = profitOf(s2,o2,s1+s2);
-    p1El.textContent = p1.toFixed(1)+' €'; p2El.textContent = p2.toFixed(1)+' €';
-    const distortion = Math.abs(p1-p2), pct = (s1+s2)>0 ? distortion/(s1+s2)*100 : 0;
-    if(pct > 3){ warn.classList.add('show'); dEl.textContent = distortion.toFixed(2)+' € ('+pct.toFixed(1)+'%)'; }
-    else warn.classList.remove('show');
+/* ④ дом состояний — дрейф / suspended гасит GO */
+(function(){
+  var house = document.getElementById("st-house"), gobtn = document.getElementById("st-gobtn");
+  var drift = false, susp = false;
+  function render(){
+    var html = "";
+    if(drift) html += '<span class="drift"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.3 3.6 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>↓ 0.05</span>';
+    if(susp) html += '<span class="susp">SUSP</span>';
+    if(!html) html = '<span class="cap" style="margin:0">состояний нет — плечо чистое</span>';
+    house.innerHTML = html;
+    gobtn.classList.toggle("go-dis", susp);
+    gobtn.title = susp ? "Исход suspended — поставить нельзя (кнопка погашена)" : "Поставить ногу 2";
   }
-  document.querySelectorAll('#sk-step button').forEach(b=>b.addEventListener('click',()=>{
-    document.querySelectorAll('#sk-step button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); recompute(+b.dataset.s);
-  }));
-  recompute(1);   // старт: шаг 1 € — перекос мал, предупреждение НЕ горит; читатель жмёт «шаг 50» → загорается
+  gobtn.addEventListener("click", function(){ if(gobtn.classList.contains("go-dis")) return; goToast(document.getElementById("st-toast"), "GO 2 — ставка ушла во вторую контору"); });
+  document.getElementById("st-drift").addEventListener("click", function(){ drift = !drift; this.classList.toggle("btn--on", drift); render(); });
+  document.getElementById("st-susp").addEventListener("click", function(){ susp = !susp; this.classList.toggle("btn--on", susp); render(); });
+  render();
 })();
 
-/* ⑤ lock */
-(function lock(){
-  const o1 = 2.10, o2 = 1.95;
-  const btn = document.getElementById('lk-btn'), s1El=document.getElementById('lk-s1'), s2El=document.getElementById('lk-s2');
-  let locked = false;
-  function hedge(){ const s1=+s1El.value||0; s2El.value = (s1*o1/o2).toFixed(0); }
-  btn.addEventListener('click', ()=>{
-    locked = !locked;
-    btn.classList.toggle('on', locked);
-    btn.textContent = locked ? '✓ Поставлено · нога 1 — сумма и кэф держатся' : '○ Поставлено · нога 1';
-    s1El.classList.toggle('locked', locked);
-    s1El.readOnly = locked;
-    hedge();
+/* ⑤ ставка — entry-подсветка + валюта конторы (шаг) + лимит */
+(function(){
+  var in1 = document.getElementById("mx-in1"), in2 = document.getElementById("mx-in2");
+  var bk2 = document.getElementById("mx-bk2"), cur2 = document.getElementById("mx-cur2"), cap = document.getElementById("mx-cap");
+  var O1 = 2.10, O2 = 2.05, TOTAL = 1000, RATE = 95, cur = "EUR", lim = false;
+  var s1 = roundStep(eqStake1(TOTAL, O1, O2), 1), s2eur = TOTAL - s1;
+  function render(){
+    in1.value = s1.toFixed(0);
+    if(cur === "EUR"){ bk2.textContent = "fon.bet · €"; cur2.textContent = "€"; in2.value = roundStep(s2eur, 1).toFixed(0); }
+    else { bk2.textContent = "fon.bet · ₽ (шаг 500)"; cur2.textContent = "₽"; in2.value = roundStep(s2eur * RATE, 500).toFixed(0); }
+    var over = lim && s1 > 400;
+    in1.classList.toggle("stake-in--over", over);
+    in1.title = over ? "Выше моего лимита 400 € в этой конторе (из профиля парка) — сумма не урезана" : "";
+    cap.textContent = over
+      ? "Ставка 494 € выше моего лимита 400 € (из профиля парка) — рамка предупреждает, но ничего не урезает."
+      : "Голубая рамка = поле последнего ввода. В ₽ шаг конторы крупнее — сумма округляется в её валюте.";
+  }
+  in1.addEventListener("focus", function(){ in1.classList.add("stake-in--entry"); in2.classList.remove("stake-in--entry"); });
+  in2.addEventListener("focus", function(){ in2.classList.add("stake-in--entry"); in1.classList.remove("stake-in--entry"); });
+  document.querySelectorAll("[data-cur]").forEach(function(b){ b.addEventListener("click", function(){
+    document.querySelectorAll("[data-cur]").forEach(function(x){ x.classList.remove("btn--on"); }); b.classList.add("btn--on"); cur = b.dataset.cur; render();
+  }); });
+  document.getElementById("mx-lim").addEventListener("click", function(){ lim = !lim; this.classList.toggle("btn--on", lim); render(); });
+  ["mx-pl1", "mx-pl2"].forEach(function(id){ var el = document.getElementById(id); el.addEventListener("click", function(){
+    var on = el.classList.toggle("placed--on"); el.textContent = on ? "✓" : "○";
+    el.title = on ? "Нога отмечена поставленной — клик снимает пометку" : "Отметить ногу поставленной — ставка и кэф замораживаются";
+  }); });
+  render();
+})();
+
+/* ⑥ профит — жест перелива маржи */
+(function(){
+  var O1 = 2.10, O2 = 2.05, TOTAL = 1000, bias = 0;
+  var v1 = document.getElementById("pf-v1"), v2 = document.getElementById("pf-v2"), m1 = document.getElementById("pf-m1"), m2 = document.getElementById("pf-m2");
+  function render(){
+    var s1, s2;
+    if(bias === 1){ s2 = TOTAL / O2; s1 = TOTAL - s2; }        // вся маржа ноге 1: исход 2 ровно в ноль
+    else if(bias === 2){ s1 = TOTAL / O1; s2 = TOTAL - s1; }   // вся маржа ноге 2
+    else { s1 = eqStake1(TOTAL, O1, O2); s2 = TOTAL - s1; }
+    var p1 = profitOf(s1, O1, TOTAL), p2 = profitOf(s2, O2, TOTAL);
+    v1.textContent = signed(p1) + " €"; v1.className = "pf-val " + (p1 >= 0 ? "pos" : "neg");
+    v2.textContent = signed(p2) + " €"; v2.className = "pf-val " + (p2 >= 0 ? "pos" : "neg");
+    m1.style.display = bias === 1 ? "inline" : "none";
+    m2.style.display = bias === 2 ? "inline" : "none";
+  }
+  document.getElementById("pf-1").addEventListener("click", function(){ bias = bias === 1 ? 0 : 1; render(); });
+  document.getElementById("pf-2").addEventListener("click", function(){ bias = bias === 2 ? 0 : 2; render(); });
+  render();
+})();
+
+/* ⑦ герой — клик = поровну + цикл формата */
+(function(){
+  var O1 = 2.10, O2 = 2.05, TOTAL = 1000;
+  var s1 = roundStep(eqStake1(TOTAL, O1, O2), 1), s2 = roundStep(TOTAL - s1, 1), t = s1 + s2;
+  var p1 = profitOf(s1, O1, t), p2 = profitOf(s2, O2, t), mn = Math.min(p1, p2);
+  var row = document.getElementById("hero-row"), val = document.getElementById("hero-val"), cyc = document.getElementById("hero-cyc");
+  var fmt = "eur";
+  function render(){
+    if(fmt === "eur"){ cyc.textContent = "€"; val.textContent = signed(mn) + " €"; }
+    else if(fmt === "roi"){ cyc.textContent = "%"; val.textContent = signed(mn / TOTAL * 100) + " %"; }
+    else { cyc.textContent = "⅟"; val.textContent = "(1)" + signed(p1 / TOTAL * 100, 1) + "%·(2)" + signed(p2 / TOTAL * 100, 1) + "%"; }
+    val.className = "hero-val " + (mn >= 0 ? "pos" : "neg");
+  }
+  row.addEventListener("click", function(){ row.classList.remove("flash"); void row.offsetWidth; row.classList.add("flash"); });
+  cyc.addEventListener("click", function(e){ e.stopPropagation(); fmt = fmt === "eur" ? "roi" : fmt === "roi" ? "perleg" : "eur"; render(); });
+  render();
+})();
+
+/* ⑨ голос системы — три состояния (Rule D: high зелёный / low красный / смерть) */
+(function(){
+  var line = document.getElementById("sys-line"), text = document.getElementById("sys-text"), val = document.getElementById("sys-val");
+  var ST = {
+    high: ["sysline sysline--high", "Вилка стабильна, есть надёжная нога (sharp/exchange)", "survival HIGH"],
+    low: ["sysline sysline--low", "Кэфы движутся вниз (Δ −0.42%), риск ghost arb", "survival LOW"],
+    dead: ["sysline sysline--low", "нога 2 мертва — перекрытия в дропе её ячейки БК", "3 перекрытия"]
+  };
+  document.querySelectorAll("[data-sys]").forEach(function(b){ b.addEventListener("click", function(){
+    document.querySelectorAll("[data-sys]").forEach(function(x){ x.classList.remove("btn--on"); }); b.classList.add("btn--on");
+    var s = ST[b.dataset.sys]; line.className = s[0]; text.textContent = s[1]; val.textContent = s[2];
+  }); });
+})();
+
+/* ⑧ терминал GO — клики флангов и BOTH дают учебный тост «команда ушла в контору» */
+wireGo({ go1: "g8-go1", go2: "g8-go2", both: "g8-both", toast: "g8-toast" });
+
+/* ЧАСТЬ 2 — живая матрица + подсветка легенды */
+(function(){
+  var tEl = document.getElementById("p2-total"), o1El = document.getElementById("p2-o1"), o2El = document.getElementById("p2-o2");
+  var s1El = document.getElementById("p2-s1"), s2El = document.getElementById("p2-s2"), p1El = document.getElementById("p2-p1"), p2El = document.getElementById("p2-p2");
+  var hero = document.getElementById("p2-hero"), sub = document.getElementById("p2-sub"), warn = document.getElementById("p2-warn");
+  var STEP = 1;
+  function lit(id){ var e = document.getElementById(id); if(!e) return; e.classList.add("lit"); setTimeout(function(){ e.classList.remove("lit"); }, 1100); }
+  function render(){
+    var total = parseNum(tEl.value), o1 = parseNum(o1El.value) || 2, o2 = parseNum(o2El.value) || 2;
+    var s1 = roundStep(eqStake1(total, o1, o2), STEP), s2 = roundStep(total - s1, STEP);
+    s1El.value = s1.toFixed(0); s2El.value = s2.toFixed(0);
+    var t = s1 + s2, p1 = profitOf(s1, o1, t), p2 = profitOf(s2, o2, t), mn = Math.min(p1, p2);
+    p1El.textContent = signed(p1) + " €"; p1El.className = "pf-val " + (p1 >= 0 ? "pos" : "neg");
+    p2El.textContent = signed(p2) + " €"; p2El.className = "pf-val " + (p2 >= 0 ? "pos" : "neg");
+    hero.textContent = signed(mn) + " €"; hero.className = "hero-val " + (mn >= 0 ? "pos" : "neg");
+    var ap = arbPct(o1, o2);
+    var skew = Math.abs(p1 - p2), pct = t > 0 ? skew / t * 100 : 0;
+    sub.textContent = "Total " + money(total) + "   ·   Arb " + (ap < 0 ? MINUS + Math.abs(ap).toFixed(2) : ap.toFixed(2)) + "%   ·   перекос " + skew.toFixed(2);
+    lit("lg-eq"); lit("lg-arb");
+    if(mn < 0){ warn.style.display = "block"; warn.textContent = "Вилка протухла: процент вилки " + ap.toFixed(2) + "% — профит в минусе"; lit("lg-dead"); }
+    else if(pct > 3){ warn.style.display = "block"; warn.textContent = "Перекос исходов (округление/налог): " + skew.toFixed(2) + " € (" + pct.toFixed(1) + "%)"; lit("lg-skew"); }
+    else warn.style.display = "none";
+  }
+  [tEl, o1El, o2El].forEach(function(el){ el.addEventListener("input", render); });
+  var rwrap = document.getElementById("p2-round");
+  rwrap.querySelectorAll(".rbtn").forEach(function(b){ b.addEventListener("click", function(){
+    STEP = parseFloat(b.dataset.r); rwrap.querySelectorAll(".rbtn").forEach(function(x){ x.classList.remove("rbtn--on"); }); b.classList.add("rbtn--on"); render();
+  }); });
+  ["p2-pl1", "p2-pl2"].forEach(function(id){ var el = document.getElementById(id); el.addEventListener("click", function(){
+    var on = el.classList.toggle("placed--on"); el.textContent = on ? "✓" : "○";
+    el.title = on ? "Нога отмечена поставленной — клик снимает пометку" : "Отметить ногу поставленной — ставка и кэф замораживаются";
+  }); });
+  render();
+})();
+
+/* ЧАСТЬ 3 — плотная матрица. matchbook = биржа, комиссия 1.5% на ЧИСТЫЙ выигрыш (arbs.ts:208):
+   eff = 1 + (2.02 − 1)·(1 − 0.015) = 2.0047 ≈ 2.00 (arbs.ts:231-237 effectiveOdds)
+   C3-07: клик по конторе — дроп альтернатив исхода (клик по строке = замена ноги);
+   C3-08: клик по ячейке профита — перелив маржи (метка max, повтор — поровну) */
+(function(){
+  var LEGS = {
+    1: { bk: "betonline.ag", o: 2.10, disp: "2.10", ex: null, sel: "TO(215.5)",
+         alts: [["bet365.com", 2.08, null], ["vbet.co.uk", 2.06, null], ["fon.bet", 2.04, null]] },
+    2: { bk: "Matchbook", o: 2.00, disp: "2.02", ex: "EX −1.5% (eff 2.00)", sel: "TU(215.5)",
+         alts: [["pinnacle.com", 2.04, null], ["Betfair Exchange", 2.02, "EX −1.5% (eff 2.02)"], ["betsson.com", 1.98, null]] }
+  };
+  var STEP = 1, bias = 0, openLeg = 0;
+  var s1El = document.getElementById("p3-s1"), s2El = document.getElementById("p3-s2"), p1El = document.getElementById("p3-p1"), p2El = document.getElementById("p3-p2");
+  var hero = document.getElementById("p3-hero"), sub = document.getElementById("p3-sub"), tEl = document.getElementById("p3-total");
+  var bk1El = document.getElementById("p3-bk1"), bk2El = document.getElementById("p3-bk2");
+  var o1vEl = document.getElementById("p3-o1v"), o2vEl = document.getElementById("p3-o2v"), ex2El = document.getElementById("p3-ex2");
+  var m1El = document.getElementById("p3-m1"), m2El = document.getElementById("p3-m2");
+  var drop = document.getElementById("p3-drop"), toast = document.getElementById("p3-toast");
+  function stakes(total, o1, o2){
+    var s1, s2;
+    if(bias === 1){ s2 = total / o2; s1 = total - s2; }
+    else if(bias === 2){ s1 = total / o1; s2 = total - s1; }
+    else { s1 = eqStake1(total, o1, o2); s2 = total - s1; }
+    return [roundStep(s1, STEP), roundStep(s2, STEP)];
+  }
+  function render(){
+    var total = parseNum(tEl.value), o1 = LEGS[1].o, o2 = LEGS[2].o;
+    var ss = stakes(total, o1, o2), s1 = ss[0], s2 = ss[1], t = s1 + s2;
+    var p1 = profitOf(s1, o1, t), p2 = profitOf(s2, o2, t), mn = Math.min(p1, p2);
+    bk1El.textContent = LEGS[1].bk; bk2El.textContent = LEGS[2].bk;
+    o1vEl.textContent = LEGS[1].disp; o2vEl.textContent = LEGS[2].disp;
+    ex2El.style.display = LEGS[2].ex ? "block" : "none"; if(LEGS[2].ex) ex2El.textContent = LEGS[2].ex;
+    s1El.value = s1.toFixed(0); s2El.value = s2.toFixed(0);
+    p1El.textContent = signed(p1) + " €"; p1El.className = "pf-val " + (p1 >= 0 ? "pos" : "neg");
+    p2El.textContent = signed(p2) + " €"; p2El.className = "pf-val " + (p2 >= 0 ? "pos" : "neg");
+    m1El.style.display = bias === 1 ? "inline" : "none";
+    m2El.style.display = bias === 2 ? "inline" : "none";
+    hero.textContent = signed(mn) + " €"; hero.className = "hero-val " + (mn >= 0 ? "pos" : "neg");
+    sub.textContent = "Total " + money(total) + "   ·   Arb " + arbPct(o1, o2).toFixed(2) + "%   ·   перекос " + Math.abs(p1 - p2).toFixed(2);
+  }
+  function renderDrop(){
+    if(!openLeg){ drop.innerHTML = ""; return; }
+    var leg = LEGS[openLeg], other = LEGS[openLeg === 1 ? 2 : 1];
+    var total = parseNum(tEl.value);
+    var rows = leg.alts.map(function(a, i){
+      var oAlt = a[1], oOther = other.o;
+      var o1 = openLeg === 1 ? oAlt : oOther, o2 = openLeg === 1 ? oOther : oAlt;
+      var s1 = roundStep(eqStake1(total, o1, o2), STEP), s2 = total - s1;
+      var p = Math.min(profitOf(s1, o1, total), profitOf(s2, o2, total));
+      return '<button class="drow" data-i="' + i + '"><span>' + a[0] + '</span><span class="relb">' + (a[2] ? "EXCH" : "REG") + '</span><span>' + oAlt.toFixed(2) + '</span><span class="' + (p >= 0 ? "pos" : "neg") + '">' + signed(p) + " €</span></button>";
+    }).join("");
+    drop.innerHTML = '<div class="drop"><div class="drop-head">Нога ' + openLeg + " — сменить контору (тот же исход " + leg.sel + ')</div>' + rows + '<div class="drop-note">Цифра справа — мин-профит пары после замены. Клик по строке — контора встаёт в ногу.</div></div>';
+  }
+  function toggleLeg(n){ openLeg = openLeg === n ? 0 : n; renderDrop(); }
+  bk1El.addEventListener("click", function(){ toggleLeg(1); });
+  bk2El.addEventListener("click", function(){ toggleLeg(2); });
+  drop.addEventListener("click", function(e){
+    var row = e.target.closest(".drow"); if(!row || !openLeg) return;
+    var a = LEGS[openLeg].alts[+row.dataset.i], old = LEGS[openLeg].bk;
+    LEGS[openLeg].alts = LEGS[openLeg].alts.filter(function(x){ return x[0] !== a[0]; }).concat([[old, LEGS[openLeg].o, LEGS[openLeg].ex]]);
+    LEGS[openLeg].bk = a[0]; LEGS[openLeg].o = a[1]; LEGS[openLeg].disp = a[1].toFixed(2); LEGS[openLeg].ex = a[2];
+    openLeg = 0; renderDrop(); render();
+    toast.innerHTML = '<span class="toast">Контора встала в ногу: ' + a[0] + " · кэф " + a[1].toFixed(2) + "</span>";
+    setTimeout(function(){ toast.innerHTML = ""; }, 2400);
   });
-  s1El.addEventListener('input', hedge); hedge();
-})();
-
-/* ⑥ Odd History sparkline (детерминированные траектории) */
-(function spark(){
-  function draw(id, pts, cls){
-    const svg = document.getElementById(id); const w=160,h=34,pad=3;
-    const min=Math.min(...pts), max=Math.max(...pts), rng=(max-min)||1;
-    const step=(w-2*pad)/(pts.length-1);
-    const d = pts.map((p,i)=>`${i?'L':'M'}${(pad+i*step).toFixed(1)},${(h-pad-(p-min)/rng*(h-2*pad)).toFixed(1)}`).join(' ');
-    /* П-5 (демо=реал): линия серая как в сканере, цвет несёт только дельта рядом */
-    const color = '#8a8a8a'; void cls;
-    svg.innerHTML = `<path d="${d}" fill="none" stroke="${color}" stroke-width="1.5"/>`;
-  }
-  draw('sp1',[2.00,2.01,2.03,2.04,2.07,2.10],'up');
-  draw('sp2',[1.99,1.99,1.98,1.97,1.96,1.95],'down');
-})();
-
-/* ⑦ All Books — вкладки BEST/AVERAGE/ALL как в сканере (детали demo=реал: две цены + Δ% + строка AVERAGE).
-   Список контор — учебный (в бою грид живой и шире подписки; honest выше). */
-(function allbooks(){
-  const BOOKS = [
-    ['Pinnacle ★',1.83,2.12],['Betsson',1.79,2.16],['Matchbook EX',1.85,2.09],
-    ['Smarkets EX',1.84,2.10],['Ladbrokes',1.77,2.18],['Bwin',1.80,2.14],
-    ['Dafabet',1.76,2.20],['888sport',1.78,2.15]
-  ];
-  const tb = document.getElementById('ab-rows');
-  const avg1 = BOOKS.reduce((s,b)=>s+b[1],0)/BOOKS.length;
-  const avg2 = BOOKS.reduce((s,b)=>s+b[2],0)/BOOKS.length;
-  function dcell(v,avg){ const d=(v/avg-1)*100; const cls=d>0.05?'best':''; return `<td class="${cls}">${d>=0?'+':''}${d.toFixed(1)}%</td>`; }
-  const best1 = Math.max(...BOOKS.map(b=>b[1])), best2 = Math.max(...BOOKS.map(b=>b[2]));
-  function rowsHtml(list, withDelta){
-    /* три вкладки — три взгляда: BEST/AVERAGE с Δ% (фокус на отклонении), ALL без Δ% с подсветкой лучшей цены */
-    return list.map(b=>withDelta
-      ? `<tr><td>${b[0]}</td><td>${b[1].toFixed(2)}</td>${dcell(b[1],avg1)}<td>${b[2].toFixed(2)}</td>${dcell(b[2],avg2)}</tr>`
-      : `<tr><td>${b[0]}</td><td class="${b[1]===best1?'best':''}">${b[1].toFixed(2)}</td><td></td><td class="${b[2]===best2?'best':''}">${b[2].toFixed(2)}</td><td></td></tr>`
-    ).join('');
-  }
-  function render(mode){
-    let html;
-    if(mode==='best'){
-      html = rowsHtml([...BOOKS].sort((a,b)=>b[1]-a[1]).slice(0,3), true);
-    } else if(mode==='avg'){
-      html = rowsHtml(BOOKS, true);
-    } else {
-      html = rowsHtml(BOOKS, false);
-    }
-    if(mode==='avg'){ /* строка AVERAGE — часть AVERAGE-вкладки, как в сканере */
-      html += `<tr><td><b>AVERAGE</b></td><td><b>${avg1.toFixed(2)}</b></td><td></td><td><b>${avg2.toFixed(2)}</b></td><td></td></tr>`;
-    }
-    tb.innerHTML = html;
-  }
-  document.querySelectorAll('#ab-mode button').forEach(b=>b.addEventListener('click',()=>{
-    document.querySelectorAll('#ab-mode button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); render(b.dataset.m);
-  }));
-  render('best');
-})();
-
-/* ЧАСТЬ 2 — живой калькулятор + подсветка легенды */
-(function live(){
-  const tEl=document.getElementById('p2-total'), o1El=document.getElementById('p2-o1'), o2El=document.getElementById('p2-o2');
-  const s1El=document.getElementById('p2-s1'), s2El=document.getElementById('p2-s2'), pEl=document.getElementById('p2-profit');
-  const warn=document.getElementById('p2-warn'), dEl=document.getElementById('p2-d');
-  function lit(id){ const e=document.getElementById(id); if(!e)return; e.classList.add('lit'); setTimeout(()=>e.classList.remove('lit'),1100); }
-  function recompute(){
-    const total=+tEl.value||0, o1=+o1El.value||2, o2=+o2El.value||2;
-    let s1=round(eqStake1(total,o1,o2),1), s2=round(total-s1,1);
-    s1El.textContent=s1.toFixed(0)+' €'; s2El.textContent=s2.toFixed(0)+' €';
-    const p1=profitOf(s1,o1,s1+s2), p2=profitOf(s2,o2,s1+s2);
-    pEl.textContent=(Math.min(p1,p2)>=0?'+':'')+Math.min(p1,p2).toFixed(1)+' €';
-    lit('lg-ep'); lit('lg-step');
-    const distortion=Math.abs(p1-p2), pct=(s1+s2)>0?distortion/(s1+s2)*100:0;
-    if(pct>3){ warn.classList.add('show'); dEl.textContent=distortion.toFixed(2)+' € ('+pct.toFixed(1)+'%)'; lit('lg-skew'); }
-    else warn.classList.remove('show');
-  }
-  [tEl,o1El,o2El].forEach(el=>el.addEventListener('input',recompute)); recompute();
-})();
-
-/* ЧАСТЬ 3 — плотный калькулятор */
-(function bout(){
-  const o1=2.05,o2=2.02;
-  const tEl=document.getElementById('p3-total'), s1El=document.getElementById('p3-s1'), s2El=document.getElementById('p3-s2');
-  const pEl=document.getElementById('p3-profit'), wEl=document.getElementById('p3-warn'), lk=document.getElementById('p3-lk');
-  let locked=false;
-  function recompute(fromS1){
-    let s1,s2,total;
-    if(locked){ s1=+s1El.value||0; s2=round(s1*o1/o2,1); s2El.value=s2.toFixed(0); total=s1+s2; }
-    else { total=+tEl.value||0; s1=round(eqStake1(total,o1,o2),1); s2=round(total-s1,1); s1El.value=s1.toFixed(0); s2El.value=s2.toFixed(0); }
-    const p1=profitOf(s1,o1,s1+s2), p2=profitOf(s2,o2,s1+s2);
-    pEl.textContent=(Math.min(p1,p2)>=0?'+':'')+Math.min(p1,p2).toFixed(1)+' €';
-    const pct=(s1+s2)>0?Math.abs(p1-p2)/(s1+s2)*100:0;
-    wEl.textContent = pct>3 ? ' · ⚠ перекос '+pct.toFixed(1)+'%' : '';
-  }
-  lk.addEventListener('click',()=>{ locked=!locked; lk.classList.toggle('on',locked); lk.textContent=locked?'✓ 1':'○ 1';
-    s1El.readOnly=!locked; s1El.classList.toggle('locked',locked); tEl.disabled=locked; recompute(); });
-  tEl.addEventListener('input',()=>recompute()); s1El.addEventListener('input',()=>{ if(locked) recompute(true); });
-  recompute();
+  document.getElementById("p3-pf1").addEventListener("click", function(){ bias = bias === 1 ? 0 : 1; render(); });
+  document.getElementById("p3-pf2").addEventListener("click", function(){ bias = bias === 2 ? 0 : 2; render(); });
+  document.getElementById("p3-copy1").addEventListener("click", function(){
+    toast.innerHTML = '<span class="toast">Скопировано:\nhttps://' + LEGS[1].bk + '\nЛейкерс — Селтикс — ' + LEGS[1].sel + "</span>";
+    setTimeout(function(){ toast.innerHTML = ""; }, 2400);
+  });
+  document.getElementById("p3-copy2").addEventListener("click", function(){
+    toast.innerHTML = '<span class="toast">Скопировано:\nhttps://' + LEGS[2].bk + '\nЛейкерс — Селтикс — ' + LEGS[2].sel + "</span>";
+    setTimeout(function(){ toast.innerHTML = ""; }, 2400);
+  });
+  tEl.addEventListener("input", function(){ render(); renderDrop(); });
+  var rwrap = document.getElementById("p3-round");
+  rwrap.querySelectorAll(".rbtn").forEach(function(b){ b.addEventListener("click", function(){
+    STEP = parseFloat(b.dataset.r); rwrap.querySelectorAll(".rbtn").forEach(function(x){ x.classList.remove("rbtn--on"); }); b.classList.add("rbtn--on"); render(); renderDrop();
+  }); });
+  ["p3-pl1", "p3-pl2"].forEach(function(id){ var el = document.getElementById(id); el.addEventListener("click", function(){
+    var on = el.classList.toggle("placed--on"); el.textContent = on ? "✓" : "○";
+    el.title = on ? "Нога отмечена поставленной — клик снимает пометку" : "Отметить ногу поставленной — ставка и кэф замораживаются";
+  }); });
+  wireGo({ go1: "p3-go1", go2: "p3-go2", both: "p3-both", toast: "p3-toast" });
+  render();
 })();
 </script>
 </body>
