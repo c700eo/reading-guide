@@ -3,386 +3,596 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Recovery — нога слетела (учебная глава, 3 части)</title>
+<title>Г7 · Recovery — нога слетела</title>
 <style>
-  /* Цвета/значения воссозданы из кода форка (R-3), координаты в r3-registry-g7.md:
-     токены темы + панель Recovery (триггер/заголовок) + ядро findAlternativeLegs
-     (break-even по эфф. кэфам, ранжир по надёжности, топ-3, предупреждения словами)
-     + коэффициенты надёжности и список быстро-режущих контор. */
   :root{
-    --bg:#fafafa; --panel:#ffffff; --surface2:#f4f4f5; --border:#e0e0e0; --border-subtle:#ebebeb;
-    --text:#1a1a1a; --text-secondary:#666666; --text-tertiary:#8a8a8a; --text-inverse:#ffffff;
-    --accent:#2563eb; --hl:rgba(37,99,235,.12);
-    --green:#1a8a2e;                                   /* index.css --color-accent-green */
-    --red:#cc2222;                                     /* index.css --color-accent-red */
-    --amber:#b8860b;
-    --surv-high:#16a34a; --surv-med:#ca8a04; --surv-low:#dc2626;   /* survival high/med/low (layer-1 product) — для risk-ribbon signature */
-    --info-bg:#e8f1fb; --info-border:#c8ddf0; --info-text:#1d4f7a;
-    --danger-bg:#fff0f0; --danger-border:#e88a8a; --danger-text:#991b1b;
-    --mono:ui-monospace,Menlo,monospace;
-    /* слой-2: каркас страницы и учебные плашки (раскатка полировки; семантика сканера выше — слой-1, значения не трогаются; --info-* главы — её собственные, оставлены как есть) */
-    --ink:#14161a;
-    --paper:#f7f7f5;
-    --hairline:#e7e7e4;
-    --note-bg:#fff8e6; --note-border:#f0d99a; --note-text:#6b5418;
-    --shadow-1:0 1px 2px rgba(20,22,26,.05);
-    --shadow-2:0 4px 16px rgba(20,22,26,.06);
+    /* каркас страницы — читательская рама учебника (единая для всех глав) */
+    --ink:#14161a; --paper:#f7f7f5; --hairline:#e7e7e4;
+    --panel:#ffffff; --surface2:#f4f4f5; --border:#e0e0e0;
+    --text:#1a1a1a; --text-secondary:#666; --text-tertiary:#8a8a8a;
+    --accent:#0a76ad; --hl:rgba(10,118,173,.08);
+    --green:#1a8a2e; --amber:#b45309; --amber-bg:#fff7ed; --amber-border:#e0b070;
+    --shadow-1:0 1px 2px rgba(20,22,26,.05); --shadow-2:0 4px 16px rgba(20,22,26,.06);
     --r-panel:12px; --r-block:8px;
     --font-display:"Avenir Next","Segoe UI",system-ui,sans-serif;
+    --mono:ui-monospace,Menlo,monospace;
+    /* survival-триада продукта — сквозной знак учебника */
+    --surv-high:#16a34a; --surv-med:#ca8a04; --surv-low:#dc2626;
+    /* ДЕМО — светлая палитра сканера (день; значения :root день из index.css) */
+    --t-bg:#f6f7f9; --t-row:#f8f8f8; --t-card:#ffffff; --t-border:#dde2ea;
+    --t-text:#1a1a1a; --t-dim:#4d5765;
+    --cyan:#0a76ad;
+    --t-amber:#f59e0b; --t-green:#19776c; --t-red:#c53a36;
+    /* смерть ноги — рама danger светлого скина */
+    --t-dead-bg:#fff0f0; --t-dead-border:#e88a8a; --t-dead-text:#991b1b;
   }
   *{box-sizing:border-box}
-  html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+  html{-webkit-font-smoothing:antialiased}
   body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--paper);color:var(--text);font-size:15px;line-height:1.6}
-  .wrap{max-width:760px;margin:0 auto;padding:28px 18px 80px}
-  h1{font-family:var(--font-display);font-size:28px;font-weight:700;letter-spacing:-0.01em;margin:0 0 6px;text-wrap:balance}
-  /* risk-ribbon (раскатка signature пилота, путь а): survival-триада — сквозной знак учебника; снимается удалением двух правил-маркеров ниже */
-  h1::after{content:"";display:block;width:120px;height:3px;margin-top:10px;border-radius:2px;background:linear-gradient(90deg,var(--surv-high) 0 33%,var(--surv-med) 33% 66%,var(--surv-low) 66% 100%)} /* risk-ribbon */
-  .part-head{border-image:linear-gradient(180deg,var(--surv-high),var(--surv-med),var(--surv-low)) 1} /* risk-ribbon echo */
-  h2{font-size:12px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--ink);margin:0 0 4px}
-  h3{font-family:var(--font-display);font-size:18px;font-weight:600;margin:0 0 4px;text-wrap:balance}
+  .wrap{max-width:860px;margin:0 auto;padding:28px 18px 80px}
+  h1{font-family:var(--font-display);font-size:28px;font-weight:700;letter-spacing:-0.01em;margin:0 0 4px;text-wrap:balance}
+  h1::after{content:"";display:block;width:120px;height:3px;margin-top:10px;border-radius:2px;background:linear-gradient(90deg,var(--surv-high) 0 33%,var(--surv-med) 33% 66%,var(--surv-low) 66% 100%)}
   .lead{color:var(--text-secondary);font-size:16px;margin:0 0 8px;text-wrap:pretty}
-  .border-note{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:9px 12px;font-size:13px;color:var(--text-secondary);margin:10px 0 0}
-  .border-note b{color:var(--text)}
-  .part{background:var(--panel);border:1px solid var(--hairline);border-radius:var(--r-panel);padding:20px 20px 22px;margin:18px 0;box-shadow:var(--shadow-1),var(--shadow-2)}
-  .part-head{border-left:3px solid var(--accent);padding-left:10px;margin-bottom:14px}
-  .part-head .step{font-size:12px;color:var(--text-secondary)}
-  .signal{border-top:1px solid var(--border);padding:16px 0 4px}
-  .signal:first-of-type{border-top:none;padding-top:4px}
-  .sig-why{color:var(--text-secondary);font-size:14px;margin:2px 0 10px;text-wrap:pretty}
-  .demo{background:var(--paper);border:1px solid var(--border);border-radius:var(--r-block);padding:12px;overflow-x:auto} /* mobile: клип колонки возраста — таблица скроллится, не режется краем экрана */
-  .demo-cap{font-size:11px;color:var(--text-secondary);margin:8px 2px 0}
-  .honest{background:var(--note-bg);border:1px solid var(--note-border);border-radius:var(--r-block);padding:8px 10px;font-size:12.5px;color:var(--note-text);margin-top:8px}
-  .honest b{color:var(--note-text)}
-  .btn-row{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
-  .ctl{font-size:12px;padding:4px 10px;border:1px solid var(--border);background:var(--panel);border-radius:5px;cursor:pointer;color:var(--text)}
-  .ctl:hover{border-color:var(--accent);color:var(--accent)}
-  code{font-family:var(--mono);font-size:12px;background:var(--surface2);padding:0 3px;border-radius:3px}
+  .lead b{color:var(--text)}
+  h2.part{font-family:var(--font-display);font-size:13px;letter-spacing:.02em;font-weight:700;color:var(--ink);margin:34px 0 6px;border-bottom:1px solid var(--hairline);padding-bottom:6px}
+  .part-sub{font-size:13px;color:var(--text-secondary);margin:0 0 14px}
+  .blk{background:var(--panel);border:1px solid var(--hairline);border-radius:var(--r-panel);box-shadow:var(--shadow-1);padding:16px 18px;margin:0 0 14px}
+  .blk h3{font-size:16px;margin:0 0 6px;font-weight:650}
+  .sig-why{font-size:13.5px;color:var(--text-secondary);margin:0 0 10px;text-wrap:pretty}
+  .sig-why b{color:var(--text)}
+  .demo{background:var(--t-bg);border-radius:var(--r-block);padding:14px;overflow-x:auto}
+  .demo,.demo *{font-family:var(--mono);font-size:12.5px;color:var(--t-text)}
+  .btn{display:inline-block;background:#ffffff;border:1px solid var(--t-border);border-radius:6px;color:var(--t-text);padding:5px 12px;cursor:pointer;user-select:none;font-size:12px}
+  .btn:hover{border-color:var(--cyan)}
+  .btn--on{border-color:var(--cyan);color:var(--cyan)}
+  .btn--ghost{background:transparent}
+  .btn:disabled{opacity:.45;cursor:not-allowed;border-color:var(--t-border)}
+  .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .note{margin:10px 0 0;font-size:12.5px;color:var(--text-secondary)}
+  details{margin:10px 0 0;font-size:13px;color:var(--text-secondary)}
+  details summary{cursor:pointer;color:var(--text);font-weight:600;font-size:13px}
+  details .body{margin-top:8px;line-height:1.6}
+  .honest{margin:12px 0 0;padding:9px 12px;border-left:3px solid var(--amber-border);background:var(--amber-bg);border-radius:0 var(--r-block) var(--r-block) 0;font-size:12.5px;color:var(--amber)}
+  .honest b{color:var(--amber)}
+  code{font-family:var(--mono);font-size:12px;background:var(--surface2);padding:0 4px;border-radius:3px;color:var(--text)}
+  .frame-note{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:10px 13px;font-size:13px;color:var(--text-secondary);margin:12px 0}
+  .frame-note b{color:var(--text)}
 
-  /* ── Поставленная нога 1 (контекст аварии) ── */
-  .leg1-box{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:9px 11px;margin-bottom:10px}
-  .leg1-box .tag{font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.04em}
-  .leg1-box .dead{color:var(--red)}
-  .leg1-line{font-family:var(--mono);font-size:12px;margin-top:3px}
+  /* ── мини-калькулятор: матрица пары (плечи колонками) ── */
+  .cmx{display:grid;grid-template-columns:64px 1fr 1fr;gap:5px 6px;background:transparent;border:0;overflow:visible;margin:4px 0 0;max-width:420px}
+  .cmx>div{background:var(--t-row2,#f4f4f5);border:1px solid var(--t-border);border-radius:6px;padding:6px 9px;position:relative}
+  .cmx>div.rh{background:transparent;border:0;padding:0;display:flex;align-items:center}
+  .cmx .rh{color:var(--t-dim);font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.4px}
+  .cmx .evt{grid-column:1/-1;background:var(--t-card);border-bottom:1px solid var(--t-border)}
+  .cmx .evt b{color:var(--t-text);font-weight:700}
+  .cmx .evt .sub{color:var(--t-dim);font-size:11px}
+  .cmx .live{color:var(--cyan);font-size:10px;border:1px solid var(--cyan);border-radius:3px;padding:0 4px;margin-left:6px}
+  .cmx .num{text-align:right;font-variant-numeric:tabular-nums} /* кэф/ставка прижаты вправо — как в живом калькуляторе (C3-12) */
+  .coverbadge{display:inline-flex;align-items:center;gap:4px;margin-top:5px;font-size:10px;font-weight:700;color:#0d6832;background:#e5f5eb;border-radius:3px;padding:1px 6px}
+  .alt-note{color:var(--t-dim);font-size:10px;white-space:nowrap} /* видимая подпись alt-строки: «тот же исход» (C3-14) */
+  .relink{color:var(--cyan);cursor:pointer;font-size:11px;margin-left:8px;white-space:nowrap}
+  .ord{display:inline-flex;padding:0 5px;height:15px;border-radius:7px;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;border:1px solid var(--t-border);color:var(--t-dim);margin-right:5px}
+  .ord--1{border-color:var(--cyan);color:var(--cyan)}
+  .legdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle}
+  .legdot--1{background:#16a34a} .legdot--2{background:#dc2626}  /* цвета ног = живой канон --leg-1/--leg-2 */
 
-  /* ── Recovery panel — вид панели и рендер одного варианта воссозданы из реального сканера (координаты в реестре) ── */
-  .rec{background:var(--panel);border:1px solid var(--danger-border);border-radius:8px;padding:11px}
-  .rec-header{font-size:12px;color:var(--danger-text);font-weight:600;margin-bottom:9px;line-height:1.4}
-  .rec-empty{font-size:12px;color:var(--text-tertiary);font-style:italic;padding:6px 0}
-  .rec-opt{border:1px solid var(--border);border-radius:7px;padding:8px 10px;margin-bottom:7px;background:var(--bg)}
-  .rec-opt:last-child{margin-bottom:0}
-  .rec-opt-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-  .rec-opt-num{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;font-family:var(--mono);font-size:10px;font-weight:700;border-radius:50%;background:var(--surface2);color:var(--text-secondary);flex-shrink:0}
-  .rec-opt-bk{font-size:12.5px;font-weight:600}
-  .rec-opt-selection{font-size:14px}  /* пиннинг демо: класс без явного размера наследовал body — фикс дрейфа 14→15 при бампе base */
-  /* бейдж надёжности: HIGHEST зелёный (sharp) — HIGH синий (биржа) — MEDIUM серый (обычная) */
-  .rel{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:1px 5px;border-radius:3px;margin-left:auto}
-  .rel--highest{background:rgba(26,138,46,.13);color:var(--green);border:1px solid rgba(26,138,46,.3)}
-  .rel--high{background:var(--info-bg);color:var(--info-text);border:1px solid var(--info-border)}
-  .rel--medium{background:var(--surface2);color:var(--text-secondary);border:1px solid var(--border)}
-  .rel-reason{font-size:11px;color:var(--text-tertiary);margin-top:2px}
-  .rec-opt-stake{font-family:var(--mono);font-size:12px;margin-top:5px}
-  .rec-opt-stake strong{font-size:13px}
-  .rec-pnl{display:flex;gap:14px;font-family:var(--mono);font-size:11px;margin-top:4px}
-  .pnl-pos{color:var(--green)} .pnl-neg{color:var(--red)} .pnl-zero{color:var(--text-secondary)}
-  .rec-risk{font-size:11.5px;color:var(--danger-text);background:var(--danger-bg);border:1px solid var(--danger-border);border-radius:5px;padding:4px 7px;margin-top:5px}
-  .rec-alts{font-size:11px;color:var(--text-secondary);margin-top:4px}
-  .rec-alts summary{cursor:pointer;color:var(--accent)}
-  .rec-prob{font-size:11px;color:var(--text-tertiary);margin-top:3px}
+  /* ── ячейка БК ноги: живая и мёртвая ── */
+  .bkcell{cursor:default}
+  .bkcell--live{cursor:pointer}
+  .bkcell .bkname{font-weight:600}
+  .bkcell .caret{opacity:.55;margin-left:4px}
+  .bkcell--dead{position:relative;background:var(--t-dead-bg);border:1px solid var(--t-dead-border);border-radius:5px}  /* якорь дропа — САМА ячейка БК (как .calc-cell-bk), не грид-обёртка */
+  .deadbadge{display:inline-flex;align-items:center;gap:4px;margin-top:5px;font-size:10px;font-weight:700;color:var(--t-dead-text);background:var(--t-dead-bg);border-radius:3px;padding:1px 6px}
+  .ic{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-1px}
 
-  /* Часть 2 — статичная подсвечиваемая легенда */
-  .part2-grid{display:grid;grid-template-columns:1fr;gap:16px;align-items:start} /* правка приёмки (вёрстка part2-grid): легенда ПОД таблицу (таблица на полную ширину, все 9 колонок видны) */
-  @media(max-width:640px){.part2-grid{grid-template-columns:1fr}}
-  .legend-static{font-size:12.5px;display:grid;grid-template-columns:1fr 1fr;gap:7px}
-  @media(max-width:560px){.legend-static{grid-template-columns:1fr}}
-  .legend-static .item{padding:7px 9px;border-radius:7px;border:1px solid var(--border);transition:background .25s,border-color .25s}
-  .legend-static .item.lit{background:var(--hl);border-color:var(--accent)}
-  .legend-static .item b{display:block;font-size:13px;margin-bottom:1px}
-  .legend-static .item span{color:var(--text-secondary)}
-  .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--text-secondary);margin-left:6px;vertical-align:middle;opacity:.25;transition:opacity .25s}
-  .item.lit .dot{opacity:1;background:var(--accent)}
-  .pace{font-size:11px;color:var(--text-secondary);margin:8px 2px 0}
+  /* ── голос системы ── */
+  .sysline{display:flex;align-items:center;gap:10px;max-width:420px;margin-top:8px;padding:5px 10px;background:#e8f1fb;border:1px solid var(--t-border);border-left:3px solid var(--cyan);border-radius:5px;font-size:11px;color:var(--t-dim)}
+  .sysline b{color:var(--cyan);font-weight:700;white-space:nowrap}
 
-  /* Часть 3 — плотный «как в бою» */
-  .dense .rec-opt{padding:5px 8px;margin-bottom:5px}
-  .dense .rec-opt-stake{margin-top:3px}
+  /* ── дроп перекрытий (тот же дроп, что смена конторы; режим recovery) ── */
+  .drop{background:var(--t-card);border:1px solid var(--t-border);border-radius:6px;min-width:250px;max-width:340px;margin-top:8px;overflow:hidden}
+  /* демо=реал (волна-3.1, скрин-13 партнёра): дроп — ОВЕРЛЕЙ ИЗ грид-ячейки БК мёртвой ноги
+     (leg-card.vue: .calc-swap-drop живёт в .calc-cell-bk; calculator.vue:2033-2050 — absolute,
+     top 100%+4px, z-index 100; нога 2 → right:0, раскрытие внутрь панели), НЕ блок в потоке */
+  .drop--cell{position:absolute;top:calc(100% + 4px);right:0;margin-top:0;z-index:100;width:max-content}
+  .drop-head{padding:7px 11px 5px;color:var(--t-dead-text);font-weight:700;font-size:10.5px;border-bottom:1px solid var(--t-border);line-height:1.4}
+  .drow{display:flex;align-items:center;gap:8px;width:100%;padding:7px 11px;background:transparent;border:0;border-bottom:1px solid var(--t-border);cursor:pointer;text-align:left;color:var(--t-text);font-family:var(--mono);font-size:12px}
+  button.drow:hover:not(:disabled){background:#efeff1}
+  .drow:disabled{opacity:.5;cursor:default}
+  .drow--static{cursor:default}
+  .drow-bk{flex:1 1 auto;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .relbadge{font-size:9px;font-weight:700;letter-spacing:.3px;color:var(--t-dim);background:#f4f4f5;border:1px solid var(--t-border);border-radius:3px;padding:1px 5px;flex-shrink:0}
+  .drow-odd{font-weight:600;font-variant-numeric:tabular-nums;width:42px;text-align:right;flex-shrink:0}
+  .drow-pnl{font-weight:700;font-variant-numeric:tabular-nums;width:64px;text-align:right;flex-shrink:0}
+  .pnl-pos{color:var(--t-green)} .pnl-neg{color:var(--t-red)}
+  .drow--alt{padding-left:20px;opacity:.9}
+  .altglyph{display:inline-flex;color:var(--t-dim);flex-shrink:0}
+  .drop-note,.drop-empty{padding:6px 11px 8px;color:var(--t-dim);font-size:10.5px;line-height:1.4}
+  .drop-empty{font-style:italic}
+  .rank-tag{display:inline-block;font-size:10px;color:var(--t-dim);margin-left:6px}
+
+  /* ── тост постановки ── */
+  .toast{display:inline-flex;align-items:center;gap:7px;margin-top:10px;background:#2c2c2c;border:1px solid var(--t-amber);color:var(--t-amber);border-radius:6px;padding:5px 11px;font-size:11.5px}
+  .toast--fail{border-color:#8a94a5;color:#c9ccd1}
+  .toast--ok{border-color:#2ea043;color:#5fd97e}
+
+  /* ── легенда Части 2 ── */
+  .legwrap{display:grid;grid-template-columns:1fr;gap:16px;margin-top:8px}
+  @media(min-width:720px){.legwrap{grid-template-columns:1.15fr .85fr}}
+  .legend{display:flex;flex-direction:column;gap:8px}
+  .legend .item{padding:8px 11px;border-radius:8px;border:1px solid var(--hairline);background:var(--panel);transition:background .25s,border-color .25s}
+  .legend .item.lit{background:var(--hl);border-color:var(--accent)}
+  .legend .item b{display:block;font-size:12.5px;margin-bottom:1px}
+  .legend .item span{color:var(--text-secondary);font-size:12px}
+  .legend .item .d{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--text-tertiary);opacity:.25;margin-left:5px;vertical-align:middle;transition:opacity .25s}
+  .legend .item.lit .d{opacity:1;background:var(--accent)}
+  .pace{font-size:11px;color:var(--text-secondary);margin:10px 2px 0}
+
+  /* ── три уровня контор (резервная) ── */
+  .tiers{display:grid;grid-template-columns:1fr;gap:8px;margin-top:6px}
+  @media(min-width:560px){.tiers{grid-template-columns:1fr 1fr 1fr}}
+  .tier{border:1px solid var(--hairline);border-radius:8px;padding:9px 11px;background:var(--panel);font-size:12.5px}
+  .tier b{display:block;margin-bottom:2px}
+  .tier span{color:var(--text-secondary);font-size:12px}
+  .tier--res{border-color:var(--accent);background:var(--hl)}
+  .dna{margin-top:12px;padding:11px 14px;border-left:3px solid var(--accent);background:var(--hl);border-radius:0 var(--r-block) var(--r-block) 0;font-size:13.5px;color:var(--text)}
+  .dna b{color:var(--accent)}
+  .dense .drow{padding:5px 10px}
+  .dense .cmx>div{padding:4px 8px}
 </style>
 </head>
 <body>
 <div class="wrap">
 
-  <h1>Recovery — нога слетела</h1>
-  <p class="lead">Решение, которое обслуживает эта функция: <b>«первую ногу я поставил, а вторая ушла, пока я перекрывал — деньги висят в одну сторону без перекрытия. Чем закрыть сейчас, чтобы потеря была минимальной?»</b>. Это момент паники. Сканер отвечает панелью <b>Recovery</b>: находит, чем перекрыть слетевший исход у других контор события, и выкладывает <b>три</b> лучших варианта — отсортированных так, чтобы перекрытие <b>наверняка прошло</b>.</p>
+<h1>Recovery — нога слетела</h1>
+<p class="lead">Момент паники: <b>первая нога стоит, вторая ушла, пока шло перекрытие — деньги висят в одну сторону без пары. Чем закрыть сейчас, чтобы потеря была минимальной?</b> Сканер не бросает с этим один на один. На мёртвой ноге он сам находит, чем перекрыть слетевший исход у других контор события, и раскладывает перекрытия так, чтобы лучшее — то, что <b>наверняка пройдёт</b>, — стояло первым.</p>
 
-  <div class="border-note"><b>Граница главы.</b> Здесь — что делать, <i>когда нога уже слетела</i>. <i>Сколько</i> ставить для равного профита (пока обе ноги живы) — это калькулятор, отдельная глава. <i>Как</i> пометить контору активной/резервной и что значат звезда/глаз/крестик — это «Мои конторы», тоже отдельная глава.</div>
+<div class="frame-note"><b>Где живёт recovery.</b> Recovery — это <b>режим того же дропа</b>, что открывает смену конторы: пока пара жива, ячейка БК меняет контору; умерла нога — та же ячейка краснеет и открывает перекрытия. Один постоянный орган, не аварийное окно.</div>
 
-  <!-- ============ ЧАСТЬ 1 — УЧЁБА ИЗОЛИРОВАННО ============ -->
-  <section class="part">
-    <div class="part-head">
-      <h2>Часть 1 · Учёба</h2>
-      <div class="step">Каждый элемент Recovery по отдельности. Под описанием — своё демо, где работает <i>только этот</i> элемент. Кнопки живые — жми.</div>
-    </div>
+<div class="frame-note"><b>Граница главы.</b> Здесь — что делать, <i>когда нога уже слетела</i>. <i>Сколько</i> ставить, пока обе ноги живы, — это калькулятор, отдельная глава. <i>Как</i> пометить контору активной или резервной (звезда, глаз, крест) — это «Мои конторы», тоже отдельная глава.</div>
 
-    <!-- ① Когда появляется панель -->
-    <div class="signal">
-      <h3>① Когда появляется — «вторая нога умерла»</h3>
-      <p class="sig-why">Панель Recovery не висит постоянно — она возникает <b>только в аварии</b>: пока обе ноги живы, её нет; она появляется в момент, когда первая нога уже стоит, а вторая стала непроставляемой (вызвать вручную — клавиша <b>R</b>). Заголовок сразу напоминает <b>реальную</b> позицию: сколько и по какому кэфу уже поставлено на ногу 1. Жми — из спокойного состояния пара «ломается» и появляется панель.</p>
-      <div class="demo">
-        <div id="d1-leg1"></div>
-        <div id="d1-panel"></div>
-        <div class="btn-row"><button class="ctl" id="d1-toggle">Сломать вторую ногу</button></div>
-      </div>
-      <div class="demo-cap">Пока обе ноги живы — панели нет. Нога 2 умерла → появляется Recovery с реальной позицией в заголовке.</div>
-      <details class="honest"><summary>Тонкость, которую легко упустить — от какого кэфа считается перекрытие</summary>Recovery считает от кэфа <b>реально поставленной</b> ноги 1 — замороженного снимка постановки, а <b>не</b> от живого кэфа уже мёртвой пары. Иначе перекрытие считалось бы на «фантомную» позицию, которой на руках нет.</details>
-    </div>
+<!-- ============ ЧАСТЬ 1 — УЧЁБА ИЗОЛИРОВАННО ============ -->
+<h2 class="part">Часть 1 · Учёба</h2>
+<p class="part-sub">Каждый элемент recovery по отдельности. Под описанием — своё демо, где работает только этот элемент. Кнопки живые.</p>
 
-    <!-- ② Ранжир по надёжности -->
-    <div class="signal">
-      <h3>② Три варианта, отсортированных по НАДЁЖНОСТИ</h3>
-      <p class="sig-why">Сканер перебирает вилки <b>того же события</b> в потоке и находит, чем перекрыть слетевший исход у <i>другой</i> конторы. Из найденного показывает <b>топ-3</b>, и порядок здесь — <b>не по прибыли</b>, а по надёжности конторы: <b>Sharp → Exchange → Regular</b>. Жми «Показать варианты» — наверху окажется не самый выгодный, а самый надёжный.</p>
-      <div class="demo">
-        <div id="d2-panel"></div>
-        <div class="btn-row"><button class="ctl" id="d2-show">Показать варианты</button><button class="ctl" id="d2-sort">Что было бы при сортировке по прибыли</button></div>
-      </div>
-      <div class="demo-cap">HIGHEST (sharp) стоит первым, даже если его денежный результат хуже. Regular с лучшим P&L — внизу.</div>
-      <details class="honest"><summary>Почему надёжность важнее копейки (это в коде, не лозунг)</summary>В аварии уже висит незакрытая позиция. Главное — чтобы перекрытие <b>прошло</b> и контора его приняла; sharp-контора стабильнее, обычная чаще режет/тормозит. Поэтому P&L — лишь тай-брейк <i>внутри</i> одного уровня надёжности («лучший P&L при выигрыше первой ноги»), а не главный критерий.</details>
-    </div>
+<!-- ① Вход -->
+<div class="blk">
+  <h3>① Вход — красная ячейка</h3>
+  <p class="sig-why">Пока пара жива, ячейка БК ноги открывает <b>смену конторы</b>. Как только нога умирает, эта же ячейка <b>краснеет</b> и получает бейдж <b>«нога мертва · N перекрытий»</b> — где N — сколько перекрытий показывает система (топ-3 лучших после отсечки — длина списка выхода). Ничего нового искать глазами не надо: авария появляется ровно там, где стоит мёртвая нога. Под матрицей одновременно зажигается полоса <b>голоса системы</b> со счётом перекрытий.</p>
+  <div class="demo">
+    <div id="d1-mx"></div>
+    <div id="d1-sys"></div>
+    <div class="btn-row"><button class="btn" id="d1-btn">Нога 2 слетела</button></div>
+  </div>
+  <p class="note">Пока пара жива — обычная ячейка со сменой конторы. Нога 2 умерла → ячейка краснеет, бейдж перекрытий, голос системы считает.</p>
+  <details><summary>Как сканер сообщает об аварии, кроме красной ячейки</summary><div class="body">Смерть ноги — не только визуальная. К ней привязаны <b>звук смерти ноги</b> и <b>push-категория «смерть ноги»</b> (обе настраиваются на Станции, в разделах «Звуки» и «Оповещения»). Это отдельный сигнал, глобальный, не зависящий от пресета: даже если взгляд не на калькуляторе — авария слышна.</div></details>
+  <details><summary>Как увидеть recovery в живом сканере прямо сейчас</summary><div class="body">В бою ногу «убивает» событие от расширения. Пока оно не подключено, смерть ноги включается вручную — тихим переключателем <b>«▸ sim»</b> внизу калькулятора (кнопка «нога 2 умерла»): до живых событий он свёрнут и не мешает.</div></details>
+</div>
 
-    <!-- ③ Сумма перекрытия и break-even -->
-    <div class="signal">
-      <h3>③ Сколько ставить — break-even по честному кэфу</h3>
-      <p class="sig-why">Для каждого варианта сканер считает сумму перекрытия так, чтобы на исходе слетевшей ноги результат был <b>ровно ноль</b>. Считает по <b>эффективному</b> кэфу — с учётом комиссии биржи, не по сырому (иначе биржа давала бы ложный «+0.00»). Второе число — что будет, <b>если выиграет первый исход</b>: тут возможен минус, потому что чистый арб уже распался. Жми — появятся обе суммы.</p>
-      <div class="demo">
-        <div id="d3-panel"></div>
-        <div class="btn-row"><button class="ctl" id="d3-show">Посчитать суммы</button></div>
-      </div>
-      <div class="demo-cap">«перекрыть €N» — сумма второй ноги. Ниже два исхода: на слетевшем — ноль (ровное перекрытие), на первом — реальный результат.</div>
-      <details class="honest"><summary>Что Recovery честно НЕ обещает</summary>Это спасение позиции, не гарантированный профит. Ровное перекрытие закрывает <b>один</b> исход в ноль; на другом результат зависит от того, насколько кэф уже ушёл, — нередко это небольшой минус. Задача Recovery — минимизировать потерю, а не «снова сделать вилку».</details>
-    </div>
+<!-- ② Дроп перекрытий -->
+<div class="blk">
+  <h3>② Клик по ячейке — тот же дроп, режим перекрытий</h3>
+  <p class="sig-why">Клик по красной ячейке раскрывает дроп. Каждое перекрытие — одна строка: <b>контора · класс надёжности · кэф · профит перекрытия</b>. Класс — нейтральная метка <code>SHARP</code> / <code>EXCH</code> / <code>REG</code> (тип конторы: острая (sharp) / биржа / обычная (soft)). Лучшее перекрытие — <b>первым</b>: порядок уже посчитан, наверху то, что надёжнее пройдёт. Сегодня все конторы живого потока — обычные (<code>REG</code>); порядок по классам заработает в полную силу с подключением острых контор и бирж. Если у того же исхода есть ещё конторы — они идут <b>вложенными строками</b> со связкой-стрелкой: «тот же исход в другой конторе» читается продолжением, не сиротой.</p>
+  <div class="demo">
+    <div id="d2-mx"></div>
+    <div class="btn-row"><button class="btn" id="d2-btn">Открыть перекрытия</button><button class="btn btn--ghost" id="d2-empty">Если перекрытий нет</button></div>
+  </div>
+  <p class="note">Строка = контора · SHARP/EXCH/REG · кэф · профит. Наверху — лучшее по надёжности. Вложенная строка со стрелкой — тот же исход у запасной конторы. Если перекрытий в потоке нет — дроп не молчит, а подсказывает выход: расширить фильтры или дождаться следующего тика.</p>
+</div>
 
-    <!-- ④ Обогащение -->
-    <div class="signal">
-      <h3>④ Что ещё подсказывает каждый вариант</h3>
-      <p class="sig-why">Под каждой опцией — три подсказки из данных: <b>оценка вероятности</b>, что перекрытие выиграет, прибитая надёжностью конторы; <b>запасные конторы</b> на тот же исход (топ-2), если основная не сработает; и <b>предупреждение словами</b>, где вариант приводит к потере, плюс отметка, если контора из тех, что быстро режут лимиты. Раскрой «запасные» и посмотри предупреждение.</p>
-      <div class="demo">
-        <div id="d4-panel"></div>
-      </div>
-      <div class="demo-cap">⚠️ красным — где вариант теряет и почему. «Вероятность» — оценка с поправкой на тип конторы. «Запасные» — другие конторы того же исхода.</div>
-      <details class="honest"><summary>Честно про «вероятность» — это пока эвристика, не модель</summary>Коэффициенты надёжности (Sharp 0.95 / Exchange 0.92 / Regular 0.85) — это пока <b>набросок-эвристика</b>, не точная модель. Настоящая модель выживаемости строится на 31&nbsp;млн ставок бота в Tipsters. Поэтому «вероятность» — ориентир, а не гарантия; в коде это помечено прямо.</details>
-    </div>
-  </section>
+<!-- ③ Ранжир -->
+<div class="blk">
+  <h3>③ Порядок — по надёжности, не по деньгам</h3>
+  <p class="sig-why">Порядок строк — <b>не по прибыли</b>. Сверху вниз: <b>острые конторы → биржи → обычные</b> (SHARP → EXCH → REG). В аварии уже висит незакрытая позиция; главное — чтобы перекрытие <b>прошло</b> и контора его приняла. Острая контора стабильнее; обычная чаще режет или тормозит ставку — и именно в тот момент, когда так делать нельзя. Поэтому деньги — лишь тай-брейк <i>внутри</i> одного класса. Ниже — тот же набор в двух порядках: как раскладывает сканер и как было бы «по деньгам».</p>
+  <div class="demo">
+    <div id="d3-drop"></div>
+    <div class="btn-row"><button class="btn btn--on" id="d3-rel">Как в сканере (надёжность)</button><button class="btn btn--ghost" id="d3-prof">Если бы по деньгам</button></div>
+  </div>
+  <p class="note">По надёжности наверху острая контора, даже когда её деньги хуже. «По деньгам» подняло бы обычную контору с быстрым срезом лимита — и перекрытие могло бы не пройти.</p>
+  <details><summary>Тонкость: почему верхняя строка может показывать минус, а нижняя плюс</summary><div class="body">Это норма, а не ошибка. Перекрытие спасает позицию, а не делает новую вилку. Надёжная контора нередко даёт чуть меньший кэф — значит, чуть меньший результат, вплоть до небольшого минуса, если сыграет живая нога. Обычная контора может показать цифру красивее, но именно она рискует отклонить ставку. Небольшой минус, который <b>точно исполнится</b>, лучше красивого плюса, который могут не принять — оставив позицию открытой на всю сумму.</div></details>
+</div>
 
-  <!-- ============ ЧАСТЬ 2 — В ЖИВОМ СКАНЕРЕ ============ -->
-  <section class="part">
-    <div class="part-head">
-      <h2>Часть 2 · В живом сканере</h2>
-      <div class="step">Как это в работе: пара живёт, кэфы дёргаются — и вдруг вторая нога умирает. Следи, как появляется панель, а легенда справа подсвечивает, на что смотреть в первую очередь.</div>
-    </div>
-    <div class="part2-grid">
-      <div class="demo">
-        <div id="p2-leg1"></div>
-        <div id="p2-panel"></div>
-        <div class="btn-row"><button class="ctl" id="p2-break">Нога 2 слетела</button><button class="ctl" id="p2-reset">Сброс</button></div>
-      </div>
-      <div class="legend-static">
-        <div class="item" id="lg-trigger"><b>Авария <span class="dot"></span></b><span>нога 2 умерла → панель появилась</span></div>
-        <div class="item" id="lg-rank"><b>Сначала надёжность <span class="dot"></span></b><span>наверху sharp/exchange, не лучший P&L</span></div>
-        <div class="item" id="lg-be"><b>Break-even <span class="dot"></span></b><span>сумма перекрытия → ноль на слетевшем исходе</span></div>
-        <div class="item" id="lg-risk"><b>Предупреждение <span class="dot"></span></b><span>где вариант теряет и какая контора режет лимит</span></div>
-      </div>
-    </div>
-    <div class="pace">Поток замедлен для учёбы. В реальном сканере панель появляется в момент аварии, и решать надо за секунды — поэтому варианты уже отсортированы заранее.</div>
-  </section>
+<!-- ④ Break-even -->
+<div class="blk">
+  <h3>④ Сколько ставить — break-even по честному кэфу</h3>
+  <p class="sig-why">Сумму перекрытия сканер считает так, чтобы на слетевшем исходе выйти <b>ровно в ноль</b>: перекрытие держит эту сторону, потеря по ней не растёт. Считает по <b>эффективному</b> кэфу — с вычетом комиссии биржи, не по сырому. Число справа в строке — это второй исход: что будет, <b>если сыграет живая нога</b>. Тут возможен и плюс, и минус — чистая вилка уже распалась, задача recovery минимизировать потерю.</p>
+  <div class="demo">
+    <div id="d4-drop"></div>
+    <div id="d4-explain"></div>
+  </div>
+  <p class="note">Сумма перекрытия подогнана под ноль на слетевшей стороне. Показанный профит — исход «сыграла живая нога».</p>
+  <details><summary>Что recovery честно НЕ обещает</summary><div class="body">Это спасение позиции, не гарантированный профит. Ровное перекрытие закрывает <b>один</b> исход в ноль; на другом результат зависит от того, насколько кэф уже ушёл — нередко это небольшой минус. Recovery минимизирует потерю, а не «снова делает вилку».</div></details>
+</div>
 
-  <!-- ============ ЧАСТЬ 3 — КАК В БОЮ ============ -->
-  <section class="part">
-    <div class="part-head">
-      <h2>Часть 3 · Как в бою</h2>
-      <div class="step">Плотная панель Recovery без подсказок и легенд — так она выглядит в работе, когда нога слетела и решать надо быстро.</div>
-    </div>
-    <div class="demo dense">
-      <div id="p3-leg1"></div>
-      <div id="p3-panel"></div>
-    </div>
-  </section>
+<!-- ⑤ Постановка -->
+<div class="blk">
+  <h3>⑤ Клик по строке — купон тем же каналом, что «GO»</h3>
+  <p class="sig-why">Строка перекрытия — не просто картинка. Клик по ней ставит перекрытие <b>тем же каналом</b>, что кнопка «GO» в калькуляторе: расширение кладёт исход в купон конторы, ставку человек подтверждает в самой конторе. Если канал недоступен — приходит <b>честный тост-отказ</b>, а не тихая пустота. Пока купон кладётся, строки <b>заблокированы от повторного клика</b>: одно перекрытие не уйдёт дважды.</p>
+  <div class="demo">
+    <div id="d5-drop"></div>
+    <div id="d5-toast"></div>
+    <div class="btn-row"><button class="btn btn--on" id="d5-ok">Канал в норме</button><button class="btn btn--ghost" id="d5-fail">Если канал упал</button><button class="btn btn--ghost" id="d5-reset">Сброс</button></div>
+  </div>
+  <p class="note">Клик по строке = положить купон. Канал в норме → купон лёг, подтвердить в конторе. Канал упал → честный тост-отказ, не пустота. Пока кладётся — строки блокируются.</p>
+  <p class="honest"><b>Ограничение сейчас:</b> живая постановка работает только через установленное расширение сканера. Пока оно не подключено, купон в контору не уходит — в демо показан принцип и текст отказа канала.</p>
+</div>
 
-  <details class="honest" style="margin-top:18px">
-    <summary>Честно про границы: клик, «свои конторы», демо</summary>
-    <b>Про клик:</b> варианты в панели сейчас <b>показываются, но не кликабельны</b> — перекрытие по варианту ставится руками, как обычная нога. Опции станут кликабельными позже.
-    <br><br>
-    <b>Про «свои конторы»:</b> Recovery перебирает конторы события <b>из текущего потока</b> — отдельного фильтра «только там, где есть депозит» в самом механизме нет. Поэтому держать резервные конторы с депозитом наготове — задача настройки контор (в «Моих конторах»). Принцип DNA: €20 за депозит на резервную контору лучше, чем €500 потери на зависшей ноге — но это про настройку контор, не про сам Recovery.
-    <br><br>
-    <b>Про демо:</b> здесь показан <b>принцип</b> расчёта на синтетических данных. Реальная панель работает на живом потоке вилок события; цифры и логика тут воспроизводят код, а не берут живой поток.
-  </details>
+<!-- Наука -->
+<h2 class="part">Наука recovery</h2>
+<p class="part-sub">Три вещи, которые стоит понимать под капотом.</p>
+
+<div class="blk">
+  <details open><summary>Формула break-even — откуда берётся сумма перекрытия</summary><div class="body">
+    Ставка перекрытия = <b>ставка живой ноги ÷ (эффективный кэф перекрытия − 1)</b>. Такая сумма отдаёт на слетевшем исходе ровно вложенное — то есть ноль сверх позиции.<br><br>
+    <b>Эффективный кэф</b> = сырой кэф, поправленный на комиссию биржи: <code>1 + (кэф − 1) × (1 − комиссия)</code>; у обычной конторы комиссии нет, эффективный равен сырому. Почему не по сырому: у биржи сырой расчёт показал бы ложный «+0.00» на перекрытом исходе, а комиссия тихо съедала бы процент от ставки. Весь остальной калькулятор комиссию учитывает — recovery приведён к тому же честному кэфу.
+  </div></details>
+  <details><summary>Логика порядка: острые → биржи → обычные</summary><div class="body">
+    Каждой конторе присвоен класс надёжности. Сортировка сначала по классу (острые выше бирж, биржи выше обычных), и только <i>внутри</i> одного класса — по деньгам (лучший профит, если сыграет живая нога). Смысл в природе аварии: позиция уже открыта в одну сторону, и цена ошибки — не «недобрал копейку», а «перекрытие не приняли, и вся сумма висит голой». Острые конторы этот риск несут меньше всего. Обычные с быстрым срезом лимитов — больше всего, поэтому такая строка ещё и помечена предупреждением (видно при наведении на неё).
+  </div></details>
+  <details><summary>Когда брать первый вариант, а когда второй или третий</summary><div class="body">
+    <b>Первый</b> (самый надёжный) — выбор по умолчанию, когда важна уверенность, что перекрытие исполнится: в аварии это почти всегда так.<br>
+    <b>Второй / третий</b> — если разница в деньгах существенная <i>и</i> есть доверие к конкретной конторе, что она примет ставку. Внутри одного класса надёжности строки и так отсортированы по лучшему результату, так что «второй» осмыслен прежде всего когда он другого, менее надёжного класса — сознательный размен надёжности на деньги.
+  </div></details>
+</div>
+
+<!-- Резервная контора -->
+<h2 class="part">Резервная контора — глаз, который видит recovery</h2>
+<p class="part-sub">Recovery ищет перекрытие среди контор, которые держат в игре. И здесь у сканера есть тихий козырь.</p>
+<div class="blk">
+  <p class="sig-why">В «Моих конторах» у каждой конторы три уровня. Резервная — особый: её вилки <b>не показываются в ленте</b> (не засоряют поток), но она <b>остаётся в расчёте</b> — и recovery её <b>видит</b>. Это ровно та контора, о которой в спокойное время не думают, а в аварии она спасает.</p>
+  <div class="tiers">
+    <div class="tier"><b>Активная</b><span>в ленте и в расчёте — рабочая контора на каждый день</span></div>
+    <div class="tier tier--res"><b>Резервная <svg class="ic" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></b><span>вне ленты, но в расчёте — recovery ищет перекрытие и среди резервных</span></div>
+    <div class="tier"><b>Выключенная</b><span>ни в ленте, ни в расчёте — контора не участвует</span></div>
+  </div>
+  <div class="dna">Резервная контора — это счёт с дорогим аккаунтом или сложным депозитом, который держат на крайний случай. В панике о нём не вспомнить — система вспомнит. <b>Двадцать евро за депозит на резервную контору лучше пятисот потери.</b></div>
+  <p class="note">Как пометить контору резервной (глаз в БК-узле) — в главе «Мои конторы».</p>
+</div>
+
+<!-- Политика фокуса -->
+<div class="blk">
+  <h3>Политика фокуса — держать мёртвую вилку под рукой</h3>
+  <p class="sig-why">Когда вилка исчезает из потока, калькулятор может либо <b>держать деталь</b> — остаться на умершей вилке с баннером «вилка ушла из потока — данные на момент смерти», чтобы recovery-флоу был под рукой (это поведение по умолчанию), либо <b>выбрать верхнюю</b> — перескочить на лучшую живую вилку. Ручка — на Станции, в разделе «Выдача». По умолчанию калькулятор держит умершую: перекрытие важнее, чем сразу листать дальше.</p>
+</div>
+
+<!-- ============ ЧАСТЬ 2 — В ЖИВОМ СКАНЕРЕ ============ -->
+<h2 class="part">Часть 2 · В живом сканере</h2>
+<p class="part-sub">Как это в работе: жми <b>«Нога 2 слетела»</b> — ячейка краснеет и раскрываются перекрытия. Дальше главное: <b>кликни строку перекрытия — контора встанет в ногу</b>, слетевший исход закроется в ноль, матрица обновится. «Сброс» возвращает живую пару. Легенда справа подсвечивает, на что смотреть по порядку.</p>
+<div class="legwrap">
+  <div class="demo">
+    <div id="p2-mx"></div>
+    <div id="p2-sys"></div>
+    <div id="p2-drop"></div>
+    <div class="btn-row"><button class="btn" id="p2-break">Нога 2 слетела</button><button class="btn btn--ghost" id="p2-reset">Сброс</button></div>
+  </div>
+  <div class="legend">
+    <div class="item" id="lg-crash"><b>Авария <span class="d"></span></b><span>ячейка ноги 2 краснеет, бейдж «нога мертва · N перекрытий»</span></div>
+    <div class="item" id="lg-rank"><b>Сначала надёжность <span class="d"></span></b><span>наверху SHARP/EXCH, не лучший профит</span></div>
+    <div class="item" id="lg-be"><b>Break-even <span class="d"></span></b><span>перекрытие держит слетевший исход в ноль; число справа — если сыграет живая нога</span></div>
+    <div class="item" id="lg-go"><b>Постановка <span class="d"></span></b><span>строку ставят кликом — тем же каналом, что «GO» (кликается живьём в блоке ⑤)</span></div>
+  </div>
+</div>
+<p class="pace">Поток замедлен для учёбы. В реальном сканере авария появляется мгновенно, и решать надо за секунды — потому перекрытия отсортированы заранее.</p>
+
+<!-- ============ ЧАСТЬ 3 — КАК В БОЮ ============ -->
+<h2 class="part">Часть 3 · Как в бою</h2>
+<p class="part-sub">Плотно, без подсказок: красная ячейка и раскрытый дроп перекрытий — так это выглядит в работе, когда нога слетела и решать надо быстро. Дроп живой: клик по строке ставит перекрытие, как по GO.</p>
+<div class="demo dense">
+  <div id="p3-mx"></div>
+  <div id="p3-sys"></div>
+  <div id="p3-drop"></div>
+</div>
 
 </div>
 
 <script>
 /* ============================================================
-   Recovery — движок учебной главы.
-   Формулы/значения — из кода форка (R-3), см. r3-registry-g7.md:
-     эфф. кэф:      commission>0 ? 1+(odds-1)*(1-commission) : odds   [arbs.ts effectiveOdds]
-     altStake:      leg1Stake/(effAltOdds-1)                          [interpretation.ts:326]
-     outcome1Pnl:   leg1Stake*(effOdds1-1) - altStake                 [:327]
-     outcome2Pnl:   altStake*(effAltOdds-1) - leg1Stake  (≡0)         [:328,430-434]
-     надёжность:    Sharp HIGHEST/0.95, Exchange HIGH/0.92, иначе MEDIUM/0.85  [:330-345; survival-config.ts:12-16]
-     сортировка:    reliabilityRank первично, тай-брейк outcome1Pnl DESC, slice(0,3)  [:424-438]
-     impliedProb:   baseProb*reliabilityFactor, baseProb=(1/altOdds)/((1/altOdds)+(1/odds1))  [:352-353]
-     riskExpl:      outcome1Pnl<-0.01 → «Если выиграет {sel1} — потеряем €{loss}»; fast-fix warning  [:391-407]
-     fast-fix:      bet365.com, Betsson, BetSafe  [survival-config.ts:44]
-   Опции НЕ кликабельны (как в коде, #27 — баг отложен). Math.random не используется.
+   Recovery — движок учебной главы. Формулы/вид воссозданы из кода форка (R-3);
+   координаты file:line — в r3-registry-g7.md (в видимом тексте их нет).
+     эфф. кэф:   commission>0 ? 1+(odds-1)*(1-commission) : odds   [arbs.ts:231; EXCHANGE_COMMISSION :205-210]
+     altStake:   leg1Stake/(effAltOdds-1)                          [interpretation.ts:326]
+     outcome1:   leg1Stake*(effOdds1-1) - altStake                 [:327]  (сыграла живая нога)
+     outcome2:   altStake*(effAltOdds-1) - leg1Stake  (≡0)         [:328]  (перекрытый исход — break-even)
+     класс:      Sharp HIGHEST / Exchange HIGH / иначе MEDIUM      [:330-345]; факторы survival-config.ts:12-16
+     порядок:    reliabilityRank primary, тай-брейк outcome1 DESC, slice(0,3)  [:424-438]
+     метка:      HIGHEST->SHARP / HIGH->EXCH / MEDIUM->REG (нейтральная)        [leg-card.vue:141-143]
+     профит:     «+X.XX €» / «−X.XX €» (U+2212) / «0 €»                          [leg-card.vue:149-157]
+   Демо-конторы (Pinnacle/Betfair/Betsson) — канонические примеры классов; в живом
+   потоке классы взведутся с подключением острых/бирж (arbs.ts:202). Math.random не используется.
    ============================================================ */
+(function(){
+  "use strict";
+  var RELIABILITY = { SHARP:0.95, EXCHANGE:0.92, REGULAR:0.85 };  // survival-config.ts:12-16
+  var SHARP_BKS = ['pinnacle.com'];                                // arbs.ts:175 (в коде бренд «Pinnacle» — вне эфира; демо показывает домен-вид витрины)
+  var EXCHANGE_COMM = { 'betfair exchange':0.02, 'smarkets':0.02, 'matchbook':0.015 }; // arbs.ts:205-210 (биржи в потоке идут брендом)
+  var FAST_FIX = ['bet365.com','betsson','betsafe'];               // survival-config.ts:44 (смешанный: живой домен + бренды вне эфира)
 
-const RELIABILITY = { SHARP:0.95, EXCHANGE:0.92, REGULAR:0.85 };   // survival-config.ts:12-16
-const FAST_FIX = ['bet365.com','Betsson','BetSafe'];               // survival-config.ts:44
-const SHARP_BKS = ['pinnacle'];                                     // sharp-кластер (демо)
-const EXCHANGE_BKS = ['betfair'];                                   // биржа (демо)
+  function effOdds(odds, bk){ var c = EXCHANGE_COMM[bk.toLowerCase()] || 0; return c > 0 ? 1 + (odds - 1) * (1 - c) : odds; }
+  function isSharp(bk){ return SHARP_BKS.indexOf(bk.toLowerCase()) >= 0; }
+  function isExchange(bk){ return EXCHANGE_COMM[bk.toLowerCase()] !== undefined; }
+  function isFastFix(bk){ return FAST_FIX.indexOf(bk.toLowerCase()) >= 0; }
+  function relLabel(r){ return r === 'HIGHEST' ? 'SHARP' : r === 'HIGH' ? 'EXCH' : 'REG'; }
+  function fmtPnl(v){ if (v > 0.005) return '+' + v.toFixed(2) + ' €'; if (v < -0.005) return '−' + Math.abs(v).toFixed(2) + ' €'; return '0 €'; }
+  function pnlClass(v){ return v >= -0.005 ? 'pnl-pos' : 'pnl-neg'; }
+  function esc(s){ return String(s).replace(/[&<>]/g, function(c){ return { '&':'&amp;','<':'&lt;','>':'&gt;' }[c]; }); }
 
-function effOdds(odds, commission){ return commission > 0 ? 1 + (odds - 1) * (1 - commission) : odds; }
-function isSharp(bk){ return SHARP_BKS.includes(bk); }
-function isExchange(bk){ return EXCHANGE_BKS.includes(bk); }
-function isFastFix(bk){ return FAST_FIX.includes(bk); }
+  // Реплика findAlternativeLegs (interpretation.ts:274-438) на слетевший исход.
+  function findAlternatives(leg1Stake, odds1Placed, leg1Bk, sel1, deadSel, candidates){
+    if (leg1Stake <= 0) return [];
+    var effO1 = effOdds(odds1Placed, leg1Bk);            // нога 1 — по её конторе (обычная → сырой)
+    var out = [];
+    candidates.forEach(function(c){
+      var effAlt = effOdds(c.odds, c.bk);
+      if (effAlt <= 1) return;
+      var altStake = leg1Stake / (effAlt - 1);           // :326
+      var outcome1Pnl = leg1Stake * (effO1 - 1) - altStake;  // :327
+      var outcome2Pnl = altStake * (effAlt - 1) - leg1Stake; // :328 (≡0)
+      var reliability, reason;
+      if (isSharp(c.bk)) { reliability = 'HIGHEST'; reason = 'Sharp БК ' + c.bk; }
+      else if (isExchange(c.bk)) { reliability = 'HIGH'; reason = 'Exchange ' + c.bk; }
+      else { reliability = 'MEDIUM'; reason = 'Regular BK ' + c.bk; }
+      var risk = null;                                    // :391-407
+      if (outcome1Pnl < -0.01) {
+        risk = 'Если выиграет ' + sel1 + ' — потеряем €' + Math.abs(outcome1Pnl).toFixed(2);
+        if (isFastFix(c.bk)) risk += '. Также: ' + c.bk + ' — БК с быстрым fix лимитов.';
+      } else if (isFastFix(c.bk)) {
+        risk = 'Риск: ' + c.bk + ' — БК с быстрым fix, может зарезать лимит до placement.';
+      }
+      out.push({ bk:c.bk, odds:c.odds, sel:deadSel, altStake:altStake, outcome1Pnl:outcome1Pnl, outcome2Pnl:outcome2Pnl, reliability:reliability, reason:reason, alts:c.alts || [], risk:risk });
+    });
+    var rank = { HIGHEST:0, HIGH:1, MEDIUM:2 };            // :424
+    out.sort(function(a,b){ var r = rank[a.reliability] - rank[b.reliability]; return r !== 0 ? r : b.outcome1Pnl - a.outcome1Pnl; }); // :425-435
+    return out.slice(0, 3);                               // :438
+  }
 
-// Точная реплика findAlternativeLegs для слетевшего исхода selection1Dead (interpretation.ts:274-438).
-// deadLeg1: {stake, odds1Placed, sel1}  — реально поставленная нога 1.
-// candidates: [{bk, odds, commission, sel}]  — альтернативы перекрыть мёртвый исход.
-function findAlternatives(deadLeg1, candidates){
-  const effOdds1 = effOdds(deadLeg1.odds1Placed, 0);             // нога 1 — soft БК, комиссии нет
-  const out = [];
-  for (const c of candidates){
-    const effAlt = effOdds(c.odds, c.commission);
-    if (effAlt <= 1) continue;
-    const altStake = deadLeg1.stake / (effAlt - 1);              // :326
-    const outcome1Pnl = deadLeg1.stake * (effOdds1 - 1) - altStake;  // :327
-    const outcome2Pnl = altStake * (effAlt - 1) - deadLeg1.stake;    // :328 (≡0)
-    // reliabilityReason — РЕАЛЬНОЕ поле кода (interpretation.ts:335,339,343),
-    // рендерится в calc-recovery-option-reliability-reason (calculator-pair-tracking.vue:209-211).
-    let reliability, factor, reliabilityReason;
-    if (isSharp(c.bk)){ reliability='HIGHEST'; factor=RELIABILITY.SHARP; reliabilityReason='Sharp БК '+c.bk; }
-    else if (isExchange(c.bk)){ reliability='HIGH'; factor=RELIABILITY.EXCHANGE; reliabilityReason='Exchange '+c.bk; }
-    else { reliability='MEDIUM'; factor=RELIABILITY.REGULAR; reliabilityReason='Regular BK '+c.bk; }
-    const baseProb = (1/c.odds) / ((1/c.odds) + (1/deadLeg1.odds1Placed));   // :352
-    const impliedProbability = baseProb * factor;                           // :353
-    let risk = null;                                                        // :391-407
-    if (outcome1Pnl < -0.01){
-      risk = `Если выиграет ${deadLeg1.sel1} — потеряем €${Math.abs(outcome1Pnl).toFixed(2)}`;
-      if (isFastFix(c.bk)) risk += `. Также: ${c.bk} — БК с быстрым fix лимитов.`;
-    } else if (isFastFix(c.bk)){
-      risk = `Риск: ${c.bk} — БК с быстрым fix, может зарезать лимит до постановки.`;
+  // ── Синтетический сценарий аварии (реальные числа считает формула выше) ──
+  var LEG1 = { bk:'bet365.com', stake:500, odds:1.95, sel:'Over (2.5)' };  // живая, поставленная нога
+  var DEAD_SEL = 'Under (2.5)';                                      // слетевший исход (перекрываем его)
+  var CANDS = [
+    { bk:'pinnacle.com', odds:2.04, sel:DEAD_SEL, alts:[{ bk:'betonline.ag', odds:2.01 }] },  // острая → SHARP
+    { bk:'Betfair Exchange', odds:2.10, sel:DEAD_SEL, alts:[] },                        // биржа 2% → EXCH (бренд — как в потоке)
+    { bk:'Betsson',  odds:2.09, sel:DEAD_SEL, alts:[] }                                 // обычная fast-fix → REG
+  ];
+  var RESULT = findAlternatives(LEG1.stake, LEG1.odds, LEG1.bk, LEG1.sel, DEAD_SEL, CANDS);
+  var HEADER = '\u26a0 Leg 2 dead \u00b7 перекрыть ' + LEG1.stake + ' EUR \u00b7 ' + LEG1.bk + ' @ ' + LEG1.odds.toFixed(2) + ' \u2192 ' + LEG1.sel;  // дословно recoveryHeaderText calculator.vue:1220-1221 (англицизм кода — кандидат докрутки, демо=реал)
+
+  var SKULL = '<svg class="ic" viewBox="0 0 24 24"><path d="M7.9 2h8.2L22 7.9v8.2L16.1 22H7.9L2 16.1V7.9L7.9 2z"/><path d="M15 9l-6 6M9 9l6 6"/></svg>';
+  var CARET = '<svg class="ic" viewBox="0 0 24 24" style="width:9px;height:9px"><path d="M6 9l6 6 6-6"/></svg>';
+  var GLYPH = '<svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 4v7a4 4 0 0 0 4 4h12"/><path d="M15 10l5 5-5 5"/></svg>';
+
+  // ── Матрица пары; dead=true красит ячейку ноги 2 и вешает бейдж.
+  //    dropInner — HTML дропа, вложенный В грид-ячейку БК ноги 2 (демо=реал: оверлей из ячейки) ──
+  var LEG2_BK = 'vbet.co.uk';  // контора мёртвой ноги (в потоке; перекрытия ищутся у ДРУГИХ контор)
+  // cover = {bk, odds, stake}: перекрытие поставлено — нога 2 закрыта новой конторой (клик по строке дропа, C3-15)
+  function matrixHtml(dead, dropInner, cover){
+    var n = RESULT.length;
+    var bk2;
+    if (cover){
+      bk2 = '<div class="bkcell"><span class="ord">2-я</span><span class="legdot legdot--2"></span><span class="bkname">' + esc(cover.bk) + '</span>'
+        + '<div class="coverbadge">перекрытие встало · исход закрыт в ноль</div></div>';
+    } else if (dead){
+      bk2 = '<div class="bkcell bkcell--dead"><span class="ord">2-я</span><span class="legdot legdot--2"></span><span class="bkname">' + LEG2_BK + '</span>' + CARET
+        + '<div class="deadbadge">' + SKULL + 'нога мертва · ' + n + ' перекрытий</div>' + (dropInner || '') + '</div>';
+    } else {
+      bk2 = '<div class="bkcell"><span class="ord">2-я</span><span class="legdot legdot--2"></span><span class="bkname">' + LEG2_BK + '</span>' + CARET + '</div>';
     }
-    out.push({ bk:c.bk, odds:c.odds, sel:c.sel, altStake, outcome1Pnl, outcome2Pnl,
-               reliability, reliabilityReason, impliedProbability, alts:c.alts||[], risk });
+    var o2 = cover ? cover.odds.toFixed(2) : (dead ? '—' : '2.06');
+    var s2 = cover ? cover.stake.toFixed(0) + ' €' : (dead ? '—' : '473 €');
+    return '<div class="cmx">'
+      + '<div class="evt"><b>Реал — Барса</b> <span class="live">LIVE</span><div class="sub">футбол · тотал 2.5</div></div>'
+      + '<div class="rh">БК</div>'
+      + '<div class="bkcell"><span class="ord ord--1">1-я</span><span class="legdot legdot--1"></span><span class="bkname">' + esc(LEG1.bk) + '</span></div>'
+      + '<div>' + bk2 + '</div>'
+      + '<div class="rh">Кэф</div><div class="num">' + LEG1.odds.toFixed(2) + '</div><div class="num">' + o2 + '</div>'
+      + '<div class="rh">Ставка</div><div class="num">500 €</div><div class="num">' + s2 + '</div>'
+      + '</div>';
   }
-  const rank = { HIGHEST:0, HIGH:1, MEDIUM:2 };                  // :424
-  out.sort((a,b)=>{ const r = rank[a.reliability]-rank[b.reliability]; return r!==0 ? r : b.outcome1Pnl - a.outcome1Pnl; }); // :425-435
-  return out.slice(0,3);                                        // :438
-}
 
-function relClass(r){ return r==='HIGHEST'?'rel--highest':r==='HIGH'?'rel--high':'rel--medium'; }
-function pnlClass(v){ return Math.abs(v)<0.01?'pnl-zero':(v>0?'pnl-pos':'pnl-neg'); }
-// формат PnL 1-в-1 с реальным рендером (calculator-pair-tracking.vue:196,200): «+12.00 EUR» / «-5.00 EUR»
-function pnlFmt(v){ return (v>=0?'+':'')+v.toFixed(2)+' EUR'; }
-
-// рендер одной опции recovery — ВИД 1-в-1 с реальным сканером (calculator-pair-tracking.vue:163-211):
-// Option N · {bk} @ {odds} · ★ {reliability} • Implied {prob}% · Selection · Place {stake} EUR — break-even · PnL
-// · reliabilityReason «Sharp БК / Exchange / Regular BK {bk}» (последний — РЕАЛЬНОЕ поле кода
-// interpretation.ts:335,339,343, рендер calc-recovery-option-reliability-reason :209-211, идёт В КОНЦЕ варианта).
-function optHtml(o, idx, opts){
-  opts = opts || {};
-  const alts = (o.alts.length && opts.showAlts)
-    ? `<details class="rec-alts"><summary>Альтернативные БК (${o.alts.length})</summary>${o.alts.map(a=>`${a.bk} @ ${a.odds.toFixed(2)}`).join(' · ')}</details>` : '';
-  const risk = (opts.showRisk && o.risk) ? `<div class="rec-risk">⚠️ ${o.risk}</div>` : '';
-  const stake = opts.showStake ? `<div class="rec-opt-stake">Place <strong>${o.altStake.toFixed(0)} EUR</strong> — break-even на outcome 2</div>
-      <div class="rec-pnl"><span class="${pnlClass(o.outcome1Pnl)}">Если Leg 1 wins: ${pnlFmt(o.outcome1Pnl)}</span> · <span class="${pnlClass(o.outcome2Pnl)}">Если alt-Leg wins: ${pnlFmt(o.outcome2Pnl)}</span></div>` : '';
-  return `<div class="rec-opt">
-    <div class="rec-opt-head">
-      <span class="rec-opt-num">Option ${idx+1}</span>
-      <span class="rec-opt-bk">${o.bk} @ ${o.odds.toFixed(2)}</span>
-      <span class="rel ${relClass(o.reliability)}">★ ${o.reliability} • Implied ${(o.impliedProbability*100).toFixed(1)}%</span>
-    </div>
-    <div class="rec-opt-selection">Selection: ${o.sel}</div>
-    ${stake}${alts}${risk}
-    <div class="rel-reason">${o.reliabilityReason}</div>
-  </div>`;
-}
-
-function panelHtml(opts, header, list){
-  const body = list.length ? list.map((o,i)=>optHtml(o,i,opts)).join('') : `<div class="rec-empty">нет вариантов перекрытия в потоке</div>`;
-  return `<div class="rec"><div class="rec-header">${header}</div>${body}</div>`;
-}
-
-function leg1Html(state){
-  // state: 'alive' | 'dead'
-  const tag = state==='dead' ? `<span class="tag dead">● Leg 2 dead</span>` : `<span class="tag">● пара жива</span>`;
-  return `<div class="leg1-box">${tag}
-    <div class="leg1-line">Leg 1: bet365 €500 @ 1.95 → ТБ 2.5 &nbsp; <span style="color:var(--text-tertiary)">(поставлена)</span></div>
-    <div class="leg1-line">Leg 2: ${state==='dead'?'<span style="color:var(--red)">ТМ 2.5 — ушла, не проставить</span>':'ТМ 2.5 @ 2.06 (ещё живо)'}</div>
-  </div>`;
-}
-
-// Синтетический сценарий аварии (реальные числа прогоняются через findAlternatives)
-const DEAD = { stake:500, odds1Placed:1.95, sel1:'ТБ 2.5' };
-const CANDS = [
-  { bk:'pinnacle',  odds:2.02, commission:0,    sel:'ТМ 2.5', alts:[{bk:'betonline',odds:1.98}] }, // sharp → HIGHEST
-  { bk:'betfair',   odds:2.10, commission:0.05, sel:'ТМ 2.5', alts:[{bk:'matchbook',odds:2.04}] }, // exchange (5%) → HIGH
-  { bk:'bet365.com',odds:2.08, commission:0,    sel:'ТМ 2.5', alts:[] }                            // regular + fast-fix → MEDIUM: лучший P&L, но внизу по надёжности + warning (edge-case :404)
-];
-const HEADER = '⚠️ Leg 2 dead. Recovery options for 500 EUR на Leg 1 (bet365 @ 1.95 → ТБ 2.5):';
-const RESULT = findAlternatives(DEAD, CANDS);   // топ-3 по надёжности
-
-/* ---------- ① Когда появляется ---------- */
-(function trigger(){
-  const l1 = document.getElementById('d1-leg1'), pan = document.getElementById('d1-panel'), btn = document.getElementById('d1-toggle');
-  let dead = false;
-  function draw(){
-    l1.innerHTML = leg1Html(dead ? 'dead' : 'alive');
-    pan.innerHTML = dead ? panelHtml({}, HEADER, RESULT) : '';   // без деталей — только факт появления
-    btn.textContent = dead ? 'Вернуть «пара жива»' : 'Сломать вторую ногу';
+  // ── Голос системы ──
+  function syslineHtml(dead){
+    if (!dead) return '';
+    return '<div class="sysline" title="' + esc(HEADER) + '"><svg class="ic" viewBox="0 0 24 24" style="width:13px;height:13px;flex:0 0 auto"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span>нога 2 мертва — перекрытия в дропе её ячейки БК</span><b>' + RESULT.length + ' перекрытий</b></div>';
   }
-  draw(); btn.onclick = ()=>{ dead = !dead; draw(); };
-})();
 
-/* ---------- ② Ранжир по надёжности ---------- */
-(function rank(){
-  const pan = document.getElementById('d2-panel');
-  const byProfit = [...RESULT].sort((a,b)=>b.outcome1Pnl - a.outcome1Pnl);  // контр-пример: «если бы по прибыли»
-  let mode = null;
-  document.getElementById('d2-show').onclick = ()=>{ mode='rel'; pan.innerHTML = panelHtml({}, 'По надёжности (как в сканере):', RESULT); };
-  document.getElementById('d2-sort').onclick = ()=>{ mode='profit'; pan.innerHTML = panelHtml({showStake:true}, 'Если бы сортировали по прибыли (так НЕ делается):', byProfit); };
-})();
+  // ── Одна строка перекрытия ──
+  function rowHtml(o, opts){
+    opts = opts || {};
+    var live = !!opts.interactive;                     // клик-постановка только там, где демо учит именно клику (⑤)
+    var pnl = '<span class="drow-pnl ' + pnlClass(o.outcome1Pnl) + '">' + fmtPnl(o.outcome1Pnl) + '</span>';
+    // интерактивная строка обещает клик-постановку; статичная — только пояснение класса/риска (виден при наведении)
+    var title = live
+      ? 'Положить купон: ' + o.sel + ' в ' + o.bk + ' (ставку подтверждаешь в конторе)' + (o.risk ? ' · ' + o.risk : '') + ' · ' + o.reason
+      : o.reason + (o.risk ? ' · ' + o.risk : '');
+    var dis = opts.disabled ? ' disabled' : '';
+    var main = (live
+        ? '<button class="drow" type="button"' + dis + ' title="' + esc(title) + '" data-bk="' + esc(o.bk) + '" data-sel="' + esc(o.sel) + '">'
+        : '<div class="drow drow--static" title="' + esc(title) + '">')
+      + '<span class="drow-bk">' + esc(o.bk) + '</span>'
+      + '<span class="relbadge">' + relLabel(o.reliability) + '</span>'
+      + '<span class="drow-odd">' + o.odds.toFixed(2) + '</span>'
+      + pnl + (live ? '</button>' : '</div>');
+    var nested = '';
+    if (opts.showAlts && o.alts && o.alts.length){
+      o.alts.forEach(function(a){
+        nested += (live
+            ? '<button class="drow drow--alt" type="button"' + dis + ' title="Тот же исход в другой конторе. Положить купон: ' + esc(o.sel) + ' в ' + esc(a.bk) + ' (ставку подтверждаешь в конторе)" data-bk="' + esc(a.bk) + '" data-sel="' + esc(o.sel) + '">'
+            : '<div class="drow drow--alt drow--static" title="Тот же исход в другой конторе. Положить купон: ' + esc(o.sel) + ' в ' + esc(a.bk) + ' (ставку подтверждаешь в конторе)">')
+          + '<span class="altglyph">' + GLYPH + '</span>'
+          + '<span class="drow-bk">' + esc(a.bk) + '</span>'
+          + '<span class="alt-note">тот же исход</span>'
+          + '<span class="drow-odd">' + a.odds.toFixed(2) + '</span>' + (live ? '</button>' : '</div>');
+      });
+    }
+    return main + nested;
+  }
 
-/* ---------- ③ Суммы и break-even ---------- */
-(function stakes(){
-  const pan = document.getElementById('d3-panel');
-  document.getElementById('d3-show').onclick = ()=>{ pan.innerHTML = panelHtml({showStake:true}, HEADER, RESULT); };
-})();
+  // ── Дроп перекрытий ──
+  function dropHtml(list, opts){
+    opts = opts || {};
+    var cls = 'drop' + (opts.cell ? ' drop--cell' : '');  // cell=true → оверлей из ячейки БК (демо=реал)
+    var head = '<div class="drop-head">' + esc(opts.header || HEADER) + '</div>';
+    if (!list.length) return '<div class="' + cls + '">' + head + '<div class="drop-empty">Альтернатив этого события в потоке нет — расширь фильтры или дождись следующего тика.</div></div>';
+    var rows = list.map(function(o){ return rowHtml(o, opts); }).join('');
+    var note = opts.hideNote ? '' : '<div class="drop-note">Цифра справа — профит, если сыграет живая нога (перекрытие держит вторую сторону в ноль). Ставка — в строке-кандидате при клике.</div>';
+    return '<div class="' + cls + '">' + head + rows + note + '</div>';
+  }
 
-/* ---------- ④ Обогащение ---------- */
-(function enrich(){
-  document.getElementById('d4-panel').innerHTML = panelHtml({showStake:true, showProb:true, showAlts:true, showRisk:true}, HEADER, RESULT);
-})();
+  function byId(id){ return document.getElementById(id); }
 
-/* ---------- Часть 2 — авария в живом потоке + подсветка легенды ---------- */
-(function live(){
-  const l1 = document.getElementById('p2-leg1'), pan = document.getElementById('p2-panel');
-  const bBreak = document.getElementById('p2-break'), bReset = document.getElementById('p2-reset');
-  function lit(id){ const e=document.getElementById(id); if(!e)return; e.classList.add('lit'); setTimeout(()=>e.classList.remove('lit'),1300); }
-  function alive(){ l1.innerHTML = leg1Html('alive'); pan.innerHTML=''; }
-  alive();
-  bBreak.onclick = ()=>{
-    l1.innerHTML = leg1Html('dead');
-    pan.innerHTML = panelHtml({showStake:true, showProb:true, showRisk:true}, HEADER, RESULT);
-    lit('lg-trigger');
-    setTimeout(()=>lit('lg-rank'),700);
-    setTimeout(()=>lit('lg-be'),1500);
-    setTimeout(()=>lit('lg-risk'),2300);
-  };
-  bReset.onclick = alive;
-})();
+  /* ① Вход */
+  (function(){
+    var mx = byId('d1-mx'), sys = byId('d1-sys'), btn = byId('d1-btn'); if(!mx) return;
+    var dead = false;
+    function draw(){ mx.innerHTML = matrixHtml(dead); sys.innerHTML = syslineHtml(dead); btn.textContent = dead ? 'Вернуть «пара жива»' : 'Нога 2 слетела'; }
+    draw(); btn.onclick = function(){ dead = !dead; draw(); };
+  })();
 
-/* ---------- Часть 3 — плотный «как в бою» ---------- */
-(function boy(){
-  document.getElementById('p3-leg1').innerHTML = leg1Html('dead');
-  document.getElementById('p3-panel').innerHTML = panelHtml({showStake:true, showRisk:true}, HEADER, RESULT);
+  /* ② Дроп (+ пустое состояние: перекрытий в потоке нет).
+     Демо=реал (волна-3.1, скрин-13): дроп — оверлей ИЗ грид-ячейки БК мёртвой ноги
+     (вложен в ячейку матрицы, right:0, внутрь панели), не отдельный блок под матрицей.
+     Оверлей выпирает ниже матрицы — отступ отдаёт место (учебный хром съезжает, мир сканера точен). */
+  (function(){
+    var mx = byId('d2-mx'), btn = byId('d2-btn'), bEmpty = byId('d2-empty'); if(!mx) return;
+    var mode = 'closed';  // closed | open | empty
+    function render(){
+      var inner = mode === 'open' ? dropHtml(RESULT, { showAlts:true, cell:true })
+                : mode === 'empty' ? dropHtml([], { cell:true }) : '';
+      mx.innerHTML = matrixHtml(true, inner);
+      var cell = mx.querySelector('.bkcell--dead');
+      if (cell){
+        cell.classList.add('bkcell--live');  // красная ячейка кликабельна — клик открывает дроп, как в живом сканере
+        cell.onclick = function(){ mode = (mode === 'closed') ? 'open' : 'closed'; render(); };
+      }
+      var d = mx.querySelector('.drop--cell');
+      if (d) d.onclick = function(e){ e.stopPropagation(); };  // клик по дропу не схлопывает его (leg-card: @click.stop)
+      btn.textContent = mode === 'open' ? 'Свернуть' : 'Открыть перекрытия';
+      btn.classList.toggle('btn--on', mode === 'open');
+      bEmpty.classList.toggle('btn--on', mode === 'empty');
+      mx.style.marginBottom = '';
+      if (d){
+        var over = d.getBoundingClientRect().bottom - mx.getBoundingClientRect().bottom;
+        if (over > 0) mx.style.marginBottom = Math.ceil(over + 10) + 'px';
+      }
+    }
+    btn.onclick = function(){ mode = (mode === 'open') ? 'closed' : 'open'; render(); };
+    bEmpty.onclick = function(){ mode = (mode === 'empty') ? 'closed' : 'empty'; render(); };
+    render();
+  })();
+
+  /* ③ Ранжир: надёжность vs деньги */
+  (function(){
+    var drop = byId('d3-drop'), bRel = byId('d3-rel'), bProf = byId('d3-prof'); if(!drop) return;
+    var byProfit = RESULT.slice().sort(function(a,b){ return b.outcome1Pnl - a.outcome1Pnl; });
+    function rel(){ drop.innerHTML = dropHtml(RESULT, { header:'По надёжности (как в сканере)', hideNote:true }); bRel.classList.add('btn--on'); bRel.classList.remove('btn--ghost'); bProf.classList.add('btn--ghost'); bProf.classList.remove('btn--on'); }
+    function prof(){ drop.innerHTML = dropHtml(byProfit, { header:'Если бы сортировали по деньгам (так НЕ делается)', hideNote:true }); bProf.classList.add('btn--on'); bProf.classList.remove('btn--ghost'); bRel.classList.add('btn--ghost'); bRel.classList.remove('btn--on'); }
+    bRel.onclick = rel; bProf.onclick = prof; rel();
+  })();
+
+  /* ④ Break-even */
+  (function(){
+    var drop = byId('d4-drop'), ex = byId('d4-explain'); if(!drop) return;
+    drop.innerHTML = dropHtml(RESULT, {});
+    var top = RESULT[0];
+    ex.innerHTML = '<div class="sysline" style="background:var(--amber-bg);border-color:var(--amber-border);border-left:3px solid var(--t-amber);display:block;line-height:1.6">'
+      + 'Верхнее перекрытие (' + esc(top.bk) + ' @ ' + top.odds.toFixed(2) + '): ставка <b style="color:var(--t-text)">' + top.altStake.toFixed(0) + ' €</b> — подогнана под ноль на слетевшем исходе.<br>'
+      + 'Слетевшая сторона (' + esc(DEAD_SEL) + '): <b style="color:var(--t-dim)">' + fmtPnl(top.outcome2Pnl) + '</b> · живая нога (' + esc(LEG1.sel) + '): <b style="color:var(--' + (top.outcome1Pnl >= -0.005 ? 't-green' : 't-red') + ')">' + fmtPnl(top.outcome1Pnl) + '</b></div>';
+  })();
+
+  /* ⑤ Постановка — оба исхода: канал в норме (купон лёг) и канал упал (честный отказ) */
+  (function(){
+    var drop = byId('d5-drop'), toast = byId('d5-toast'), reset = byId('d5-reset'),
+        bOk = byId('d5-ok'), bFail = byId('d5-fail'); if(!drop) return;
+    var inFlight = false, failMode = false;
+    function render(){ drop.innerHTML = dropHtml(RESULT, { disabled:inFlight, hideNote:true, interactive:true }); bind(); }
+    function setMode(fail){ failMode = fail; bFail.classList.toggle('btn--on', fail); bOk.classList.toggle('btn--on', !fail); toast.innerHTML = ''; render(); }
+    function bind(){
+      drop.querySelectorAll('.drow').forEach(function(b){
+        b.onclick = function(){
+          if (inFlight) return;
+          inFlight = true; render();
+          var bk = b.getAttribute('data-bk'), sel = b.getAttribute('data-sel');
+          toast.innerHTML = '<div class="toast">Купоны: кладётся ' + esc(sel) + ' в ' + esc(bk) + '…</div>';
+          setTimeout(function(){
+            if (failMode) {
+              // канал упал — честный тост-отказ (реальное поведение при обрыве канала)
+              toast.innerHTML = '<div class="toast toast--fail">Купоны: канал недоступен — расширение не подключено. В бою купон лёг бы в контору — подтвердить вручную.</div>';
+            } else {
+              // канал в норме — купон лёг в контору, подтверждение вручную в самой конторе
+              toast.innerHTML = '<div class="toast toast--ok">Купоны: ' + esc(sel) + ' в ' + esc(bk) + ' — купон лёг в контору, подтвердить ставку вручную.</div>';
+            }
+            inFlight = false; render();
+          }, 1100);
+        };
+      });
+    }
+    bOk.onclick = function(){ setMode(false); };
+    bFail.onclick = function(){ setMode(true); };
+    reset.onclick = function(){ inFlight = false; setMode(failMode); };
+    setMode(false);
+  })();
+
+  /* Постановка перекрытия кликом по строке дропа (C3-15): контора встаёт в ногу, исход закрывается в ноль */
+  function coverFromClick(bk){
+    var o = null;
+    RESULT.forEach(function(r){
+      if (r.bk === bk) o = { bk:r.bk, odds:r.odds, stake:r.altStake };
+      (r.alts || []).forEach(function(a){ if (a.bk === bk) o = { bk:a.bk, odds:a.odds, stake: LEG1.stake / (effOdds(a.odds, a.bk) - 1) }; });
+    });
+    return o;
+  }
+  function coveredSysline(cover, withBack){
+    return '<div class="sysline"><svg class="ic" viewBox="0 0 24 24" style="width:13px;height:13px;flex:0 0 auto"><path d="M20 6 9 17l-5-5"/></svg>'
+      + '<span>перекрытие встало: ' + esc(cover.bk) + ' @ ' + cover.odds.toFixed(2) + ' · ' + cover.stake.toFixed(0) + ' € — слетевший исход закрыт в ноль</span>'
+      + (withBack ? '<span class="relink" id="p3-back">↺ вернуть аварию</span>' : '') + '</div>';
+  }
+
+  /* Часть 2 — живой поток + подсветка легенды; клик по строке = перекрытие встало */
+  (function(){
+    var mx = byId('p2-mx'), sys = byId('p2-sys'), drop = byId('p2-drop'), bBreak = byId('p2-break'), bReset = byId('p2-reset'); if(!mx) return;
+    function lit(id){ var e = byId(id); if(!e) return; e.classList.add('lit'); setTimeout(function(){ e.classList.remove('lit'); }, 1400); }
+    function alive(){ mx.innerHTML = matrixHtml(false); sys.innerHTML = ''; drop.innerHTML = ''; }
+    function bindRows(){
+      drop.querySelectorAll('.drow').forEach(function(b){
+        b.onclick = function(){
+          var cover = coverFromClick(b.getAttribute('data-bk')); if(!cover) return;
+          mx.innerHTML = matrixHtml(false, null, cover);
+          sys.innerHTML = coveredSysline(cover, false);
+          drop.innerHTML = '';
+          lit('lg-go');
+        };
+      });
+    }
+    alive();
+    bBreak.onclick = function(){
+      mx.innerHTML = matrixHtml(true); sys.innerHTML = syslineHtml(true);
+      drop.innerHTML = dropHtml(RESULT, { showAlts:true, interactive:true });
+      bindRows();
+      lit('lg-crash');
+      setTimeout(function(){ lit('lg-rank'); }, 700);
+      setTimeout(function(){ lit('lg-be'); }, 1500);
+      setTimeout(function(){ lit('lg-go'); }, 2300);
+    };
+    bReset.onclick = alive;
+  })();
+
+  /* Часть 3 — плотный «как в бою»; дроп живой: клик ставит перекрытие */
+  (function(){
+    var mx = byId('p3-mx'), sys = byId('p3-sys'), drop = byId('p3-drop'); if(!mx) return;
+    function crash(){
+      mx.innerHTML = matrixHtml(true); sys.innerHTML = syslineHtml(true);
+      drop.innerHTML = dropHtml(RESULT, { showAlts:true, hideNote:true, interactive:true });
+      drop.querySelectorAll('.drow').forEach(function(b){
+        b.onclick = function(){
+          var cover = coverFromClick(b.getAttribute('data-bk')); if(!cover) return;
+          mx.innerHTML = matrixHtml(false, null, cover);
+          sys.innerHTML = coveredSysline(cover, true);
+          drop.innerHTML = '';
+          var back = byId('p3-back'); if (back) back.onclick = crash;
+        };
+      });
+    }
+    crash();
+  })();
 })();
 </script>
 </body>
