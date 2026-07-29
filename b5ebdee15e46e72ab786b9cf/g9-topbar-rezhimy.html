@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Топбар: две двери и пульт вида — учебная глава (3 части)</title>
+<style>
+  /* Цвета/метки/формулы — из кода форка; привязки координат живут в r3-registry-g10.md рядом.
+     Демо-скин .sc — палитра сканера ДЕНЬ (канон учебника): фон #f6f7f9, циан #0a76ad.
+     Тёмная тема показана КАК ФУНКЦИЯ — в блоке «Тема» и по кнопке темы в Частях 2-3.
+     Иконки топбара — SVG-примитивы витрины ui-icon (inline). */
+  :root{
+    /* каркас страницы (учебная методичка, светлый) */
+    --paper:#f7f7f5; --panel:#ffffff; --hairline:#e7e7e4;
+    --text:#1a1a1a; --text-secondary:#575d66; --accent:#0a76ad;
+    --note-bg:#fff8e6; --note-border:#f0d99a; --note-text:#6b5418;
+    --shadow-1:0 1px 2px rgba(20,22,26,.05); --shadow-2:0 4px 16px rgba(20,22,26,.06);
+    --r-panel:12px; --r-block:8px;
+    --font-display:"Avenir Next","Segoe UI",system-ui,sans-serif;
+    --mono:ui-monospace,Menlo,monospace;
+    /* демо-скин ДЕНЬ — токены сканера (index.css :root, светлый канон); тёмная тема
+       переопределяет их в .theme-box[data-theme="dark"] (как :root[data-theme=dark] в сканере) */
+    --sc-bg:#f6f7f9; --sc-surface:#ffffff; --sc-active:#e8e8e8;
+    --sc-border:#dde2ea; --sc-border-sub:#ebebeb;
+    --sc-text:#1a1a1a; --sc-2:#4d5765; --sc-3:#636d7c;
+    --sc-cyan:#0a76ad; --sc-teal:#19776c; --sc-coral:#c53a36;
+    --sc-flash:rgba(96,165,250,.45);
+    /* survival день (index.css) — цвет левой границы строки */
+    --surv-hi:#16a34a; --surv-md:#ca8a04; --surv-lo:#dc2626;
+    /* палитра уловов v3 (значения из кода форка) — точка «чей улов» */
+    --pv-brass:#d4a72c; --pv-olive:#8fa653; --pv-slate:#7a8ba6; --pv-rose:#ad6a86; --pv-siena:#b3763f; --pv-petrol:#4e8098;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+  body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--paper);color:var(--text);font-size:15px;line-height:1.6}
+  .wrap{max-width:820px;margin:0 auto;padding:28px 18px 90px}
+  h1{font-size:28px;margin:0 0 6px;font-family:var(--font-display);font-weight:700;letter-spacing:-0.01em;text-wrap:balance}
+  h1::after{content:"";display:block;width:120px;height:3px;margin-top:10px;border-radius:2px;background:linear-gradient(90deg,var(--sc-cyan) 0 50%,var(--sc-teal) 50% 100%)}
+  h2.part-t{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--text);font-weight:700;margin:0 0 4px}
+  h3{font-size:18px;margin:0 0 4px;font-family:var(--font-display);font-weight:600;text-wrap:balance}
+  .lead{color:var(--text-secondary);font-size:16px;margin:0 0 8px;text-wrap:pretty}
+  .lead b{color:var(--text)}
+  .block-band{margin:22px 0 2px;font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--accent);font-weight:700;border-bottom:1px solid var(--hairline);padding-bottom:4px}
+  .part{background:var(--panel);border:1px solid var(--hairline);border-radius:var(--r-panel);padding:20px 20px 22px;margin:14px 0;box-shadow:var(--shadow-1),var(--shadow-2)}
+  .part-head{border-left:3px solid var(--accent);padding-left:10px;margin-bottom:14px}
+  .part-head{border-image:linear-gradient(180deg,var(--sc-cyan),var(--sc-teal)) 1}
+  .part-head .step{font-size:12px;color:var(--text-secondary)}
+  .signal{border-top:1px solid var(--hairline);padding:16px 0 4px}
+  .signal:first-of-type{border-top:none;padding-top:4px}
+  .sig-why{color:var(--text-secondary);font-size:14px;margin:2px 0 10px;text-wrap:pretty}
+  .demo-cap{font-size:11px;color:var(--text-secondary);margin:6px 2px 0}
+  details.note{background:var(--note-bg);border:1px solid var(--note-border);border-radius:var(--r-block);padding:8px 10px;font-size:12.5px;color:var(--note-text);margin-top:8px}
+  details.note summary{cursor:pointer;font-weight:600;color:var(--note-text)}
+  details.note[open] summary{margin-bottom:5px}
+  details.note b{color:var(--note-text)}
+  .map{font-size:13px;color:var(--text-secondary);background:var(--paper);border:1px dashed var(--hairline);border-radius:var(--r-block);padding:10px 12px;margin-top:10px}
+  .map b{color:var(--text)}
+  button{font-family:inherit}
+  code{font-family:var(--mono);font-size:12px}
+
+  /* ── ДЕМО-СКИН ДЕНЬ (реплика сканера) ── */
+  .sc{background:var(--sc-bg);color:var(--sc-text);border:1px solid var(--sc-border);border-radius:var(--r-block);padding:12px;overflow-x:auto;font-size:13.5px}
+  .sc-2{color:var(--sc-2)} .sc-3{color:var(--sc-3)}
+  .sc-cnt{font-size:11px;color:var(--sc-3);font-family:var(--mono)}
+  /* межглавная отсылка — ЯРЛЫК-указатель, не кликабелен (в отдельной главе цели ссылки нет) */
+  .sc .bridge{color:var(--sc-2);text-decoration:none;font-size:11.5px}
+  .ui-icon{display:inline-block;vertical-align:-0.15em;flex-shrink:0}
+
+  /* топбар-реплика реального сканера (координаты — в r3-registry-g10.md) */
+  .tb{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+    background:var(--sc-surface);border:1px solid var(--sc-border);border-radius:7px;padding:6px 8px}
+  .tb-l,.tb-r{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .tb-door{padding:5px 12px;border:1px solid var(--sc-border);background:var(--sc-surface);color:var(--sc-text);
+    font-size:12.5px;cursor:pointer;border-radius:5px;font-weight:600}
+  .tb-door:hover{border-color:var(--sc-cyan);color:var(--sc-cyan)}
+  .tb-btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:28px;padding:4px 8px;
+    border:1px solid var(--sc-border);background:var(--sc-surface);font-size:12px;line-height:1;
+    color:var(--sc-2);cursor:pointer;border-radius:5px}
+  .tb-btn:hover{border-color:var(--sc-cyan);color:var(--sc-text)}
+  .tb-btn.on{color:var(--sc-cyan);border-color:var(--sc-cyan);background:rgba(10,118,173,.10)}
+  .tb-seg{display:flex;gap:1px;border:1px solid var(--sc-border);border-radius:5px;overflow:hidden}
+  .tb-seg .tb-btn{border:none;border-radius:0;min-height:26px}
+  .tb-seg .tb-btn.on{background:var(--sc-active);color:var(--sc-cyan)}
+  .tb-search{width:150px;padding:5px 8px;border:1px solid var(--sc-border);background:var(--sc-bg);
+    font-size:12px;color:var(--sc-text);outline:none;border-radius:5px}
+  .tb-search:focus{border-color:var(--sc-cyan)}
+  .tb-counter{font-family:var(--mono);font-size:13px;color:var(--sc-2);white-space:nowrap;display:inline-flex;align-items:center;gap:1px}
+  .tb-counter .filt{color:var(--sc-text);font-weight:700;display:inline-block;padding:0 3px;border-radius:2px}
+  .tb-counter .filt.flash{animation:cFlash 600ms ease-out}
+  @keyframes cFlash{0%{background-color:var(--sc-flash)}100%{background-color:transparent}}
+  .tb-counter.paused{opacity:.6}
+
+  /* пилюли пресетов */
+  .tb-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border:none;background:transparent;
+    color:var(--sc-2);font-size:12px;cursor:pointer;border-radius:5px;white-space:nowrap}
+  .tb-pill:hover{background:var(--sc-active)}
+  .tb-pill.active{color:var(--sc-text);font-weight:600;background:var(--sc-active)}
+  .tb-pill.active .tb-mark{display:none} /* активный не двоится: ✓-выдача прячется на активном (top-bar.vue:206) */
+  .tb-pill.in-feed{color:var(--sc-text)}
+  .tb-pill.hyper{border:1px dashed var(--sc-border);font-weight:600}
+  .tb-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .tb-mark{font-size:10px;line-height:1;color:var(--sc-cyan);flex-shrink:0}
+  .tb-hk{margin-left:2px;font-size:9px;opacity:.5;font-weight:400}
+
+  /* чип глушения */
+  .tb-mute{display:inline-flex;align-items:center;gap:5px;min-height:28px;padding:0 10px;border:1px solid var(--sc-border);
+    background:var(--sc-surface);color:var(--sc-text);font-size:12px;font-variant-numeric:tabular-nums;cursor:pointer;border-radius:14px}
+  .tb-mute:hover{border-color:var(--sc-cyan)}
+
+  /* popover колонок */
+  .cols-wrap{position:relative;display:inline-flex}
+  /* демо=реал (волна-3.1): поповер привязан к ПРАВОМУ краю кнопки, как в сканере —
+     кнопка живёт в правой группе топбара, меню раскрывается влево-вниз [top-bar.vue:598-601 right:0] */
+  .cols-pop{position:absolute;top:34px;right:0;z-index:20;min-width:170px;padding:6px 0;border:1px solid var(--sc-border);
+    border-radius:6px;background:var(--sc-surface);box-shadow:0 6px 22px rgba(20,22,26,.15)}
+  .cols-row{display:flex;align-items:center;gap:8px;padding:5px 12px;font-size:12px;cursor:pointer;white-space:nowrap;color:var(--sc-text)}
+  .cols-row:hover{background:var(--sc-active)}
+  .cols-row input{accent-color:var(--sc-cyan)}
+  .cols-lock{padding:6px 12px 2px;font-size:10px;color:var(--sc-3);text-transform:uppercase;letter-spacing:.04em}
+  .cols-lock b{color:var(--sc-2)}
+
+  /* таблица-реплика ленты */
+  table.scan{width:100%;border-collapse:collapse}
+  table.scan th{font-size:9.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--sc-3);text-align:left;padding:4px 6px;border-bottom:1px solid var(--sc-border)}
+  table.scan td{padding:3px 6px;border-bottom:1px solid var(--sc-border-sub);font-variant-numeric:tabular-nums;font-size:13px}
+  /* плотность РОВНО как в сканере: просторный td=3px, компактный td=2px; th 4→3px. */
+  table.scan.dense td{padding-top:2px;padding-bottom:2px}
+  table.scan.dense th{padding-top:3px;padding-bottom:3px}
+  .st-pct{font-weight:700} .st-odds{font-family:var(--mono);white-space:nowrap}
+  .st-arb-palp{color:var(--sc-coral);font-weight:700}
+  .cell-flash{animation:cellFlash 1000ms ease-out}
+  @keyframes cellFlash{0%{background-color:var(--sc-flash)}100%{background-color:transparent}}
+  tr.surv-hi td:first-child{box-shadow:inset 3px 0 0 var(--surv-hi)}
+  tr.surv-md td:first-child{box-shadow:inset 3px 0 0 var(--surv-md)}
+  tr.surv-lo td:first-child{box-shadow:inset 3px 0 0 var(--surv-lo)}
+  .catch-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:middle}
+  .badge{font-family:var(--mono);font-size:9px;padding:0 4px;border-radius:2px;margin-left:4px;border:1px solid}
+  /* SAME GAME = пурпур, DIFF RULES = янтарь (день, роли index.css: purple / warning) */
+  .b-sg{color:#6b3a8a;border-color:#b48fc8;background:#f3eaf7}
+  .b-dr{color:#b45309;border-color:#b45309;background:#fff7ed}
+
+  /* тема-демо: день ↔ ночь (реальные пары токенов сканера) */
+  .theme-box{border-radius:8px;padding:12px;transition:background .25s,color .25s}
+  /* День — токены :root (по умолчанию светлые); коробка задаёт только фон/текст. */
+  .theme-box[data-theme="light"]{background:#f6f7f9;color:#1a1a1a}
+  /* Ночь — переопределяем НАБОР ролей на коробке (как :root[data-theme=dark] в сканере):
+     дети на var(--sc-*) темнеют разом, отдельные селекторы трогать не нужно. */
+  .theme-box[data-theme="dark"]{
+    background:#131722;color:#e8eaed;
+    --sc-bg:#131722; --sc-surface:#1a2029; --sc-active:#2e333d;
+    --sc-border:#2e333d; --sc-border-sub:#24282f;
+    --sc-text:#e8eaed; --sc-2:#98a1b0; --sc-3:#8890a2;
+    --sc-cyan:#4dc7f9; --sc-teal:#26a69a; --sc-coral:#f2635f;
+    --sc-flash:rgba(96,165,250,.55);
+    --surv-hi:#3a9d5c; --surv-md:#cf9a33; --surv-lo:#ff9585;
+  }
+  .theme-box[data-theme="dark"] .tb-btn.on{background:rgba(77,199,249,.10)}
+
+  /* легенда статичная (часть 2) */
+  .legend-static{margin-top:12px;font-size:12.5px;display:grid;grid-template-columns:1fr 1fr;gap:7px;align-items:start}
+  @media(max-width:560px){.legend-static{grid-template-columns:1fr}}
+  .legend-static .item{padding:7px 9px;border-radius:7px;border:1px solid var(--hairline);transition:background .25s,border-color .25s}
+  .legend-static .item.lit{background:rgba(10,118,173,.08);border-color:var(--accent)}
+  .legend-static .item b{display:block;font-size:13px;margin-bottom:1px}
+  .legend-static .item span{color:var(--text-secondary)}
+  .glyph{display:inline-flex;width:20px;height:20px;border:1px solid var(--hairline);border-radius:4px;align-items:center;justify-content:center;color:var(--text-secondary);vertical-align:middle;margin-right:4px}
+  .pace{font-size:11px;color:var(--text-secondary);margin:10px 2px 0}
+  .meta{font-size:12px;color:var(--text-secondary);background:var(--note-bg);border:1px solid var(--note-border);border-radius:var(--r-block);padding:8px 11px;margin-top:16px}
+  .meta b{color:var(--note-text)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Топбар: две двери и пульт вида</h1>
+  <p class="lead">Решение, которое обслуживает топбар: <b>«держи под рукой то, чем правят вид ленты и хват потока каждую секунду; всё остальное — за двумя дверями».</b> Сами вилки топбар не меняет — он меняет, <i>как</i> они видны и можно ли перехватить бегущий поток в нужный момент. <b>Слева</b> — пилюли пресетов и две двери в настройки (при снятых страховках гигиены там же вспыхивает жёлтый бейдж <b>⚠ Safety OFF</b> — повышенный риск): <b>«Режимы»</b> — операционное полноэкранное полотно поверх ленты, <b>«Станция»</b> — второе полноэкранное полотно «настроил и забыл». <b>Справа</b> — быстрый ряд: формат кэфа, плотность, тема, спокойный режим, набор колонок, пауза, поиск, счётчик живости, чипы заглушённых контор. Правый ряд — из двух половин: <b>настройки вида</b> (формат, плотность, тема, спокойный, колонки) держат тут быстрый срез того, у чего есть дом на «Станции», а <b>хват потока</b> (пауза, поиск, глушение, счётчик) — живые рычаги смены, они живут прямо в топбаре.</p>
+
+  <details class="note"><summary>Правило «у каждого контрола есть дом»</summary>Топбар — быстрый доступ, а полный словарь той же настройки живёт на «Станции», в разделе «Выдача». Поэтому вид ленты (формат кэфа, плотность, тема, колонки) правят тут на ходу. Если текущий вид нужно унести с режимом, на полотне «Режимы» нажми «Сохранить в пресет» — только после реальной правки вида.</details>
+
+  <div class="map">
+    <b>Два соседа, о которых стоит знать заранее.</b> В левой части топбара, рядом с пилюлями, живёт ещё <b>быстрый фильтр типов рынка</b> — его разбор ниже, в блоке A. А рядом с лентой стоит <b>срез-столбик</b> активного пресета — сосед дверей: он не часть топбара, сворачивается рейкой и отдаёт ленте ширину; его полный разбор — в главе «Режимы». Здесь разбираем сам топбар: двери, пилюли и правый ряд.
+  </div>
+
+  <!-- ============ ЧАСТЬ 1 — УЧЁБА ============ -->
+  <section class="part">
+    <div class="part-head">
+      <h2 class="part-t">Часть 1 · Учёба</h2>
+      <div class="step">Сначала две двери и пилюли пресетов. Потом каждый контрол правого ряда по отдельности, со своим живым демо: жми — и смотри, что меняется. Только этот контрол, без шума остальных.</div>
+    </div>
+
+    <div class="block-band">A · Две двери и пилюли режимов</div>
+
+    <div class="signal">
+      <h3>Двери «Режимы» и «Станция»</h3>
+      <p class="sig-why">Настроек много, но делятся они на два мира. <b>«Режимы»</b> — полноэкранное операционное полотно поверх ленты: слева правишь активный пресет, в центре — наборы и группы, справа — конторы в работе. Правка сразу меняет ленту, но остаётся черновиком, пока не нажмёшь «Сохранить в пресет». Открывают, когда «сегодня охота идёт вот на это». <b>«Станция»</b> — второе полноэкранное полотно «настроил и забыл»: его левая навигация ведёт по девяти глобальным разделам — выдача, парк контор, звуки, оповещения, валюты, лиги, калькулятор, пути, служебное. Здесь правки применяются и сохраняются сами, <b>кроме «Путей»</b>: их уточнения для активного пресета фиксирует отдельная кнопка «Сохранить в пресет». Две двери рядом, чтобы граница «правлю на ходу / настроил однажды» была видна.</p>
+      <div class="sc">
+        <div class="tb">
+          <div class="tb-l">
+            <span class="sc-3" style="font-size:11px">⋯ пилюли пресетов · фильтр рынка</span>
+            <button class="tb-door" id="aA-modes" title="Режимы — операционные настройки: пресеты, их пороги, конторы в работе">Режимы</button>
+            <button class="tb-door" id="aA-station" title="Станция — «настроил и забыл»: выдача, парк контор, звуки, валюты, калькулятор">Станция</button>
+          </div>
+          <div class="tb-r"><span class="sc-3" style="font-size:11px">быстрый ряд справа →</span></div>
+        </div>
+        <div class="sc-2" id="aA-out" style="font-size:12px;margin-top:8px">Наведи на дверь — покажу, что за ней.</div>
+      </div>
+      <div class="demo-cap">Две двери — одна модель «двух полотен»: «Режимы» — то, что режет улов ЭТОГО пресета; «Станция» — сквозное для всех пресетов. Из «Режимов» можно перейти в «Станцию» и обратно; Esc закрывает открытое полотно (в форме сначала закрывается сама форма). Полный разбор каждого экрана — соседние главы.</div>
+    </div>
+
+    <div class="signal">
+      <h3>Пилюли пресетов — маркер выдачи, группы, хоткеи</h3>
+      <p class="sig-why">Слева от дверей — пилюли пресетов. Активный — ярче всех. Пресеты, включённые в выдачу дополнительно (мультипресеты), несут маркер <b>✓</b> и тише-акцент: их улов виден в общей ленте вместе с активным. <b>Цветная точка</b> на пилюле — метка пресета: тем же цветом помечен его улов в ленте, так в смешанной ленте видно, чья это строка (палитра и настройка — глава «Режимы»). Пилюля <b>группы</b> («⊞ имя (N)») идёт первой и включает разом весь набор. Число у пилюли — хоткей.</p>
+      <div class="sc">
+        <div class="tb" id="aP-pills" style="justify-content:flex-start">
+          <button class="tb-pill hyper">⊞ Вечер (3) <span class="tb-hk">⌥1</span></button>
+          <button class="tb-pill active"><span class="tb-dot" style="background:var(--pv-petrol)"></span>Ночной live <span class="tb-hk">⌥2</span></button>
+          <button class="tb-pill in-feed"><span class="tb-dot" style="background:var(--pv-olive)"></span>Прематч-форы <span class="tb-mark">✓</span> <span class="tb-hk">⌥3</span></button>
+          <button class="tb-pill"><span class="tb-dot" style="background:var(--pv-brass)"></span>Теннис-узкий <span class="tb-hk">⌥4</span></button>
+        </div>
+        <div class="sc-cnt" style="margin-top:6px">жми по пилюле — сплошная подсветка активного переедет на неё · ✓ — в выдаче поверх активного · ⊞ — группа первой · ⌥N — хоткей по композиции</div>
+        <div class="sc-cnt" style="margin-top:10px">Улов двух пресетов в одной ленте: точка у процента — чья это строка (в примере: петроль — «Ночной live», олива — «Прематч-форы» в выдаче).</div>
+        <table class="scan" style="margin-top:3px"><thead><tr><th>%</th><th>Событие</th><th>БК 1</th><th>БК 2</th></tr></thead><tbody>
+          <tr><td class="st-pct"><span class="catch-dot" style="background:var(--pv-petrol)"></span>2.60%</td><td>Alcaraz — Sinner</td><td>bet365.com</td><td>pinnacle.com</td></tr>
+          <tr><td class="st-pct"><span class="catch-dot" style="background:var(--pv-olive)"></span>3.10%</td><td>Real — Barca</td><td>1xbet.kz</td><td>bet365.com</td></tr>
+          <tr><td class="st-pct"><span class="catch-dot" style="background:var(--pv-petrol)"></span>1.90%</td><td>Lakers — Celtics</td><td>betonline.ag</td><td>pinnacle.com</td></tr>
+        </tbody></table>
+      </div>
+      <div class="demo-cap">Хоткеи идут по композиции: сначала группы, потом закреплённые одиночки — то есть ⌥1 здесь у группы «Вечер», а одиночки сдвинуты на число групп. Клик по пилюле меняет АКТИВНЫЙ пресет; галку «в выдачу» ставят на экране «Режимы». Устройство самих пресетов и групп — глава «Пресеты и режимы».</div>
+      <details class="note"><summary>Почему у активного и у «✓ в выдаче» разная яркость</summary>Якорь взгляда не должен двоиться: активный пресет — сплошная подсветка (его пороги правятся сейчас), а доп-наборы в выдаче — только читаемый текст плюс маркер ✓ (их улов подмешан в ленту, но настройки экрана — по активному). Один яркий якорь, остальные тише. Хоткей активного пресета виден и в шапке экрана «Режимы» — там же, где его правят.</details>
+    </div>
+
+    <div class="signal">
+      <h3>Быстрый фильтр типов рынка</h3>
+      <p class="sig-why">Рядом с пилюлями — квадратные кнопки типов рынка (по тому, что есть в потоке; подписи — канонные имена типов, отсортированы по алфавиту: <b>1X2</b>, <b>Double Chance</b>, <b>Goals</b>, <b>Handicap</b>, <b>Match Result</b>, <b>Total</b>). Клик по типу прячет или возвращает его строки в ленте, не открывая фильтры. Подсвечен — тип в потоке; притушен — скрыт. Это тот же тумблер, что вкладка «Типы ставок» на экране «Режимы», только под рукой, чтобы сузить поток на ходу. Жми тип — и смотри, как лента сжимается.</p>
+      <div class="sc">
+        <div class="tb" id="mkt-row" style="justify-content:flex-start">
+          <button class="tb-btn on" data-mkt="1X2">1X2</button>
+          <button class="tb-btn on" data-mkt="Double Chance">Double Chance</button>
+          <button class="tb-btn on" data-mkt="Goals">Goals</button>
+          <button class="tb-btn on" data-mkt="Handicap">Handicap</button>
+          <button class="tb-btn on" data-mkt="Match Result">Match Result</button>
+          <button class="tb-btn on" data-mkt="Total">Total</button>
+        </div>
+        <table class="scan" style="margin-top:8px"><thead><tr><th>%</th><th>Событие</th><th>Маркет</th><th>БК 1</th><th>БК 2</th></tr></thead><tbody id="mkt-body"></tbody></table>
+        <div class="demo-cap" id="mkt-hint" style="margin-top:6px"></div>
+      </div>
+      <div class="demo-cap">Тип рынка — это семья исхода (весь «Тотал», а не один тотал 2.5). Скрытие здесь синхронно с той же настройкой на экране «Режимы»: убрал «Двойной шанс» в топбаре — он снят и там. Полный словарь типов и их порогов — глава «Пресеты и режимы».</div>
+    </div>
+
+    <div class="block-band">B · Быстрый вид ленты · дом — Станция → Выдача</div>
+
+    <div class="signal">
+      <h3>① Формат кэфа — Dec / Am / Frac</h3>
+      <p class="sig-why">Размер ставки профи считает в уме за секунды. Переключатель меняет <b>запись</b> коэффициента под ту систему, в которой мозг считает без перевода: <b>Dec</b> — десятичная (2.50 = «в 2.5 раза»), <b>Am</b> — американская мани-лайн (+150 / −200), <b>Frac</b> — британская дробная (3/2). Цифра одна, запись разная. Пример каждой записи виден в подсказке к кнопке ещё <b>до</b> выбора. Жми — один кэф меняет лицо.</p>
+      <div class="sc">
+        <div class="tb-seg" id="d1-fmt" style="display:inline-flex;margin-bottom:10px">
+          <button class="tb-btn on" data-f="dec" title="Десятичный: 1.93 · 2.18">Dec</button>
+          <button class="tb-btn" data-f="am" title="Американский: −108 · +118">Am</button>
+          <button class="tb-btn" data-f="frac" title="Дробный: 93/100 · 59/50">Frac</button>
+        </div>
+        <table class="scan"><thead><tr><th>Событие</th><th>БК 1</th><th>Кэф 1</th><th>БК 2</th><th>Кэф 2</th></tr></thead><tbody id="d1"></tbody></table>
+      </div>
+      <div class="demo-cap">Один и тот же поток, три записи. Наведи на Am или Frac до нажатия — в подсказке уже стоит пример значения (это не выдумка, а результат той же формулы на числах 1.93 и 2.18).</div>
+      <details class="note"><summary>Формула пересчёта (ровно из кода сканера) + две тонкости</summary>Dec — как есть; Am — <code>(кэф−1)·100</code> при кэф≥2 (иначе <code>−100/(кэф−1)</code>); Frac — <code>(кэф−1)</code> дробью со знаменателем 1000, сокращённой. В демо воспроизведено байт-в-байт, не на глаз.<br><b>Frac шире.</b> Дробная запись («119/100») длиннее десятичной («2.19») — при глобальном Frac колонка кэфов чуть расширяется, чтобы запись не резалась; на Dec/Am эта плата не берётся.<br><b>Формат запоминается</b> между сессиями. А если у отдельной конторы кэфы удобнее видеть «как на её сайте» — её личный формат задаётся в карточке этой конторы на Станции (Парк контор) и перебивает общий.</details>
+    </div>
+
+    <div class="signal">
+      <h3>② Плотность — компактный / просторный</h3>
+      <p class="sig-why">Сколько строк держать на экране зависит от ритма смены. <b>День:</b> поток валит сотнями, вилки живут секунды — нужен максимум строк в глаза, компактный жмёт строки плотнее. <b>Ночь:</b> вилок мало, живут дольше — просторный даёт воздух. Жми — строки сожмутся/расправятся.</p>
+      <div class="sc">
+        <button class="tb-btn" id="d2-btn" style="margin-bottom:10px"></button>
+        <table class="scan" id="d2-table"><thead><tr><th>%</th><th>Событие</th><th>БК 1</th><th>Кэф 1</th><th>БК 2</th><th>Кэф 2</th><th>Возр.</th></tr></thead><tbody id="d2"></tbody></table>
+      </div>
+      <div class="demo-cap">Компактный режим уменьшает <b>только вертикальный отступ</b> строки — просторный даёт воздух, компактный жмёт строки плотнее (шапка так же). Видно: строк влезает больше — а бейджи риска (SAME GAME, DIFF RULES) и красный PALP-процент остаются на месте.</div>
+      <details class="note"><summary>Честно: компактный режим не жертвует сигналами</summary>Бейджи риска, цвет выживаемости у левого края строки, период, курсор фокуса — остаются на месте. Жмётся только пустое место между строк, не содержание. Плотность — «косметика над таблицей»: она не трогает ни фильтры, ни то, какие вилки в потоке. Её дом (как настройки по умолчанию) — раздел «Выдача» на Станции; топбар держит её под рукой, потому что ритм смены меняется в течение дня.</details>
+    </div>
+
+    <div class="signal">
+      <h3>③ Тема — день / ночь</h3>
+      <p class="sig-why">Восемь часов ночной смены перед светлым экраном — глаза не доживут до утра. Тёмная тема здесь — <b>эргономика ночного режима</b>, не вкусовщина. День — светлая, ночь — тёмная, по своим глазам. Жми — весь экран темнеет/светлеет разом.</p>
+      <div class="sc" style="padding:6px">
+        <div class="theme-box" data-theme="light" id="d3-box">
+          <div class="tb" style="justify-content:flex-start;margin-bottom:8px">
+            <button class="tb-btn" id="d3-btn"></button>
+            <span class="sc-3" style="font-size:11px" id="d3-lbl"></span>
+          </div>
+          <table class="scan"><thead><tr><th>%</th><th>Событие</th><th>БК 1</th><th>Кэф 1</th><th>БК 2</th><th>Кэф 2</th></tr></thead><tbody id="d3"></tbody></table>
+        </div>
+      </div>
+      <div class="demo-cap">Здесь ночной режим показан как функция — жми кнопку и смотри, как та же лента переключается день↔ночь (кнопка «Тема» работает и в демо Частей 2–3). Оба вида — реальные палитры сканера: день — светлый фон с синим акцентом; ночь — холодный почти чёрный фон с тем же акцентом, но ярче для контраста. Полные пары, не одна тема.</div>
+      <details class="note"><summary>Как это устроено (и в чём упрощение демо)</summary>В сканере тема — это один атрибут на корне страницы, который перекрашивает <b>весь набор цветовых ролей</b> разом; цвет не «течёт» в каждый компонент — они темнеют сами от смены ролей. Тут демо переключает свою коробку, чтобы показать суть. Тема запоминается между сессиями и применяется <b>до</b> первой отрисовки — чтобы ночью не мигнуло белым при загрузке.</details>
+    </div>
+
+    <div class="signal">
+      <h3>④ Спокойный режим</h3>
+      <p class="sig-why">Ночью вилок мало, но каждая новая вспыхивает и строки въезжают — в тихую смену это дёргает глаз без нужды. Спокойный режим гасит <b>движение ради движения</b>: вспышки ячеек и счётчика, въезды и сдвиги строк — выключены. А смысловое остаётся: стрелки движения кэфа и цвета выживаемости никуда не деваются. Жми — поток замрёт в мимике, но продолжит жить данными.</p>
+      <div class="sc">
+        <button class="tb-btn" id="d4-btn" style="margin-bottom:10px"></button>
+        <table class="scan"><thead><tr><th>%</th><th>Событие</th><th>БК 1</th><th>Кэф 1</th><th>БК 2</th><th>Кэф 2</th></tr></thead><tbody id="d4"></tbody></table>
+        <div class="demo-cap" id="d4-status" style="margin-top:6px"></div>
+      </div>
+      <details class="note"><summary>Спокойный режим и системная настройка — один рубильник</summary>Спокойный режим гасит вспышки, въезды строк и даже вспышку счётчика в углу. Он же слушает системную настройку «уменьшить движение» (её включают в самой ОС ради здоровья глаз/вестибулярки): если она стоит на уровне системы, поток ведёт себя спокойно и без нажатия кнопки. Один набор правил на два выключателя — пользовательский и системный. Стрелки и цвета — не «движение ради движения», они несут смысл, поэтому остаются.</details>
+    </div>
+
+    <div class="signal">
+      <h3>⑤ Конфигуратор колонок</h3>
+      <p class="sig-why">Не всякая колонка нужна в каждом режиме. Значок колонок открывает список: что показывать в ленте сейчас. Убираемые — <b>Возраст, Спорт, Событие, Кэфы (пара)</b>. Неотключаемое ядро — <b>Arb %, Маркет, Конторы</b>: без них лента перестаёт быть лентой, поэтому их в списке нет вовсе. Жми значок — открой список и сними лишнее.</p>
+      <div class="sc" style="overflow:visible">
+        <!-- демо=реал (волна-3.1): кнопка колонок — в ПРАВОЙ группе топбара (top-bar.vue:334-363),
+             поповер right:0 раскрывается влево ВНУТРЬ полосы; свисает НАД содержимым ниже, как над
+             лентой в сканере — overflow:visible на контейнере сцены, чтобы не клипить оверлей -->
+        <div class="tb" style="justify-content:flex-end;margin-bottom:8px">
+          <span class="cols-wrap">
+            <button class="tb-btn on" id="d5-btn" title="Колонки ленты: что показывать в этом режиме"></button>
+            <div class="cols-pop" id="d5-pop" style="display:none">
+              <div class="cols-lock">Заперты (ядро): <b>Arb % · Маркет · Конторы</b></div>
+              <label class="cols-row"><input type="checkbox" data-c="age" checked>Возраст</label>
+              <label class="cols-row"><input type="checkbox" data-c="sport" checked>Спорт</label>
+              <label class="cols-row"><input type="checkbox" data-c="event" checked>Событие</label>
+              <label class="cols-row"><input type="checkbox" data-c="odds" checked>Кэфы (пара)</label>
+            </div>
+          </span>
+          <span class="sc-3" id="d5-hint" style="font-size:11px"></span>
+        </div>
+        <table class="scan" id="d5-table"><thead id="d5-head"></thead><tbody id="d5-body"></tbody></table>
+      </div>
+      <div class="demo-cap">Сними «Кэфы (пара)» — уйдут обе колонки кэфов разом (пара двигается и прячется целиком, соответствие ног не рвётся). Когда что-то скрыто, сам значок подсвечивается — напоминание «лента подрезана, это не баг». Порядок колонок (а не только видимость) настраивается в разделе «Выдача» на Станции.</div>
+      <details class="note"><summary>Почему кэфы можно скрыть, а маркет — нет</summary>Убираемый набор — <b>Возраст · Спорт · Событие · Кэфы</b>, а <b>Маркет</b> — в неотключаемом ядре вместе с процентом и конторами. Логика: без имени исхода (маркета) строка теряет смысл — «вилка на что?»; а кэфы профи иногда прячет, когда ведёт по проценту и открывает калькулятор для точных цифр. Набор скрытых колонок захватывается в пресет вместе с темой и плотностью — так «просторный ночной» отличается от «плотного дневного» не только высотой строк.</details>
+    </div>
+
+    <div class="signal">
+      <h3>Вид — часть режима, не только топбара</h3>
+      <p class="sig-why">Тема, плотность и <b>набор видимых колонок</b> — быстрые контроли топбара; их настоящий дом — раздел «Выдача» на Станции. <b>Порядок колонок</b> меняют только там, а не в поповере топбара. Все эти части вида умеют становиться <b>частью пресета</b>. Правка топбаром действует до переключения пресета; чтобы вид закрепился за режимом, его захватывают кнопкой «Сохранить в пресет».</p>
+      <div class="sc">
+        <div class="sc-2" style="font-size:12.5px;line-height:1.7">
+          <div>Тема · плотность · набор колонок&nbsp;&nbsp;<span class="sc-3">→ быстрый доступ в топбаре; дом: Станция · Выдача</span></div>
+          <div style="margin-top:4px">Порядок колонок&nbsp;&nbsp;<span class="sc-3">→ только Станция · Выдача</span></div>
+          <div style="margin-top:4px">«Сохранить в пресет» захватывает их в профиль режима&nbsp;&nbsp;<span class="bridge">Режимы · Вид →</span></div>
+        </div>
+      </div>
+      <div class="demo-cap">Так один режим — «ночной просторный тёмный», другой — «дневной плотный светлый»: переключил пресет — станция перестроилась целиком. Захват — только осознанной кнопкой, молчаливого пришивания вида нет. Устройство профиля режима — главы «Режимы» и «Пресеты и режимы».</div>
+    </div>
+
+    <div class="block-band">C · Хват потока</div>
+
+    <div class="signal">
+      <h3>⑥ Пауза потока</h3>
+      <p class="sig-why">Список бежит, вилка живёт секунды, а курсор не попадает в нужную строку — она уже уехала. Пауза <b>замораживает кадр</b>: весь видимый поток и счётчик встают на снимок одного момента, можно спокойно прицелиться точно в строку. Жми — поток замрёт, жми ещё — побежит.</p>
+      <div class="sc">
+        <button class="tb-btn" id="d6-btn" style="margin-bottom:10px"></button>
+        <table class="scan"><thead><tr><th>%</th><th>Событие</th><th>БК 1</th><th>Кэф 1</th><th>БК 2</th><th>Кэф 2</th><th>Возр.</th></tr></thead><tbody id="d6"></tbody></table>
+        <div class="demo-cap" id="d6-status" style="margin-top:6px"></div>
+      </div>
+      <details class="note"><summary>Пауза замораживает глаза, а не деньги</summary>Список и счётчик встают на снимок момента — но при клике на вилку деталь-панель и калькулятор считают по <b>живой</b> трубе, не по замороженному числу. Кадр заморожен, чтобы попасть курсором, — а сумма ставки берётся из актуальной цены; и команда «поставить» уходит через живой купон конторы, ложной суммы не будет. Если вилка успела умереть за время паузы — деталь честно покажет её снимок на момент паузы, а не пустоту. Пауза — для точности клика, не для «остановить расчёт».</details>
+    </div>
+
+    <div class="signal">
+      <h3>⑦ Поиск событий</h3>
+      <p class="sig-why">Нужен конкретный матч или только одна контора — впиши кусок названия, и поток схлопнется до совпадений. Поиск смотрит сразу в <b>шесть полей</b>: событие, обе конторы, спорт, лигу, тип рынка. Впиши «sinner», «pinnacle.com» или «soccer».</p>
+      <div class="sc">
+        <input class="tb-search" id="d7-search" type="text" placeholder="поиск по событиям…" style="width:200px;margin-bottom:10px">
+        <table class="scan"><thead><tr><th>%</th><th>Спорт</th><th>Событие</th><th>БК 1</th><th>БК 2</th></tr></thead><tbody id="d7"></tbody></table>
+        <div class="demo-cap" id="d7-status" style="margin-top:6px"></div>
+      </div>
+    </div>
+
+    <div class="signal">
+      <h3>⑧ Счётчик живости</h3>
+      <p class="sig-why">Две цифры справа: <b>видимых / всего</b> в потоке. Это не просто счёт — это пульс. Ловится боковым зрением: цифра прыгает — поток жив, данные идут. Замерла надолго — связь оборвалась или вилок сейчас нет. Подсветка моргает, когда появляется новая вилка.</p>
+      <div class="sc">
+        <span class="tb-counter" id="d8-counter"><span class="filt" id="d8-filt">6</span><span>/</span><span id="d8-total">240</span></span>
+        <div class="demo-cap" style="margin-top:6px">Счётчик живёт сам — следи за подсветкой при росте левой цифры.</div>
+      </div>
+      <details class="note"><summary>Три тонкости счётчика (осознанные, не баги)</summary><b>Моргает только при росте.</b> Подсветка вспыхивает, когда вилок стало БОЛЬШЕ (новая пришла в поток), — не когда счёт упал. Иначе она мигала бы на каждое ручное сужение фильтром — ложный сигнал «живой поток» на собственное действие; профи важно появление новых, не исчезновение.<br><b>Не чаще раза в 3 секунды.</b> Ночью новые вилки идут частым ручьём — если мигать на каждую, угол экрана пульсировал бы непрерывно. Вспышка притушена до одной в три секунды: живость видна, назойливости нет.<br><b>Тот же счётчик — в заголовке вкладки браузера:</b> «(6) BetSynd Scanner», на паузе с меткой «⏸». Так число вилок видно, даже когда сканер в фоновой вкладке. Этот счётчик в заголовке отключается тумблером на Станции (Оповещения), если мешает.</details>
+    </div>
+
+    <div class="signal">
+      <h3>⑨ Чип заглушённой конторы</h3>
+      <p class="sig-why">Иногда контору надо убрать из глаз на пару минут — сайт лёг, аккаунт на проверке, линия у неё врёт. Из меню строки её глушат на 1 / 2 / 5 минут, и в топбаре появляется <b>чип</b>: имя конторы и обратный отсчёт «m:ss». Отсчёт дошёл — контора вернулась сама. Не дождался — клик по чипу вернёт её сейчас.</p>
+      <div class="sc">
+        <div class="tb" style="justify-content:flex-start">
+          <button class="tb-mute" id="d9-chip"></button>
+          <span class="sc-3" style="font-size:11px" id="d9-hint">клик по чипу — вернуть контору в ленту досрочно</span>
+        </div>
+        <div class="demo-cap" style="margin-top:6px">Отсчёт виден прямо в топбаре — не надо ходить в настройки, чтобы вспомнить «кого и на сколько убрал». Глушение временное: возврат по таймеру или кликом. Постоянное «убрать контору» — другой рычаг, глава «Мои конторы».</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ЧАСТЬ 2 — ЖИВОЙ СКАНЕР + ПОДСВЕТКА ЛЕГЕНДЫ ============ -->
+  <section class="part">
+    <div class="part-head">
+      <h2 class="part-t">Часть 2 · В живом сканере</h2>
+      <div class="step">Теперь весь топбар над живым потоком — все контролы рабочие, значки — SVG-иконки. Легенда справа <b>не прыгает</b>: она подсвечивается при касании соответствующего контрола (или счётчик дышит сам). Покрути контролы и следи за подсветкой.</div>
+    </div>
+    <div class="sc">
+      <div class="theme-box" data-theme="light" id="p2-box" style="padding:8px">
+        <div class="tb">
+          <div class="tb-l">
+            <button class="tb-pill hyper">⊞ Вечер (3) <span class="tb-hk">⌥1</span></button>
+            <button class="tb-pill active"><span class="tb-dot" style="background:var(--pv-petrol)"></span>Ночной live <span class="tb-hk">⌥2</span></button>
+            <button class="tb-door" title="Режимы — операционные настройки: пресеты, их пороги, конторы в работе">Режимы</button>
+            <button class="tb-door" title="Станция — «настроил и забыл»: выдача, парк контор, звуки, валюты, калькулятор">Станция</button>
+          </div>
+          <div class="tb-r">
+            <input class="tb-search" id="p2-search" type="text" placeholder="поиск по событиям…">
+            <button class="tb-btn" id="p2-pause" title="Пауза потока"></button>
+            <button class="tb-btn" id="p2-density" title="Плотность"></button>
+            <button class="tb-btn" id="p2-theme" title="Тема"></button>
+            <button class="tb-btn" id="p2-calm" title="Спокойный режим"></button>
+            <button class="tb-btn" id="p2-cols" title="Колонки"></button>
+            <span class="tb-counter" id="p2-counter"><span id="p2-pauseico" style="display:inline-flex;vertical-align:-1px"></span><span class="filt" id="p2-filt">6</span><span>/</span><span id="p2-total">240</span></span>
+            <button class="tb-mute" id="p2-mute"></button>
+            <div class="tb-seg" id="p2-fmt">
+              <button class="tb-btn on" data-f="dec" title="Десятичный: 1.93 · 2.18">Dec</button>
+              <button class="tb-btn" data-f="am" title="Американский: −108 · +118">Am</button>
+              <button class="tb-btn" data-f="frac" title="Дробный: 93/100 · 59/50">Frac</button>
+            </div>
+          </div>
+        </div>
+        <table class="scan" id="p2-table" style="margin-top:10px"><thead><tr><th>%</th><th>Спорт</th><th>Событие</th><th>БК 1</th><th>Кэф 1</th><th>БК 2</th><th>Кэф 2</th><th>Возр.</th></tr></thead><tbody id="p2rows"></tbody></table>
+      </div>
+      <div class="legend-static">
+        <div class="item" id="lg-fmt"><b><span class="glyph" id="lgi-fmt"></span>Формат кэфа</b><span>запись Dec/Am/Frac — привычная система счёта</span></div>
+        <div class="item" id="lg-density"><b><span class="glyph" id="lgi-density"></span>Плотность</b><span>компактный (день) / просторный (ночь)</span></div>
+        <div class="item" id="lg-theme"><b><span class="glyph" id="lgi-theme"></span>Тема</b><span>светлая (день) / тёмная (ночь)</span></div>
+        <div class="item" id="lg-calm"><b><span class="glyph" id="lgi-calm"></span>Спокойный режим</b><span>гасит вспышки и въезды строк</span></div>
+        <div class="item" id="lg-cols"><b><span class="glyph" id="lgi-cols"></span>Колонки</b><span>что показывать; ядро %·маркет·конторы заперто</span></div>
+        <div class="item" id="lg-pause"><b><span class="glyph" id="lgi-pause"></span>Пауза</b><span>заморозить кадр для точного клика</span></div>
+        <div class="item" id="lg-search"><b><span class="glyph">≡</span>Поиск</b><span>сузить поток до совпадений (6 полей)</span></div>
+        <div class="item" id="lg-counter"><b><span class="glyph" id="lgi-counter"></span>Счётчик</b><span>пульс: дышит — поток жив</span></div>
+      </div>
+      <div class="demo-cap" id="p2-doornote" style="margin-top:8px">Двери «Режимы» и «Станция» открывают свои экраны — жми, чтобы увидеть, что за каждой.</div>
+    </div>
+    <div class="pace">Поток замедлен для учёбы. Счётчик подсвечивается сам при появлении новой вилки; остальные контролы — при касании. На паузе счётчик гаснет (поток заморожен — не «мёртв»).</div>
+  </section>
+
+  <!-- ============ ЧАСТЬ 3 — РЕАЛЬНЫЙ ТОПБАР БЕЗ ПОДСКАЗОК ============ -->
+  <section class="part">
+    <div class="part-head">
+      <h2 class="part-t">Часть 3 · Как в бою</h2>
+      <div class="step">Плотный поток, компактный режим, без подсказок и легенд. Так топбар работает в смене — контролами вилочник управляет сам.</div>
+    </div>
+    <div class="sc">
+      <div class="theme-box" data-theme="light" id="p3-box" style="padding:8px">
+        <div class="tb">
+          <div class="tb-l">
+            <button class="tb-pill hyper">⊞ Вечер (3) <span class="tb-hk">⌥1</span></button>
+            <button class="tb-pill active"><span class="tb-dot" style="background:var(--pv-petrol)"></span>Ночной live <span class="tb-hk">⌥2</span></button>
+            <button class="tb-door" title="Режимы — операционные настройки: пресеты, их пороги, конторы в работе">Режимы</button>
+            <button class="tb-door" title="Станция — «настроил и забыл»: выдача, парк контор, звуки, валюты, калькулятор">Станция</button>
+          </div>
+          <div class="tb-r">
+            <input class="tb-search" id="p3-search" type="text" placeholder="поиск по событиям…" style="width:120px">
+            <button class="tb-btn" id="p3-pause"></button>
+            <button class="tb-btn on" id="p3-density"></button>
+            <button class="tb-btn" id="p3-theme"></button>
+            <button class="tb-btn" id="p3-calm"></button>
+            <button class="tb-btn on" id="p3-cols" title="скрыт Возраст"></button>
+            <span class="tb-counter" id="p3-counter"><span class="filt" id="p3-filt">10</span><span>/</span><span id="p3-total">312</span></span>
+            <button class="tb-mute" id="p3-mute"></button>
+            <div class="tb-seg" id="p3-fmt">
+              <button class="tb-btn on" data-f="dec">Dec</button>
+              <button class="tb-btn" data-f="am">Am</button>
+              <button class="tb-btn" data-f="frac">Frac</button>
+            </div>
+          </div>
+        </div>
+        <table class="scan dense" id="p3-table" style="margin-top:10px"><thead id="p3-head"></thead><tbody id="p3rows"></tbody></table>
+      </div>
+      <div class="demo-cap" id="p3-doornote" style="margin-top:8px"></div>
+    </div>
+    <div class="demo-cap">Плотно, боевой пресет: узкая воронка, компактные строки, скрыт Возраст (значок колонок подсвечен), одна контора заглушена с отсчётом. Двери «Режимы · Станция» под рукой, но открывают их редко — в бою правят пилюлями и правым рядом.</div>
+  </section>
+
+</div>
+
+<script>
+/* ============================================================
+   Топбар: две двери и пульт вида — движок учебной главы.
+   Формулы/значения/иконки — из кода форка (R-3), см. r3-registry-g10.md:
+     двери «Режимы»/«Станция»: top-bar.vue:254-268 (filtersClick/settingsClick — служебные имена);
+       filter-overlay.vue:975-1023,1211-1295 (полноэкранное полотно, три зоны, переход и Esc);
+       settings-panel.vue:159-170,390-404,717-805,1734-1749 (9 разделов, Esc, полноэкранная Станция)
+     пилюли: ✓ union top-bar.vue:205-209, ⊞ группа :164-180, хоткей ⌥N по композиции :190,211-214
+     формат кэфа: data/display-utils.ts:27-66; примеры ДО выбора FORMAT_OPTIONS top-bar.vue:93-97
+     плотность: scanner-table.vue:604-610,905-906 (просторный td 3px → компактный 2px; th 4→3)
+     тема: use-theme.ts:12 (data-theme на documentElement); index.css день 48/63, ночь 167/183
+     спокойный: scanner-table.vue:1421-1445 (data-calm="1" + prefers-reduced-motion одним набором)
+     колонки: filter-overlay.helpers.ts:158-187 (hideable age/sport/event/odds; core arb/market/bks)
+     пауза: arbs.vue:655 frozenSnapshot; selectedArb по ЖИВОЙ трубе :952-953
+     поиск: arbs.vue:546-555 (6 полей event/bk1/bk2/sport/league/market)
+     счётчик: top-bar.vue:120-141 (flash только при росте + throttle 3с); title arbs.vue:796
+     чип глушения: arbs.vue:804-810 (m:ss), unmute :1228
+     иконки: ui-icon.vue:58-202 (viewBox 24, stroke currentColor) — inline ниже
+   Math.random не используется — детерминированный seed (стабильно при перезапуске).
+   ============================================================ */
+
+// ── SVG-витрина: примитивы РОВНО из ui-icon.vue ──
+const ICONS = {
+  play:'<polygon points="7,4 20,12 7,20"/>',
+  pause:'<line x1="8" y1="5" x2="8" y2="19"/><line x1="16" y1="5" x2="16" y2="19"/>',
+  moon:'<path d="M20 13.5A8 8 0 0 1 10.5 4 7 7 0 1 0 20 13.5Z"/>',
+  sun:'<circle cx="12" cy="12" r="4.2"/><line x1="12" y1="2.5" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="21.5"/><line x1="2.5" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="21.5" y2="12"/><line x1="5.2" y1="5.2" x2="7" y2="7"/><line x1="17" y1="17" x2="18.8" y2="18.8"/><line x1="5.2" y1="18.8" x2="7" y2="17"/><line x1="17" y1="7" x2="18.8" y2="5.2"/>',
+  'density-compact':'<path d="M4 5h16v14H4Z"/><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="12.5" x2="20" y2="12.5"/><line x1="4" y1="16" x2="20" y2="16"/>',
+  'density-comfort':'<path d="M4 5h16v14H4Z"/><line x1="4" y1="12" x2="20" y2="12"/>',
+  calm:'<path d="M3 9c3-2.4 6-2.4 9 0s6 2.4 9 0"/><path d="M3 15c3-2.4 6-2.4 9 0s6 2.4 9 0"/>',
+  columns:'<path d="M4 5h16v14H4Z"/><line x1="10" y1="5" x2="10" y2="19"/><line x1="16" y1="5" x2="16" y2="19"/>',
+  mute:'<path d="M11 5 6.5 9H3v6h3.5L11 19V5Z"/><line x1="15" y1="9" x2="21" y2="15"/><line x1="21" y1="9" x2="15" y2="15"/>'
+};
+function icon(name, size){ size=size||15; return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ui-icon" aria-hidden="true">${ICONS[name]}</svg>`; }
+
+// ── С2: «двери» в демо — клик показывает, какой экран открывается (сам экран — соседняя глава) ──
+const DOOR_MODES = '«Режимы» открывает полноэкранное полотно: слева активный пресет, в центре наборы, справа конторы. Правки видны сразу, а закрепляются «Сохранить в пресет».';
+const DOOR_STATION = '«Станция» открывает полноэкранное «настроил и забыл»: девять глобальных разделов — от выдачи и парка до путей и служебного.';
+function wireDoors(root, noteEl){
+  root.querySelectorAll('.tb-door').forEach(d=>{
+    d.onclick = ()=>{ noteEl.textContent = /Режим/.test(d.textContent) ? DOOR_MODES : DOOR_STATION; };
+  });
+}
+// ── С2: пилюли — клик переносит сплошную подсветку «активного» на нажатую (top-bar.vue:193) ──
+function wirePills(root){
+  const pills = [...root.querySelectorAll('.tb-pill')];
+  pills.forEach(p=>{ p.onclick = ()=>{ pills.forEach(x=>x.classList.remove('active')); p.classList.add('active'); }; });
+}
+
+// ── Формат кэфа: воспроизведено байт-в-байт из data/display-utils.ts:27-66 ──
+function decimalToAmerican(dec){
+  if(dec >= 2.0) return `+${Math.round((dec-1)*100)}`;
+  return String(Math.round(-100/(dec-1)));
+}
+function gcd(a,b){ a=Math.abs(a); b=Math.abs(b); while(b){const t=b; b=a%b; a=t;} return a; }
+function decimalToFractional(dec){
+  const profit = dec-1, denom = 1000, numer = Math.round(profit*denom);
+  if(numer <= 0) return "0/1";
+  const d = gcd(numer, denom);
+  return `${numer/d}/${denom/d}`;
+}
+function formatOdds(dec, fmt){
+  switch(fmt){ case 'dec': return dec.toFixed(2); case 'am': return decimalToAmerican(dec); case 'frac': return decimalToFractional(dec); }
+}
+// ── Процент вилки = функция кэфов (R-3: data/arbs.ts value = (1 − 1/o1 − 1/o2)·100) ──
+function arbPct(o1,o2){ return (1 - 1/o1 - 1/o2) * 100; }
+// ── Survival-уровень строки (демо-иллюстрация: реальный уровень считает computeSurvivalLevel
+//    по сигналам движения/маржи/типа контор; здесь — по классу пары для показа трёх цветов) ──
+function survLevel(bk1,bk2){
+  const sharp=['pinnacle.com','betonline.ag'], weak=['1xbet.kz','lottoland.co.uk'];
+  if(weak.includes(bk1)||weak.includes(bk2)) return 'lo';
+  if(sharp.includes(bk1)&&sharp.includes(bk2)) return 'hi';
+  return 'md';
+}
+
+/* ---------- A · Двери — наведение показывает мир ---------- */
+(function doorsDemo(){
+  const out = document.getElementById('aA-out');
+  const M = 'Режимы — полноэкранное полотно: активный пресет слева, наборы в центре, конторы справа. Правки видны сразу и ждут сохранения в пресет.';
+  const S = 'Станция — полноэкранное «настроил и забыл»: девять глобальных разделов, от выдачи и парка до путей и служебного.';
+  const m = document.getElementById('aA-modes'), s = document.getElementById('aA-station');
+  m.onmouseenter = ()=> out.textContent = M; m.onfocus = ()=> out.textContent = M; m.onclick = ()=> out.textContent = M;
+  s.onmouseenter = ()=> out.textContent = S; s.onfocus = ()=> out.textContent = S; s.onclick = ()=> out.textContent = S;
+  wirePills(document.getElementById('aP-pills'));
+})();
+
+/* ---------- A · Быстрый фильтр типов рынка (живёт в топбаре — дом обучения здесь) ---------- */
+(function marketDemo(){
+  const ROWS = [
+    {pct:'2.60%',event:'Carlos Alcaraz — Jannik Sinner',mkt:'Total',m:'TO 22.5: O/U',bk1:'bet365.com',bk2:'pinnacle.com',surv:'hi'},
+    {pct:'3.10%',event:'Реал Мадрид — Барселона',mkt:'1X2',m:'1X2: 1/2X',bk1:'1xbet.kz',bk2:'bet365.com',surv:'md'},
+    {pct:'1.90%',event:'Los Angeles Lakers — Boston Celtics',mkt:'Handicap',m:'Ф1(-4.5)',bk1:'betonline.ag',bk2:'pinnacle.com',surv:'lo'},
+    {pct:'2.40%',event:'PSG — Bayern',mkt:'Double Chance',m:'1X2: 1/2X',bk1:'betonline.ag',bk2:'1xbet.kz',surv:'md'},
+    {pct:'2.35%',event:'Кайрат — Астана',mkt:'Goals',m:'ОЗ: Да',bk1:'olimp.kz',bk2:'1xbet.kz',surv:'md'},
+    {pct:'2.20%',event:'Novak Djokovic — Carlos Alcaraz',mkt:'Match Result',m:'MW: 1/2',bk1:'smarkets.com',bk2:'bet365.com',surv:'hi'},
+    {pct:'2.05%',event:'Italy — Brazil',mkt:'Total',m:'ТМ 3.5',bk1:'bet365.com',bk2:'pinnacle.com',surv:'hi'}
+  ];
+  const hidden = new Set();
+  const body = document.getElementById('mkt-body'), hint = document.getElementById('mkt-hint');
+  function render(){
+    const shown = ROWS.filter(r=>!hidden.has(r.mkt));
+    body.innerHTML = shown.map(r=>`<tr class="surv-${r.surv}"><td class="st-pct">${r.pct}</td><td>${r.event}</td><td>${r.m}</td><td>${r.bk1}</td><td>${r.bk2}</td></tr>`).join('')
+      || `<tr><td colspan="5" style="color:var(--sc-3);padding:8px">Все типы скрыты — лента пуста</td></tr>`;
+    hint.innerHTML = hidden.size
+      ? `<b>Скрыто типов: ${hidden.size}</b> — их строки убраны из ленты (${shown.length} из ${ROWS.length}).`
+      : `Все типы в потоке: ${ROWS.length} строк. Жми тип, чтобы убрать его из ленты.`;
+  }
+  document.querySelectorAll('#mkt-row .tb-btn').forEach(b=>{
+    b.onclick = ()=>{ const t = b.dataset.mkt; hidden.has(t) ? hidden.delete(t) : hidden.add(t); b.classList.toggle('on', !hidden.has(t)); render(); };
+  });
+  render();
+})();
+
+/* ---------- ① Формат кэфа ---------- */
+(function fmtDemo(){
+  let fmt = 'dec';
+  const rows = [
+    {event:'Alcaraz — Sinner', bk1:'bet365.com', o1:1.92, bk2:'pinnacle.com', o2:2.10},
+    {event:'Real — Barca', bk1:'1xbet.kz', o1:2.50, bk2:'bet365.com', o2:1.66},
+    {event:'Lakers — Celtics', bk1:'betonline.ag', o1:1.45, bk2:'pinnacle.com', o2:3.05}
+  ];
+  const tb = document.getElementById('d1');
+  function render(){
+    tb.innerHTML = rows.map(r=>`<tr>
+      <td>${r.event}</td><td>${r.bk1}</td><td class="st-odds">${formatOdds(r.o1,fmt)}</td>
+      <td>${r.bk2}</td><td class="st-odds">${formatOdds(r.o2,fmt)}</td></tr>`).join('');
+  }
+  document.querySelectorAll('#d1-fmt .tb-btn').forEach(b=>{
+    b.onclick = ()=>{
+      fmt = b.dataset.f;
+      document.querySelectorAll('#d1-fmt .tb-btn').forEach(x=>x.classList.toggle('on', x===b));
+      render();
+    };
+  });
+  render();
+})();
+
+/* ---------- ② Плотность ---------- */
+(function densityDemo(){
+  const ROWS = [
+    {event:'Alcaraz — Sinner',bk1:'bet365.com',o1:2.05,bk2:'pinnacle.com',o2:2.12,age:4,badge:'SAME GAME',badgeCls:'b-sg'},
+    {event:'Real — Barca',bk1:'1xbet.kz',o1:2.08,bk2:'bet365.com',o2:2.06,age:9,badge:'DIFF RULES',badgeCls:'b-dr'},
+    {event:'Lakers — Celtics',bk1:'betonline.ag',o1:2.05,bk2:'pinnacle.com',o2:2.45,age:2,palp:true},
+    {event:'CSKA — SKA',bk1:'1xbet.kz',o1:2.05,bk2:'betonline.ag',o2:2.08,age:14},
+    {event:'Italy — Brazil',bk1:'bet365.com',o1:2.12,bk2:'pinnacle.com',o2:2.10,age:6}
+  ];
+  const tb = document.getElementById('d2'), table = document.getElementById('d2-table'), btn = document.getElementById('d2-btn');
+  let compact = false;
+  tb.innerHTML = ROWS.map(r=>`<tr class="surv-${survLevel(r.bk1,r.bk2)}">
+    <td class="st-pct${r.palp?' st-arb-palp':''}">${arbPct(r.o1,r.o2).toFixed(2)}%</td><td>${r.event}${r.badge?` <span class="badge ${r.badgeCls}">${r.badge}</span>`:''}</td><td>${r.bk1}</td><td class="st-odds">${r.o1.toFixed(2)}</td>
+    <td>${r.bk2}</td><td class="st-odds">${r.o2.toFixed(2)}</td><td>${r.age}s</td></tr>`).join('');
+  function label(){ btn.innerHTML = compact ? icon('density-compact')+' Компактный → жать на просторный' : icon('density-comfort')+' Просторный → жать на компактный'; }
+  btn.onclick = ()=>{
+    compact = !compact;
+    table.className = compact ? 'scan dense' : 'scan';
+    btn.classList.toggle('on', compact); // подсветка = компактный активен (top-bar.vue:294 --compact)
+    label();
+  };
+  label();
+})();
+
+/* ---------- ③ Тема — единственная демонстрация ночного режима ---------- */
+(function themeDemo(){
+  const ROWS = [
+    {event:'Alcaraz — Sinner',bk1:'bet365.com',o1:2.05,bk2:'pinnacle.com',o2:2.12},
+    {event:'Real — Barca',bk1:'1xbet.kz',o1:2.08,bk2:'bet365.com',o2:2.06},
+    {event:'Lakers — Celtics',bk1:'betonline.ag',o1:2.10,bk2:'pinnacle.com',o2:2.15}
+  ];
+  document.getElementById('d3').innerHTML = ROWS.map(r=>`<tr class="surv-${survLevel(r.bk1,r.bk2)}">
+    <td class="st-pct">${arbPct(r.o1,r.o2).toFixed(2)}%</td><td>${r.event}</td><td>${r.bk1}</td><td class="st-odds">${r.o1.toFixed(2)}</td>
+    <td>${r.bk2}</td><td class="st-odds">${r.o2.toFixed(2)}</td></tr>`).join('');
+  const box = document.getElementById('d3-box'), btn = document.getElementById('d3-btn'), lbl = document.getElementById('d3-lbl');
+  let dark = false; // канон учебника — день; ночь показывается по кнопке
+  function paint(){
+    box.setAttribute('data-theme', dark ? 'dark' : 'light');
+    btn.innerHTML = dark ? icon('moon')+' Ночь → переключить на день' : icon('sun')+' День → переключить на ночь';
+    btn.classList.toggle('on', dark); // подсветка = тёмная активна (top-bar.vue:307 --dark)
+    lbl.textContent = dark ? 'Ночь · тёмный фон и циан ярче' : 'День · светлый фон и тот же циан';
+  }
+  btn.onclick = ()=>{ dark = !dark; paint(); };
+  paint();
+})();
+
+/* ---------- ④ Спокойный режим ---------- */
+(function calmDemo(){
+  let seed = 9; const rnd = ()=>{ seed=(seed*1103515245+12345)&0x7fffffff; return seed/0x7fffffff; };
+  const POOL = [['Alcaraz — Sinner','bet365.com','pinnacle.com'],['Real — Barca','1xbet.kz','bet365.com'],
+    ['Lakers — Celtics','betonline.ag','pinnacle.com'],['CSKA — SKA','1xbet.kz','betonline.ag']];
+  let arbs = POOL.map(p=>({event:p[0],bk1:p[1],o1:+(2.02+rnd()*0.25).toFixed(2),bk2:p[2],o2:+(2.02+rnd()*0.25).toFixed(2),f1:false,f2:false}));
+  arbs.forEach(a=>a.pct=+arbPct(a.o1,a.o2).toFixed(2));
+  const tb = document.getElementById('d4'), btn = document.getElementById('d4-btn'), status = document.getElementById('d4-status');
+  let calm = false;
+  function render(){
+    tb.innerHTML = arbs.map(a=>`<tr class="surv-${survLevel(a.bk1,a.bk2)}">
+      <td class="st-pct">${a.pct}%</td><td>${a.event}</td><td>${a.bk1}</td>
+      <td class="st-odds ${(!calm&&a.f1)?'cell-flash':''}">${a.o1.toFixed(2)}</td>
+      <td>${a.bk2}</td><td class="st-odds ${(!calm&&a.f2)?'cell-flash':''}">${a.o2.toFixed(2)}</td></tr>`).join('');
+  }
+  function tick(){
+    arbs.forEach(a=>{ a.f1=a.f2=false;
+      if(rnd()<0.5){a.o1=+(a.o1+(rnd()-0.5)*0.08).toFixed(2);a.f1=true;}
+      if(rnd()<0.4){a.o2=+(a.o2+(rnd()-0.5)*0.08).toFixed(2);a.f2=true;}
+      a.pct=+arbPct(a.o1,a.o2).toFixed(2);
+      if(a.pct<0.3){a.o1=+(2.02+rnd()*0.25).toFixed(2);a.o2=+(2.02+rnd()*0.25).toFixed(2);a.pct=+arbPct(a.o1,a.o2).toFixed(2);}
+    });
+    render();
+  }
+  function label(){ btn.innerHTML = icon('calm') + (calm ? ' Спокойный режим ВКЛ → выключить' : ' Спокойный режим ВЫКЛ → включить'); btn.classList.toggle('on', calm); }
+  function stat(){ status.innerHTML = calm ? '<b>Спокойно:</b> вспышки погашены — стрелки и цвета остались, глаз не дёргает.' : 'Обычно: новая цена ячейки вспыхивает голубым.'; }
+  btn.onclick = ()=>{ calm=!calm; label(); stat(); render(); };
+  label(); stat(); render(); setInterval(tick, 1500);
+})();
+
+/* ---------- ⑤ Конфигуратор колонок ---------- */
+(function colsDemo(){
+  // порядок юнитов = DEFAULT_COLUMN_ORDER: arb, age, sport, event, market, bks, odds (helpers.ts:176)
+  const HEAD = [
+    {id:'arb',label:'%',core:true},{id:'age',label:'Возр.'},{id:'sport',label:'Спорт'},
+    {id:'event',label:'Событие'},{id:'market',label:'Маркет',core:true},
+    {id:'bk1',label:'БК 1',core:true},{id:'bk2',label:'БК 2',core:true},
+    {id:'o1',label:'Кэф 1',odds:true},{id:'o2',label:'Кэф 2',odds:true}
+  ];
+  const DATA = [
+    {arb:'2.60%',age:'4s',sport:'TEN',event:'Alcaraz — Sinner',market:'TO 22.5',bk1:'bet365.com',bk2:'pinnacle.com',o1:'2.05',o2:'2.12',surv:'hi'},
+    {arb:'3.10%',age:'9s',sport:'SOC',event:'Real — Barca',market:'1X2: 1/2',bk1:'betonline.ag',bk2:'bet365.com',o1:'2.08',o2:'2.06',surv:'md'},
+    {arb:'1.90%',age:'2s',sport:'BAS',event:'Lakers — Celtics',market:'Ф1(-4.5)',bk1:'1xbet.kz',bk2:'pinnacle.com',o1:'2.05',o2:'2.20',surv:'lo'}
+  ];
+  const hidden = new Set();
+  const btn=document.getElementById('d5-btn'), pop=document.getElementById('d5-pop'),
+        head=document.getElementById('d5-head'), body=document.getElementById('d5-body'), hint=document.getElementById('d5-hint');
+  function shownCols(){ return HEAD.filter(c=>{
+    if(c.core) return true;
+    if(c.odds) return !hidden.has('odds');
+    return !hidden.has(c.id);
+  }); }
+  function render(){
+    const cols = shownCols();
+    head.innerHTML = `<tr>${cols.map(c=>`<th>${c.label}</th>`).join('')}</tr>`;
+    body.innerHTML = DATA.map(r=>`<tr class="surv-${r.surv}">${cols.map(c=>{
+      const v = r[c.id];
+      const cls = c.id==='arb'?'st-pct':(c.odds?'st-odds':'');
+      return `<td class="${cls}">${v}</td>`;
+    }).join('')}</tr>`).join('');
+    const n = hidden.size;
+    btn.classList.toggle('on', n>0);
+    hint.textContent = n>0 ? `скрыто колонок: ${n}` : 'все колонки видны';
+  }
+  btn.innerHTML = icon('columns');
+  btn.onclick = (e)=>{ e.stopPropagation(); pop.style.display = pop.style.display==='none'?'block':'none'; };
+  document.addEventListener('click', (e)=>{ if(!e.target.closest('.cols-wrap')) pop.style.display='none'; });
+  pop.querySelectorAll('input').forEach(inp=>inp.onchange=()=>{
+    const c = inp.dataset.c; if(inp.checked) hidden.delete(c); else hidden.add(c); render();
+  });
+  render();
+})();
+
+/* ---------- ⑥ Пауза ---------- */
+(function pauseDemo(){
+  let seed = 5; const rnd = ()=>{ seed=(seed*1103515245+12345)&0x7fffffff; return seed/0x7fffffff; };
+  const POOL = [['Alcaraz — Sinner','bet365.com','pinnacle.com'],['Real — Barca','1xbet.kz','bet365.com'],
+    ['Lakers — Celtics','betonline.ag','pinnacle.com'],['CSKA — SKA','1xbet.kz','betonline.ag'],['Italy — Brazil','bet365.com','pinnacle.com']];
+  let arbs = POOL.map(p=>({event:p[0],bk1:p[1],o1:+(2.02+rnd()*0.25).toFixed(2),bk2:p[2],o2:+(2.02+rnd()*0.25).toFixed(2),age:Math.floor(rnd()*10)}));
+  arbs.forEach(a=>{a.pct=+arbPct(a.o1,a.o2).toFixed(2);});
+  const tb = document.getElementById('d6'), btn = document.getElementById('d6-btn'), status = document.getElementById('d6-status');
+  let paused = false;
+  function render(){
+    tb.innerHTML = arbs.map(a=>`<tr class="surv-${survLevel(a.bk1,a.bk2)}">
+      <td class="st-pct">${a.pct}%</td><td>${a.event}</td><td>${a.bk1}</td><td class="st-odds">${a.o1.toFixed(2)}</td>
+      <td>${a.bk2}</td><td class="st-odds">${a.o2.toFixed(2)}</td><td>${a.age}s</td></tr>`).join('');
+  }
+  function tick(){
+    if(paused) return;
+    arbs.forEach(a=>{ a.age++; if(rnd()<0.5){ a.o1=+(a.o1+(rnd()-0.5)*0.08).toFixed(2);} if(rnd()<0.4){ a.o2=+(a.o2+(rnd()-0.5)*0.08).toFixed(2);} a.pct=+arbPct(a.o1,a.o2).toFixed(2); if(a.pct<0.3){a.o1=+(2.02+rnd()*0.25).toFixed(2);a.o2=+(2.02+rnd()*0.25).toFixed(2);a.pct=+arbPct(a.o1,a.o2).toFixed(2);} });
+    render();
+  }
+  function label(){ btn.innerHTML = paused ? icon('play')+' Возобновить' : icon('pause')+' Пауза'; btn.classList.toggle('on', paused); }
+  btn.onclick = ()=>{
+    paused = !paused;
+    label();
+    status.innerHTML = paused ? '<b>Поток заморожен</b> — строки встали, можно целиться курсором.' : 'Поток идёт — строки обновляются.';
+  };
+  label(); status.textContent='Поток идёт — строки обновляются.'; render(); setInterval(tick, 1400);
+})();
+
+/* ---------- ⑦ Поиск (6 полей, arbs.vue:546-555) ---------- */
+(function searchDemo(){
+  const DATA = [
+    {pct:3.20,sport:'Tennis',event:'Alcaraz — Sinner',league:'ATP',bk1:'bet365.com',bk2:'pinnacle.com',market:'Total'},
+    {pct:2.80,sport:'Soccer',event:'Real — Barca',league:'La Liga',bk1:'1xbet.kz',bk2:'bet365.com',market:'1X2'},
+    {pct:4.10,sport:'Basketball',event:'Lakers — Celtics',league:'NBA',bk1:'betonline.ag',bk2:'pinnacle.com',market:'Handicap'},
+    {pct:1.90,sport:'Hockey',event:'CSKA — SKA',league:'KHL',bk1:'1xbet.kz',bk2:'betonline.ag',market:'Total'},
+    {pct:3.55,sport:'Tennis',event:'Swiatek — Gauff',league:'WTA',bk1:'pinnacle.com',bk2:'bet365.com',market:'Total'},
+    {pct:2.40,sport:'Soccer',event:'PSG — Bayern',league:'Champions League',bk1:'betonline.ag',bk2:'1xbet.kz',market:'1X2'}
+  ];
+  const tb = document.getElementById('d7'), inp = document.getElementById('d7-search'), st = document.getElementById('d7-status');
+  function matches(a,q){
+    return a.event.toLowerCase().includes(q)||a.bk1.toLowerCase().includes(q)||a.bk2.toLowerCase().includes(q)
+      ||a.sport.toLowerCase().includes(q)||a.league.toLowerCase().includes(q)||a.market.toLowerCase().includes(q);
+  }
+  function render(){
+    const q = inp.value.trim().toLowerCase();
+    const shown = q ? DATA.filter(a=>matches(a,q)) : DATA;
+    tb.innerHTML = shown.map(a=>`<tr class="surv-${survLevel(a.bk1,a.bk2)}">
+      <td class="st-pct">${a.pct}%</td><td>${a.sport}</td><td>${a.event}</td><td>${a.bk1}</td><td>${a.bk2}</td></tr>`).join('')
+      || `<tr><td colspan="5" style="color:var(--sc-3);padding:10px">Нет совпадений «${q}»</td></tr>`;
+    st.textContent = q ? `${shown.length} из ${DATA.length} — совпало по событию / конторе / спорту / лиге / рынку` : `${DATA.length} вилок (поиск пуст)`;
+  }
+  inp.oninput = render; render();
+})();
+
+/* ---------- ⑧ Счётчик (flash только при росте + throttle 3с) ---------- */
+(function counterDemo(){
+  let seed = 13; const rnd = ()=>{ seed=(seed*1103515245+12345)&0x7fffffff; return seed/0x7fffffff; };
+  const filt = document.getElementById('d8-filt'), totalEl = document.getElementById('d8-total');
+  let cur = 6, total = 240, prev = 6, lastFlash = 0;
+  function tick(){
+    const delta = rnd()<0.6 ? 1+Math.floor(rnd()*3) : -(1+Math.floor(rnd()*2));
+    cur = Math.max(1, cur+delta); total = Math.max(cur, total + (rnd()<0.5?1:-1));
+    filt.textContent = cur; totalEl.textContent = total;
+    // flash ТОЛЬКО при росте (cry-wolf guard) И не чаще раза в 3с (throttle MIN_FLASH_INTERVAL_MS)
+    const now = Date.now();
+    if(cur > prev && now - lastFlash >= 3000){
+      lastFlash = now; filt.classList.add('flash'); setTimeout(()=>filt.classList.remove('flash'), 600);
+    }
+    prev = cur;
+  }
+  setInterval(tick, 1200);
+})();
+
+/* ---------- ⑨ Чип глушения — обратный отсчёт m:ss, клик = вернуть ---------- */
+(function muteDemo(){
+  const chip = document.getElementById('d9-chip'), hint = document.getElementById('d9-hint');
+  let left = 125; // 2:05
+  function fmt(s){ const m=Math.floor(s/60), ss=s%60; return `${m}:${ss.toString().padStart(2,'0')}`; }
+  function draw(){ chip.innerHTML = left>0 ? icon('mute',13)+` 1xbet.kz ${fmt(left)}` : icon('mute',13)+' 1xbet.kz вернуть'; }
+  let timer = setInterval(()=>{ if(left>0){ left--; draw(); } }, 1000);
+  chip.onclick = ()=>{ left = 0; draw(); hint.textContent = '1xbet.kz вернулась в ленту сейчас (клик по чипу). В бою чип исчезает; здесь оставлен для наглядности.'; };
+  draw();
+})();
+
+/* ---------- ЧАСТЬ 2 — живой поток + полный топбар + подсветка легенды ---------- */
+(function part2(){
+  let seed = 7; const rnd = ()=>{ seed=(seed*1103515245+12345)&0x7fffffff; return seed/0x7fffffff; };
+  const POOL = [['Tennis','Alcaraz — Sinner','bet365.com','pinnacle.com','ATP','Total'],['Soccer','Real — Barca','1xbet.kz','bet365.com','La Liga','1X2'],
+    ['Basketball','Lakers — Celtics','betonline.ag','pinnacle.com','NBA','Handicap'],['Hockey','CSKA — SKA','1xbet.kz','betonline.ag','KHL','Total'],
+    ['Soccer','PSG — Bayern','betonline.ag','1xbet.kz','Champions League','1X2'],['Tennis','Swiatek — Gauff','pinnacle.com','bet365.com','WTA','Total']];
+  let arbs = POOL.map((p,i)=>({id:i,sport:p[0],event:p[1],bk1:p[2],bk2:p[3],league:p[4],market:p[5],
+    o1:+(2.02+rnd()*0.25).toFixed(2),o2:+(2.02+rnd()*0.25).toFixed(2),age:Math.floor(rnd()*8),pct:0,f1:false,f2:false}));
+  arbs.forEach(a=>{a.pct=+arbPct(a.o1,a.o2).toFixed(2);});
+  let fmt='dec', paused=false, calm=false, total=240, prevFilt=arbs.length;
+  const tb=document.getElementById('p2rows'), table=document.getElementById('p2-table'),
+        box=document.getElementById('p2-box'), filt=document.getElementById('p2-filt'),
+        totalEl=document.getElementById('p2-total'), counter=document.getElementById('p2-counter'),
+        search=document.getElementById('p2-search');
+  // иконки кнопок + легендных глифов
+  document.getElementById('lgi-fmt').textContent='Ⅾ';
+  document.getElementById('lgi-density').innerHTML=icon('density-comfort',14);
+  document.getElementById('lgi-theme').innerHTML=icon('sun',14);
+  document.getElementById('lgi-calm').innerHTML=icon('calm',14);
+  document.getElementById('lgi-cols').innerHTML=icon('columns',14);
+  document.getElementById('lgi-pause').innerHTML=icon('pause',14);
+  document.getElementById('lgi-counter').textContent='●';
+  function lit(id){ const e=document.getElementById(id); if(!e)return; e.classList.add('lit'); setTimeout(()=>e.classList.remove('lit'),1100); }
+  function matches(a,q){ return a.event.toLowerCase().includes(q)||a.bk1.toLowerCase().includes(q)||a.bk2.toLowerCase().includes(q)||a.sport.toLowerCase().includes(q)||a.league.toLowerCase().includes(q)||a.market.toLowerCase().includes(q); }
+  function render(){
+    const q = search.value.trim().toLowerCase();
+    const shown = q ? arbs.filter(a=>matches(a,q)) : arbs;
+    tb.innerHTML = shown.map(a=>`<tr class="surv-${survLevel(a.bk1,a.bk2)}">
+      <td class="st-pct">${a.pct}%</td><td>${a.sport}</td><td>${a.event}</td>
+      <td>${a.bk1}</td><td class="st-odds ${(!calm&&a.f1)?'cell-flash':''}">${formatOdds(a.o1,fmt)}</td>
+      <td>${a.bk2}</td><td class="st-odds ${(!calm&&a.f2)?'cell-flash':''}">${formatOdds(a.o2,fmt)}</td>
+      <td>${a.age}s</td></tr>`).join('') || `<tr><td colspan="8" style="color:var(--sc-3);padding:8px">Нет совпадений</td></tr>`;
+    const n = shown.length; filt.textContent = n;
+    if(!paused && !calm && n>prevFilt){ filt.classList.add('flash'); setTimeout(()=>filt.classList.remove('flash'),600); lit('lg-counter'); }
+    prevFilt = n;
+  }
+  function tick(){
+    if(paused) return;
+    arbs.forEach(a=>{ a.age++; a.f1=a.f2=false;
+      if(rnd()<0.5){a.o1=+(a.o1+(rnd()-0.5)*0.08).toFixed(2);a.f1=true;}
+      if(rnd()<0.4){a.o2=+(a.o2+(rnd()-0.5)*0.08).toFixed(2);a.f2=true;}
+      a.pct=+arbPct(a.o1,a.o2).toFixed(2);
+      if(a.pct<0.3){a.o1=+(2.02+rnd()*0.25).toFixed(2);a.o2=+(2.02+rnd()*0.25).toFixed(2);a.pct=+arbPct(a.o1,a.o2).toFixed(2);a.age=Math.floor(rnd()*4);}
+    });
+    total = Math.max(arbs.length, total + (rnd()<0.5?2:-1)); totalEl.textContent = total;
+    render();
+  }
+  document.querySelectorAll('#p2-fmt .tb-btn').forEach(b=>b.onclick=()=>{
+    fmt=b.dataset.f; document.querySelectorAll('#p2-fmt .tb-btn').forEach(x=>x.classList.toggle('on',x===b)); lit('lg-fmt'); render();
+  });
+  const dBtn=document.getElementById('p2-density'); let compact=false; dBtn.innerHTML=icon('density-comfort');
+  dBtn.onclick=()=>{ compact=!compact; table.className=compact?'scan dense':'scan';
+    dBtn.innerHTML=icon(compact?'density-compact':'density-comfort'); dBtn.classList.toggle('on',compact); lit('lg-density'); };
+  const tBtn=document.getElementById('p2-theme'); let dark=false; tBtn.innerHTML=icon('sun');
+  tBtn.onclick=()=>{ dark=!dark; box.setAttribute('data-theme',dark?'dark':'light');
+    tBtn.innerHTML=icon(dark?'moon':'sun'); tBtn.classList.toggle('on',dark); lit('lg-theme'); };
+  const cBtn=document.getElementById('p2-calm'); cBtn.innerHTML=icon('calm');
+  cBtn.onclick=()=>{ calm=!calm; cBtn.classList.toggle('on',calm); lit('lg-calm'); render(); };
+  const colBtn=document.getElementById('p2-cols'); colBtn.innerHTML=icon('columns');
+  colBtn.onclick=()=>{ lit('lg-cols'); };
+  const pBtn=document.getElementById('p2-pause'); pBtn.innerHTML=icon('pause'); const pIco=document.getElementById('p2-pauseico');
+  pBtn.onclick=()=>{ paused=!paused; pBtn.innerHTML=icon(paused?'play':'pause'); pBtn.classList.toggle('on',paused);
+    counter.classList.toggle('paused',paused); pIco.innerHTML = paused? icon('pause',10) : ''; lit('lg-pause'); };
+  const mBtn=document.getElementById('p2-mute'); let mleft=95;
+  function mfmt(s){ const m=Math.floor(s/60),ss=s%60; return `${m}:${ss.toString().padStart(2,'0')}`; }
+  function mdraw(){ mBtn.innerHTML = mleft>0? icon('mute',13)+` 1xbet.kz ${mfmt(mleft)}` : icon('mute',13)+' 1xbet.kz вернуть'; }
+  setInterval(()=>{ if(mleft>0){mleft--;mdraw();} }, 1000);
+  mBtn.onclick=()=>{ mleft=0; mdraw(); }; mdraw();
+  search.oninput=()=>{ lit('lg-search'); render(); };
+  wireDoors(box, document.getElementById('p2-doornote')); // С2: двери кликабельны
+  wirePills(box); // С2: пилюли переносят активную подсветку
+  for(let i=0;i<3;i++) tick();
+  setInterval(tick, 1700);
+})();
+
+/* ---------- ЧАСТЬ 3 — плотный реальный топбар, без подсказок ---------- */
+(function part3(){
+  let seed = 31; const rnd = ()=>{ seed=(seed*1103515245+12345)&0x7fffffff; return seed/0x7fffffff; };
+  const POOL = [['Tennis','Alcaraz — Sinner','bet365.com','pinnacle.com','ATP','Total'],['Soccer','Real — Barca','1xbet.kz','bet365.com','La Liga','1X2'],
+    ['Basketball','Lakers — Celtics','betonline.ag','pinnacle.com','NBA','Handicap'],['Hockey','CSKA — SKA','1xbet.kz','betonline.ag','KHL','Total'],
+    ['Soccer','PSG — Bayern','betonline.ag','1xbet.kz','Champions League','1X2'],['Tennis','Swiatek — Gauff','pinnacle.com','bet365.com','WTA','Total'],
+    ['Basketball','Heat — Bucks','bet365.com','betonline.ag','NBA','Total'],['Hockey','TPS — HIFK','lottoland.co.uk','pinnacle.com','Liiga','Handicap'],
+    ['Soccer','Inter — Milan','1xbet.kz','bet365.com','Serie A','1X2'],['Tennis','Medvedev — Zverev','bet365.com','pinnacle.com','ATP','Total']];
+  let arbs = POOL.map((p,i)=>({id:i,sport:p[0],event:p[1],bk1:p[2],bk2:p[3],league:p[4],market:p[5],
+    o1:+(2.02+rnd()*0.25).toFixed(2),o2:+(2.02+rnd()*0.25).toFixed(2),age:Math.floor(rnd()*12),pct:0,f1:false,f2:false}));
+  arbs.forEach(a=>{a.pct=+arbPct(a.o1,a.o2).toFixed(2);});
+  let fmt='dec', paused=false, total=312, prevFilt=arbs.length;
+  let compact=true, dark=false, calm=false, ageHidden=true; // боевой пресет: компактный, день, Возраст скрыт
+  const tb=document.getElementById('p3rows'), table=document.getElementById('p3-table'),
+        head=document.getElementById('p3-head'), box=document.getElementById('p3-box'),
+        filt=document.getElementById('p3-filt'), totalEl=document.getElementById('p3-total'),
+        counter=document.getElementById('p3-counter'), search=document.getElementById('p3-search');
+  document.getElementById('p3-pause').innerHTML=icon('pause');
+  document.getElementById('p3-density').innerHTML=icon('density-compact');
+  document.getElementById('p3-theme').innerHTML=icon('sun');
+  document.getElementById('p3-calm').innerHTML=icon('calm');
+  document.getElementById('p3-cols').innerHTML=icon('columns');
+  function matches(a,q){ return a.event.toLowerCase().includes(q)||a.bk1.toLowerCase().includes(q)||a.bk2.toLowerCase().includes(q)||a.sport.toLowerCase().includes(q)||a.league.toLowerCase().includes(q)||a.market.toLowerCase().includes(q); }
+  function render(){
+    const q=search.value.trim().toLowerCase(); const shown=q?arbs.filter(a=>matches(a,q)):arbs;
+    head.innerHTML = `<tr><th>%</th><th>Спорт</th><th>Событие</th><th>БК 1</th><th>Кэф 1</th><th>БК 2</th><th>Кэф 2</th>${ageHidden?'':'<th>Возр.</th>'}</tr>`;
+    tb.innerHTML = shown.map(a=>`<tr class="surv-${survLevel(a.bk1,a.bk2)}">
+      <td class="st-pct">${a.pct}%</td><td>${a.sport}</td><td>${a.event}</td>
+      <td>${a.bk1}</td><td class="st-odds ${(!calm&&a.f1)?'cell-flash':''}">${formatOdds(a.o1,fmt)}</td>
+      <td>${a.bk2}</td><td class="st-odds ${(!calm&&a.f2)?'cell-flash':''}">${formatOdds(a.o2,fmt)}</td>${ageHidden?'':`<td>${a.age}s</td>`}</tr>`).join('') || `<tr><td colspan="${ageHidden?7:8}" style="color:var(--sc-3);padding:6px">Нет совпадений</td></tr>`;
+    const n=shown.length; filt.textContent=n;
+    if(!paused && !calm && n>prevFilt){ filt.classList.add('flash'); setTimeout(()=>filt.classList.remove('flash'),600); }
+    prevFilt=n;
+  }
+  function tick(){ if(paused) return;
+    arbs.forEach(a=>{ a.age++; a.f1=a.f2=false;
+      if(rnd()<0.5){a.o1=+(a.o1+(rnd()-0.5)*0.08).toFixed(2);a.f1=true;}
+      if(rnd()<0.4){a.o2=+(a.o2+(rnd()-0.5)*0.08).toFixed(2);a.f2=true;}
+      a.pct=+arbPct(a.o1,a.o2).toFixed(2);
+      if(a.pct<0.3){a.o1=+(2.02+rnd()*0.25).toFixed(2);a.o2=+(2.02+rnd()*0.25).toFixed(2);a.pct=+arbPct(a.o1,a.o2).toFixed(2);a.age=Math.floor(rnd()*4);} });
+    total=Math.max(arbs.length,total+(rnd()<0.5?2:-1)); totalEl.textContent=total; render();
+  }
+  document.querySelectorAll('#p3-fmt .tb-btn').forEach(b=>b.onclick=()=>{ fmt=b.dataset.f;
+    document.querySelectorAll('#p3-fmt .tb-btn').forEach(x=>x.classList.toggle('on',x===b)); render(); });
+  document.getElementById('p3-pause').onclick=function(){ paused=!paused; this.innerHTML=icon(paused?'play':'pause'); this.classList.toggle('on',paused); counter.classList.toggle('paused',paused); };
+  const dBtn=document.getElementById('p3-density');
+  dBtn.onclick=()=>{ compact=!compact; table.className=compact?'scan dense':'scan';
+    dBtn.innerHTML=icon(compact?'density-compact':'density-comfort'); dBtn.classList.toggle('on',compact); };
+  const tBtn=document.getElementById('p3-theme');
+  tBtn.onclick=()=>{ dark=!dark; box.setAttribute('data-theme',dark?'dark':'light');
+    tBtn.innerHTML=icon(dark?'moon':'sun'); tBtn.classList.toggle('on',dark); };
+  const cBtn=document.getElementById('p3-calm');
+  cBtn.onclick=()=>{ calm=!calm; cBtn.classList.toggle('on',calm); render(); };
+  const colBtn=document.getElementById('p3-cols');
+  colBtn.onclick=()=>{ ageHidden=!ageHidden; colBtn.classList.toggle('on',ageHidden);
+    colBtn.title=ageHidden?'скрыт Возраст':'все колонки видны'; render(); };
+  const m3=document.getElementById('p3-mute'); let ml=45;
+  function mf(s){ const m=Math.floor(s/60),ss=s%60; return `${m}:${ss.toString().padStart(2,'0')}`; }
+  function md(){ m3.innerHTML = ml>0? icon('mute',13)+` 1xbet.kz ${mf(ml)}` : icon('mute',13)+' 1xbet.kz вернуть'; }
+  setInterval(()=>{ if(ml>0){ml--;md();} }, 1000); m3.onclick=()=>{ml=0;md();}; md();
+  search.oninput=render;
+  wireDoors(box, document.getElementById('p3-doornote')); // С2: двери кликабельны
+  wirePills(box); // С2: пилюли переносят активную подсветку
+  for(let i=0;i<3;i++) tick(); setInterval(tick, 1200);
+})();
+</script>
+</body>
+</html>
