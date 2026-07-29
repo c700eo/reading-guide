@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Г8 · Detail-панель — копнуть вилку глубже</title>
+<style>
+  :root{
+    /* каркас страницы — читательская рама учебника (единая для всех глав, как g5) */
+    --ink:#14161a; --paper:#f7f7f5; --hairline:#e7e7e4;
+    --panel:#ffffff; --surface2:#f4f4f5; --border:#e0e0e0;
+    --text:#1a1a1a; --text-secondary:#666; --text-tertiary:#8a8a8a;
+    --accent:#0a76ad; --hl:rgba(10,118,173,.08);
+    --green:#1a8a2e; --amber:#b45309; --amber-bg:#fff7ed; --amber-border:#e0b070;
+    --shadow-1:0 1px 2px rgba(20,22,26,.05); --shadow-2:0 4px 16px rgba(20,22,26,.06);
+    --r-panel:12px; --r-block:8px;
+    --font-display:"Avenir Next","Segoe UI",system-ui,sans-serif;
+    --mono:ui-monospace,Menlo,monospace;
+    /* survival-триада продукта (risk-ribbon) */
+    --surv-high:#16a34a; --surv-med:#ca8a04; --surv-low:#dc2626;
+    /* ДЕМО — светлая (дневная) палитра сканера: значения :root дневной темы из src/index.css.
+       Панель в живом сканере следует теме день/ночь; канон учебника — день. */
+    --t-bg:#f6f7f9; --t-row:#ffffff; --t-card:#ffffff; --t-border:#dde2ea;
+    --t-text:#1a1a1a; --t-dim:#4d5765;
+    --cyan:#0a76ad;
+    --t-amber:#f59e0b; --t-green:#19776c; --t-red:#c53a36;
+    /* condition/danger — дневные токены кода сканера */
+    --t-conflict:#c2410c; --t-samegame:#a16207;
+    --t-danger-text:#7f1d1d; --t-danger-bg:#fff0f0; --t-danger-border:#e88a8a;
+    /* цвет НОГИ — те же токены в обеих темах (код сканера) */
+    --leg-1:#16a34a; --leg-2:#dc2626;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+  body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--paper);color:var(--text);font-size:15px;line-height:1.6}
+  .wrap{max-width:820px;margin:0 auto;padding:28px 18px 80px}
+  h1{font-family:var(--font-display);font-size:28px;font-weight:700;letter-spacing:-0.01em;margin:0 0 6px;text-wrap:balance}
+  h1::after{content:"";display:block;width:120px;height:3px;margin-top:10px;border-radius:2px;background:linear-gradient(90deg,var(--surv-high) 0 33%,var(--surv-med) 33% 66%,var(--surv-low) 66% 100%)}
+  .lead{color:var(--text-secondary);font-size:16px;margin:0 0 8px;text-wrap:pretty}
+  .lead b{color:var(--text)}
+  .lead .mono{font-family:var(--mono);font-size:13px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:1px 5px}
+  .bigidea{background:#f0f5ff;border:1px solid #cfe0ff;border-left:3px solid var(--accent);border-radius:8px;padding:13px 15px;margin:14px 0 4px;font-size:14.5px}
+  .bigidea b{color:#1a3a7a}
+  h2.part{font-family:var(--font-display);font-size:13px;letter-spacing:.02em;font-weight:700;color:var(--ink);margin:32px 0 4px;border-bottom:1px solid var(--hairline);padding-bottom:6px}
+  .part-sub{font-size:13px;color:var(--text-secondary);margin:0 0 14px}
+  .band{margin:22px 0 2px;font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink);font-weight:700;border-bottom:1px solid var(--border);padding-bottom:4px}
+  .blk{background:var(--panel);border:1px solid var(--hairline);border-radius:var(--r-panel);box-shadow:var(--shadow-1);padding:16px 18px;margin:0 0 14px}
+  .blk h3{font-size:16px;margin:0 0 6px;font-weight:650}
+  .why{font-size:13.5px;color:var(--text-secondary);margin:0 0 10px;text-wrap:pretty}
+  .why b{color:var(--text)}
+  .demo{background:var(--t-bg);border-radius:var(--r-block);padding:12px;overflow-x:auto}
+  .cap{font-size:11px;color:var(--text-secondary);margin:8px 2px 0}
+  .cap b{color:var(--text)}
+  .note{margin:10px 0 0;font-size:12.5px;color:var(--text-secondary)}
+  details{margin:10px 0 0;font-size:13px;color:var(--text-secondary)}
+  details summary{cursor:pointer;color:var(--text);font-weight:600;font-size:13px}
+  .honest{margin:12px 0 0;padding:9px 12px;border-left:3px solid var(--amber-border);background:var(--amber-bg);border-radius:0 var(--r-block) var(--r-block) 0;font-size:12.5px;color:var(--amber)}
+  .honest b{color:var(--amber)}
+  button{font:inherit;cursor:pointer}
+
+  /* ---------- детальная панель (демо — дневная тема) ---------- */
+  .dp{background:var(--t-card);border:1px solid var(--t-border);border-radius:7px;overflow:hidden;max-width:440px}
+  .dp,.dp *{font-family:var(--mono)}
+  .dp-empty{padding:18px;text-align:center;color:var(--t-dim);font-size:12px}
+  .dp-dead{display:flex;align-items:center;gap:6px;padding:5px 10px;background:var(--t-danger-bg);color:var(--t-danger-text);border-bottom:1px solid var(--t-danger-border);font-size:11px;font-weight:600}
+  .dp-dead svg{stroke:var(--t-danger-text);flex:0 0 auto}
+  .dp-sec{padding:9px 11px;border-bottom:1px solid var(--t-border)}
+  .dp-sec:last-child{border-bottom:none}
+  .dp-label{font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--t-dim);margin-bottom:5px}
+
+  /* Fair Odds */
+  .fair{font-size:11px;color:var(--t-dim);font-variant-numeric:tabular-nums}
+
+  /* Condition */
+  .cond .prim{font-size:12px;font-weight:600;margin-bottom:2px}
+  .cond .expl{font-size:11px;color:var(--t-dim);line-height:1.45}
+  .dp-sec.cond--palp{background:color-mix(in srgb,var(--t-red) 9%,var(--t-card))}
+  .cond--palp .prim{color:var(--t-danger-text)}
+  .dp-sec.cond--conflicting{background:color-mix(in srgb,var(--t-conflict) 9%,var(--t-card))}
+  .cond--conflicting .prim{color:var(--t-conflict)}
+  .dp-sec.cond--samegame{background:color-mix(in srgb,var(--t-samegame) 9%,var(--t-card))}
+  .cond--samegame .prim{color:var(--t-samegame)}
+
+  /* All Books — грид */
+  .grid-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
+  .grid-tabs{display:flex;border:1px solid var(--t-border);border-radius:3px;overflow:hidden}
+  .grid-tabs button{padding:2px 9px;font-size:9px;letter-spacing:.05em;text-transform:uppercase;background:transparent;border:none;color:var(--t-dim);cursor:pointer}
+  .grid-tabs button.on{background:var(--t-border);color:var(--t-text)}
+  .grid-tabs--static{margin-bottom:6px;display:inline-flex}
+  .grid-tabs--static button{cursor:default}
+  .g-foot{font-size:10px;color:var(--t-dim);margin-top:5px}
+  .gtable{width:100%;border-collapse:collapse;font-size:11px}
+  .gtable th{font-size:9px;text-transform:uppercase;letter-spacing:.03em;color:var(--t-dim);text-align:right;padding:3px 6px;border-bottom:1px solid var(--t-border)}
+  .gtable th:first-child{text-align:left}
+  .gtable td{padding:3px 6px;border-bottom:1px solid var(--t-border);text-align:right;font-variant-numeric:tabular-nums;color:var(--t-text)}
+  .gtable td:first-child{text-align:left}
+  .gtable tr:last-child td{border-bottom:none}
+  .g-tag{font-size:8px;letter-spacing:.04em;color:var(--t-dim);border:1px solid var(--t-border);border-radius:2px;padding:0 3px;margin-left:3px;text-transform:uppercase;cursor:help}
+  .g-best{background:color-mix(in srgb,var(--t-green) 16%,transparent);color:var(--t-green);font-weight:700}
+  .g-delta.pos{color:var(--t-green)} .g-delta.neg{color:var(--t-dim)} .g-delta.flat{color:var(--t-dim)}
+  .grid-foot{margin-top:4px;font-size:9px;color:var(--t-dim);text-align:right}
+  .best-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .best-col-label{font-size:9px;text-transform:uppercase;color:var(--t-dim);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .best-row{display:grid;grid-template-columns:14px 1fr auto;gap:6px;align-items:center;font-size:11px;padding:2px 4px;border-radius:2px;color:var(--t-text);background:color-mix(in srgb,var(--t-green) 9%,transparent)}
+  .best-row.win .price{color:var(--t-green);font-weight:700}
+  .best-rank{font-size:9px;color:var(--t-dim)}
+  .price{font-variant-numeric:tabular-nums;font-weight:600}
+
+  /* Odd History — sparkline */
+  .spark-row{display:grid;grid-template-columns:minmax(64px,auto) 1fr 46px 46px;gap:8px;align-items:center;font-size:11px;margin:3px 0}
+  .spark-bk{color:var(--t-dim);font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:help}
+  .spark svg{width:100%;height:24px;display:block}
+  .spark polyline{fill:none;stroke:var(--t-dim);stroke-width:1.4;stroke-linejoin:round;stroke-linecap:round}
+  .spark circle{fill:var(--t-dim)}
+  .spark-cur{text-align:right;font-variant-numeric:tabular-nums;color:var(--t-text)}
+  .spark-delta{text-align:right;font-size:10px;font-variant-numeric:tabular-nums}
+  .spark-delta.up{color:var(--t-green)} .spark-delta.down{color:var(--t-red)} .spark-delta.flat{color:var(--t-dim)}
+  .spark-wait{font-size:10px;color:var(--t-dim);font-style:italic}
+
+  /* точка-инициатор ● в ленте */
+  .lentaline{display:grid;grid-template-columns:56px 1fr 78px;gap:8px;align-items:center;font-family:var(--mono);font-size:12px;color:var(--t-text);background:var(--t-row);border:1px solid var(--t-border);border-radius:6px;padding:7px 10px;max-width:340px}
+  .ll-bk{color:var(--t-dim);font-size:11px}
+  .ll-odds{display:inline-flex;align-items:center;justify-content:flex-end;gap:5px;font-variant-numeric:tabular-nums}
+  .idot{font-size:8px;line-height:1;cursor:help}
+  .idot--sharp{color:var(--t-red);opacity:.75}
+  .idot--regular{color:var(--t-dim);opacity:.8}
+  .st-odds .idot{margin-right:3px}
+
+  /* тост алерта (словом, не значок) */
+  .toast{display:inline-block;margin-top:8px;background:#2c2c2c;border:1px solid #555555;color:#f0f0f0;border-radius:6px;padding:5px 10px;font-family:var(--mono);font-size:11px}
+
+  /* строки сканера — фон демо (дневная тема) */
+  table.scan{width:100%;border-collapse:collapse;min-width:440px}
+  table.scan th{font-size:9px;text-transform:uppercase;letter-spacing:.04em;color:var(--t-dim);text-align:left;padding:4px 6px;border-bottom:1px solid var(--t-border)}
+  table.scan td{padding:5px 6px;border-bottom:1px solid var(--t-border);font-size:13px;color:var(--t-text);font-family:var(--mono);font-variant-numeric:tabular-nums}
+  table.scan.dense td{padding:2px 6px;font-size:12px}
+  .scan tr.row{cursor:pointer}
+  .scan tr.row:hover{background:#efeff1}
+  .scan tr.row.sel{background:#dbeafe}
+  .surv-high td:first-child{border-left:3px solid var(--surv-high)}
+  .surv-medium td:first-child{border-left:3px solid var(--surv-med)}
+  .surv-low td:first-child{border-left:3px solid var(--surv-low)}
+  .st-pct{font-weight:700} .st-odds{white-space:nowrap}
+  .st-bk{color:var(--t-dim)}
+
+  /* легенда под панель (Часть 2) */
+  .part2-grid{display:grid;grid-template-columns:1fr;gap:14px;align-items:start}
+  .legend2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  @media(max-width:560px){.legend2{grid-template-columns:1fr}}
+  .legend2 .card{background:var(--panel);border:1px solid var(--hairline);border-radius:var(--r-block);padding:8px 11px;font-size:12.5px;transition:background .25s,border-color .25s}
+  .legend2 .card.lit{background:var(--hl);border-color:var(--accent)}
+  .legend2 .card b{display:block;font-size:12.5px;margin-bottom:1px}
+  .legend2 .card span{color:var(--text-secondary);font-size:12px}
+  .hint{font-size:12px;color:var(--text-secondary);margin-top:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Detail-панель — копнуть вилку глубже</h1>
+  <p class="lead">Решение, которое обслуживает эта функция: <b>«строка зацепила, но брать ли — из девяти ячеек не видно»</b>. Клик по строке раскрывает панель. Она живёт в правой колонке <b>под калькулятором</b>, и её порядок выстроен так, чтобы решающее стояло первым: сначала <b>справедлива ли цена и нет ли подвоха</b>, потом <b>где ещё по этому рынку стоят книги</b>, и только внизу — <b>дорожка коэффициента фоном</b>. Пока вилка не выбрана — панель пустая: <span class="mono">Выбери вилку — покажу разбор</span>.</p>
+
+  <div class="bigidea">
+    <b>Главная мысль.</b> Порядок секций подчинён решению — решающее стоит первым: <b>Fair Odds и Condition</b> (честна ли цена, нет ли ловушки) → <b>All Books</b> (весь рынок по этому исходу) → <b>Odd History</b> (дорожка кэфа фоном). Отдельного блока «Initiator» в панели нет — вывод, ради которого он нужен, живёт в ленте (точка ● у кэфа) и калькуляторе (кружки порядка 1/2 — глава «Калькулятор»). Если вилка ушла из потока, пока панель открыта — сверху загорается метка, что это снимок, а не живая цена.
+  </div>
+
+  <!-- ============ ЧАСТЬ 1 — УЧЁБА ============ -->
+  <h2 class="part">Часть 1 · Учёба</h2>
+  <p class="part-sub">Каждая секция панели по отдельности, со своим маленьким демо — в том порядке, в каком они стоят в панели: сначала что панель говорит про <b>саму</b> вилку, потом — как она смотрится на фоне всего рынка, и в конце — дорожка движения.</p>
+
+  <div class="band">A · Решающее — первым</div>
+
+  <!-- ① Fair Odds -->
+  <div class="blk">
+    <h3>① Fair Odds — справедливая цена</h3>
+    <p class="why">Какой коэффициент предлагал бы рынок <b>без маржи букмекера</b>. Реальный кэф выше справедливого — ровно на этой разнице вилочник и выигрывает. Рядом стоит маржа вилки одной цифрой: быстрый sanity-check «насколько вилка выше честного» одним взглядом.</p>
+    <div class="demo">
+      <div class="dp"><div class="dp-sec"><div class="dp-label">Fair Odds</div><div class="fair" id="d-fair"></div></div></div>
+    </div>
+    <div class="cap">Справедливые кэфы обеих ног и маржа <b>пересчитаны из коэффициентов вилки</b>, а не вписаны руками. Маржа считается по <b>эффективным</b> кэфам — у биржевой ноги это кэф уже за вычетом комиссии.</div>
+    <details><summary>Как считается справедливая цена</summary>Сумма обратных кэфов <code>1/кэф&#8321; + 1/кэф&#8322;</code> — это «эффективная вероятность» пары глазами букмекера с зашитой маржой (для вилки она меньше 1). Справедливый кэф ноги = <code>кэф · (1/кэф&#8321; + 1/кэф&#8322;)</code>. Реальные кэфы стоят выше справедливых — этот зазор и есть прибыль вилки.</details>
+  </div>
+
+  <!-- ② Condition -->
+  <div class="blk">
+    <h3>② Condition — скрытый риск словами</h3>
+    <p class="why">Если у вилки есть подвох, панель называет его <b>человеческим языком</b>, а не оставляет угадывать по бейджу в строке. Важная деталь: секция появляется <b>только когда подвох есть</b>. Чистая вилка не рисует зелёную плашку «всё хорошо» — секции Condition просто нет, и это само по себе сигнал «структурных предупреждений нет». Подвоха три, и панель показывает <b>ровно один — самый старший</b> по опасности.</p>
+    <div class="demo">
+      <div class="dp" style="margin-bottom:8px"><div class="dp-sec cond cond--palp"><div class="dp-label">Condition</div><div class="prim">Подозрительно высокий процент</div><div class="expl">букмекер скорее всего отменит как palpable error, проверь линию у Pinnacle перед ставкой</div></div></div>
+      <div class="dp" style="margin-bottom:8px"><div class="dp-sec cond cond--conflicting"><div class="dp-label">Condition</div><div class="prim">Перекрывающиеся исходы</div><div class="expl">у двух ног разные selections с частичным overlap — это не arb по сути, partial coverage создаёт одностороннюю экспозицию</div></div></div>
+      <div class="dp"><div class="dp-sec cond cond--samegame"><div class="dp-label">Condition</div><div class="prim">Другая вилка того же события</div><div class="expl">в потоке есть параллельная вилка на тот же event — ставить обе ноги = коррелированный риск двойной экспозиции</div></div></div>
+    </div>
+    <div class="cap">Три подвоха <b>по старшинству</b>: PALP (аннуляция ставки — критичнее всего) → перекрытие исходов (не вилка по сути) → другая вилка того же события (двойная экспозиция). Если применимы сразу несколько — панель покажет только старший.</div>
+    <details><summary>Когда какой загорается</summary><b>PALP</b> — процент вилки выше порога аннуляции этого спорта (у тенниса он строже: ~3.5%, у футбола ~5%): такую ставку букмекер вправе отменить как явную ошибку линии. <b>Перекрытие</b> — у ног расходящиеся selections, покрытие частичное. <b>Другая вилка</b> — на то же событие в потоке есть вторая вилка, ставить обе = удвоенный риск на общих конторах. Пояснение про конкретный спорт панель сейчас не подрисовывает — оно ждёт партнёрскую эмпирику из данных бота.</details>
+  </div>
+
+  <div class="band">B · Как она на фоне всего рынка</div>
+
+  <!-- ③ All Books -->
+  <div class="blk">
+    <h3>③ All Books on this Market — где ещё стоят цены</h3>
+    <p class="why">Выбранная пара — лишь две конторы из многих, что выставили цену на тот же рынок. Три вкладки — три решения. <b>BEST</b>: если по нужному исходу есть контора с кэфом выше выбранной — туда переставить ногу, маржа вырастет. <b>AVERAGE</b> — проверка «<b>не выброс ли моя цена</b>»: сверить кэф своей ноги со средним по рынку. Немного выше среднего — здоровый перекос, на нём вилка и стоит; сильно выше — аномалия, либо золото, либо ошибка конторы, которую вот-вот поправят. <b>ALL</b>: вся картина — лучшая цена может оказаться у конторы не из своего списка.</p>
+    <div class="demo"><div class="dp"><div class="dp-sec">
+      <div class="grid-head"><div class="dp-label">All Books on this Market</div>
+        <div class="grid-tabs"><button class="on" data-m="BEST">BEST</button><button data-m="AVERAGE">AVERAGE</button><button data-m="ALL">ALL</button></div></div>
+      <div id="d-grid"></div>
+      <div class="grid-foot" id="d-grid-foot"></div>
+    </div></div></div>
+    <div class="cap">Переключай вкладки: <b>BEST</b> — три лучшие конторы по каждому исходу; <b>AVERAGE</b> — отклонение каждой от среднего (зелёное = выгоднее); <b>ALL</b> — весь список. <b>★</b> = sharp/fair-ориентир (Pinnacle), <b>EX</b> = биржа (цена <b>после комиссии</b>). Цены в колонках — <b>эффективные</b>, поэтому биржа сравнивается честно.</div>
+    <details><summary>Список контор: список пока учебный, формула — боевая</summary>Вкладки, подсветка лучшей цены и расчёт отклонения от среднего — формула, одинаковая на любом списке. Сам список контор в грид <b>придёт с бэком</b> (реальные книги рынка, на живом рынке их полтора десятка); до этого список синтетический — генерится ровно, без случайности, чтобы демо не прыгало. Своя пара показана в других секциях, поэтому из грида она исключена и стоит подписью внизу.</details>
+  </div>
+
+  <div class="band">C · Дорожка движения — фоном внизу</div>
+
+  <!-- ④ Odd History -->
+  <div class="blk">
+    <h3>④ Odd History — траектория коэффициента</h3>
+    <p class="why">Эта дорожка стоит <b>последней, фоном</b> — сначала решение, потом контекст движения. Под рукой не одно последнее число, а вся дорожка по обеим ногам. Коэффициент сходил вниз три раза подряд — контора правит ошибку, вилка вот-вот схлопнется. Дорожка отвечает на «куда едет», на что одна цифра ответить не может.</p>
+    <div class="demo"><div class="dp"><div class="dp-sec"><div class="dp-label">Odd History</div><div id="d-spark"></div></div></div></div>
+    <div class="demo-cap cap">Коэффициент дёргается — линия по каждой ноге накапливается; справа текущий кэф и последнее изменение (зелёное вверх, красное вниз). Имя конторы — <b>доменом</b>, как сканер показывает по умолчанию; бренд-вид включается на Станции (раздел «Выдача»).</div>
+    <details><summary>Откуда берётся дорожка</summary>История копится <b>по выбранной вилке</b>, пока панель открыта (последние ~30 изменений). При переходе на другую вилку дорожка обнуляется — у каждой вилки своя картина движения, не склейка кликов; возврат к прежней вилке стартует с чистой дорожки. Пока кэф не двигался — на месте дорожки стоит «<span style="font-family:var(--mono)">Waiting for movement…</span>».</details>
+  </div>
+
+  <div class="band">D · Метки и связки</div>
+
+  <!-- ⑤ Мёртвая вилка -->
+  <div class="blk">
+    <h3>⑤ Мёртвая вилка — снимок момента смерти</h3>
+    <p class="why">Вилка может уйти из потока, пока панель открыта. Чтобы мёртвые данные не выглядели как живые, <b>сверху панели</b> загорается метка: это снимок на момент, когда вилка исчезла, а не текущая цена. Метка стоит выше всех секций — её видно первой.</p>
+    <div class="demo"><div class="dp">
+      <div class="dp-dead"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke-width="2.2"><path d="M7.9 2h8.2L22 7.9v8.2L16.1 22H7.9L2 16.1V7.9L7.9 2z"/><path d="M15 9l-6 6M9 9l6 6"/></svg> Вилка ушла из потока — данные на момент смерти</div>
+      <div class="dp-sec"><div class="dp-label">Odd History</div><div class="spark-wait">Waiting for movement…</div></div>
+    </div></div>
+    <div class="cap">Пока вилка жива — метки нет; ушла из потока — <b>красный значок-октагон</b> и текст сверху, и всё ниже читается как замороженный снимок.</div>
+  </div>
+
+  <!-- ⑥ Точка-инициатор ● в ленте -->
+  <div class="blk">
+    <h3>⑥ Точка ● в ленте — кто двинул линию последней</h3>
+    <p class="why">Какая нога качнула цену последней — сигнал <b>какой ногой ставить первой</b>. В панели отдельного блока под него нет: практический вывод живёт в калькуляторе (кружки порядка 1/2), а сам сигнал виден прямо <b>в ленте</b> — крохотная точка ● у кэфа той ноги, что двинула линию последней.</p>
+    <div class="demo">
+      <div class="lentaline" style="margin-bottom:8px">
+        <span class="st-pct">3.6%</span>
+        <span class="ll-bk">pinnacle.com · bet365.com</span>
+        <span class="ll-odds"><span class="idot idot--sharp" title="Инициатор движения — sharp/биржа: рынок выравнивается, вилка закроется быстро — не тяни">●</span>2.05</span>
+      </div>
+      <div class="lentaline">
+        <span class="st-pct">3.1%</span>
+        <span class="ll-bk">lottoland.co.uk · bet365.com</span>
+        <span class="ll-odds"><span class="idot idot--regular" title="Инициатор — эта нога двинула линию последней (её парную ставь первой)">●</span>2.08</span>
+      </div>
+    </div>
+    <div class="cap">Точка <b>по сорту конторы-инициатора</b>: sharp или биржа — <b>приглушённо-красная</b> («рынок выравнивается — вилка закроется быстро, не тяни»); обычная контора — <b>нейтральная серая</b> («просто двинула последней»). Точка не мигает, одна на строку максимум, и <b>гаснет примерно через минуту</b> после движения — старое «кто двинул» врать не должно.</div>
+  </div>
+
+  <!-- ============ ЧАСТЬ 2 — В ЖИВОМ СКАНЕРЕ ============ -->
+  <h2 class="part">Часть 2 · В живом сканере</h2>
+  <p class="part-sub">Несколько строк, как в реальном потоке. Кликни любую — под таблицей раскроется её панель целиком, в боевом порядке секций. Легенда ниже подсказывает, что есть что; она подсвечивается под выбранную вилку.</p>
+  <div class="part2-grid">
+    <div class="demo" style="padding:6px">
+      <table class="scan"><thead><tr><th>%</th><th>Спорт</th><th>Событие</th><th>БК 1</th><th>Кэф 1</th><th>БК 2</th><th>Кэф 2</th><th>Возр.</th></tr></thead><tbody id="p2rows"></tbody></table>
+      <div id="p2panel" style="margin-top:10px"></div>
+    </div>
+    <div class="legend2" id="p2legend">
+      <div class="card" id="lg-fair"><b>Fair Odds</b><span>справедливая цена и маржа — первой</span></div>
+      <div class="card" id="lg-cond"><b>Condition</b><span>скрытый риск словами — если он есть</span></div>
+      <div class="card" id="lg-grid"><b>All Books</b><span>где ещё стоят цены на этот рынок</span></div>
+      <div class="card" id="lg-spark"><b>Odd History</b><span>куда едет кэф — дорожка фоном внизу</span></div>
+      <div class="card" id="lg-dead"><b>Мёртвая вилка</b><span>метка сверху, если вилка ушла из потока</span></div>
+      <div class="card" id="lg-init"><b>Точка ● в ленте</b><span>кто двинул линию последней — сигнал в самой ленте, не в панели</span></div>
+    </div>
+  </div>
+  <p class="hint">Клик по строке закрепляет выбор; цветная полоса слева у строки — её survival-уровень (зелёная — надёжнее, красная — рискованнее), это из главы «Цвета и риски». Секция Condition в панели появляется только у вилки с подвохом — на чистой строке её нет.</p>
+
+  <!-- ============ ЧАСТЬ 3 — КАК В БОЮ ============ -->
+  <h2 class="part">Часть 3 · Как в бою</h2>
+  <p class="part-sub">Плотный поток и раскрытая панель без подсказок — так это выглядит в работе. Выбрана вилка с подвохом: Condition стоит сразу за Fair Odds.</p>
+  <div class="demo" style="padding:6px">
+    <table class="scan dense"><thead><tr><th>%</th><th>Спорт</th><th>Событие</th><th>БК 1</th><th>Кэф 1</th><th>БК 2</th><th>Кэф 2</th><th>Возр.</th></tr></thead><tbody id="p3rows"></tbody></table>
+    <div id="p3panel" style="margin-top:8px"></div>
+  </div>
+  <div class="honest"><b>Ещё одна связка.</b> Когда вилка переваливает порог алерта, сканер роняет тост <span style="font-family:var(--mono);color:var(--amber)">Алерт: вилка 5.20% выше порога</span> — <b>словом</b>, не значком-колокольчиком. Это уже про ленту и звук (глава «Служебное»), но принцип тот же, что здесь: подвох и сигнал панель называет по-русски, а не иконкой.</div>
+
+</div>
+
+<script>
+/* ============================================================
+   Г8 «Detail-панель» — движок учебной главы (мини-реплика панели).
+   R-3: механизмы/тексты/порядок — из кода форка, координаты в r3-registry-g9.md:
+     Порядок секций Fair(+Condition) → All Books → Odd History : detail-panel.vue:56-64 (шаблон)
+     Dead-бейдж наверху (SVG-октагон)                          : detail-panel.vue:49-55
+     Fair = odds·(1/o1+1/o2); Margin = effectiveArbPercent      : interpretation.ts:633-644 / arbs.ts:202-213
+     Condition тексты дословно, приоритет PALP>CONFL>SAMEGAME   : interpretation.ts:720-743
+     Condition рендерится ТОЛЬКО при warning (нет «Чисто»-плашки): detail-fair.vue:37
+     Grid BEST/AVERAGE/ALL, ★=isFair EX=isExchange, eff-цены    : detail-grid.vue:73-276 / market-books.ts
+     deltaFromAverage = (eff-avg)/avg·100                        : market-books.ts:195-202
+     Sparkline last ~30, reset при смене вилки, «Waiting…»       : detail-history.vue / use-odd-history.ts:44-125
+     bkShownName (бренд), домен в title                          : display-preferences.ts:137-142 / detail-history.vue:133-137
+     Точка-инициатор ● в ленте per-tier, TTL 60с                 : arb-row.vue:500-504,540-544 / scanner-table.vue:1220-1228 / interpretation.ts:606
+   Список Grid — синтетический (market-books.ts mock до backend #29); формула реальна.
+   Комиссии бирж из кода (arbs.ts:136-141). Math.random НЕ используется — детерминированный seed.
+   ============================================================ */
+var MINUS = "−";
+var COMM = { "Smarkets":0.02, "Betfair Exchange":0.02, "Matchbook":0.015, "Betdaq":0.02 }; // arbs.ts:136-141
+function effOdds(o, name){ var c = COMM[name] || 0; return c > 0 ? 1 + (o - 1) * (1 - c) : o; } // arbs.ts:162-175
+function fairOdds(o1, o2){ var s = 1/o1 + 1/o2; return [o1*s, o2*s]; }                          // interpretation.ts:640-643 (RAW odds)
+function marginEff(o1, o2, n1, n2){ return (1 - 1/effOdds(o1,n1) - 1/effOdds(o2,n2)) * 100; }   // arbs.ts:202-213 (effective)
+function palpThreshold(sport){ var T = {Soccer:5,Tennis:3.5,Basketball:5,Basket:5,Hockey:5,eSports:4,TT:5}; return T[sport] || 5; } // interpretation.ts:59-69
+
+/* ---------- ① Fair Odds ---------- */
+(function fairDemo(){
+  var o1 = 2.10, o2 = 2.05;                                  // пара bet365/Betway (2.10/2.05 — маржа как в g5/g6)
+  var f = fairOdds(o1, o2);
+  document.getElementById('d-fair').textContent =
+    'Fair: ' + f[0].toFixed(2) + ' / ' + f[1].toFixed(2) + ' | Margin: ' + marginEff(o1, o2, 'bet365', 'Betway').toFixed(1) + '%';
+})();
+
+/* ---------- ③ All Books (синтетический список, реальная формула) ---------- */
+function makePrng(seed){ var s = 0; for (var i=0;i<seed.length;i++) s = (s*31 + seed.charCodeAt(i)) >>> 0; s = s || 1; return function(){ s = (s*9301 + 49297) >>> 0; s = s % 233280; return s/233280; }; }
+function buildBooks(o1, o2, bk1, bk2){
+  var SHARP = 'Pinnacle', EXCH = ['Smarkets','Betfair Exchange','Matchbook'];
+  // выбранная пара исключена из грида (она показана в других секциях) — market-books.ts:103-105
+  var REG = ['888sport','bet365','Betano','Bwin','Betway','Unibet','William Hill','Ladbrokes','Dafabet','Stake']
+    .filter(function(n){ return n !== bk1 && n !== bk2; });
+  var rng = makePrng('g9-detail-fixed');
+  var books = [];
+  var f = fairOdds(o1, o2);
+  books.push({ name: SHARP, e1: +f[0].toFixed(2), e2: +f[1].toFixed(2), fair: true });        // Pinnacle = devigged fair
+  var reg = REG.slice(0, 8 + Math.floor(rng()*2));
+  for (var i=0;i<reg.length;i++){
+    var p1 = +(o1*(1 + (rng()-0.5)*0.10)).toFixed(2), p2 = +(o2*(1 + (rng()-0.5)*0.10)).toFixed(2);
+    var g = 0; while (1/p1 + 1/p2 < 1.005 && g < 8){ p1 = +(p1*0.97).toFixed(2); p2 = +(p2*0.97).toFixed(2); g++; }
+    books.push({ name: reg[i], e1: p1, e2: p2 });
+  }
+  for (var j=0;j<2;j++){                                                                        // биржи — effective после комиссии
+    var name = EXCH[j];
+    var q1 = +(o1*(1 + (rng()-0.5)*0.10)).toFixed(2), q2 = +(o2*(1 + (rng()-0.5)*0.10)).toFixed(2);
+    var g2 = 0; while (1/q1 + 1/q2 < 1.005 && g2 < 8){ q1 = +(q1*0.97).toFixed(2); q2 = +(q2*0.97).toFixed(2); g2++; }
+    books.push({ name: name, e1: +effOdds(q1,name).toFixed(2), e2: +effOdds(q2,name).toFixed(2), exch: true });
+  }
+  return books;
+}
+var G_O1 = 2.10, G_O2 = 2.05, BOOKS = buildBooks(G_O1, G_O2, 'bet365', 'Betway'); // пара bet365/Betway → Pinnacle свободен как ★-fair; ряды — бренд-мок как SAMPLE_BKS реала
+var SEL1 = '1 (Alcaraz)', SEL2 = '2 (Sinner)';                                    // подписи столбцов = сырой selection вилки (detail-grid.vue:111,137)
+function trunc(s, n){ return s.length > n ? s.slice(0, n) + '…' : s; }
+function avg(leg){ var a = 0; for (var i=0;i<BOOKS.length;i++) a += (leg===1?BOOKS[i].e1:BOOKS[i].e2); return a/BOOKS.length; } // averagePrice
+function dlt(price, leg){ var a = avg(leg); return ((price - a)/a)*100; }                        // deltaFromAverage
+function tagHtml(b, mode){ var exT = mode === 'BEST' ? 'Биржа (эффективный кэф после комиссии)' : 'Биржа'; return (b.fair?'<span class="g-tag" title="Sharp-контора / справедливый кэф">★</span>':'') + (b.exch?'<span class="g-tag" title="' + exT + '">EX</span>':''); }
+function topN(leg, n){ return BOOKS.map(function(b,i){ return { i:i, p:leg===1?b.e1:b.e2 }; }).sort(function(a,b){ return b.p-a.p; }).slice(0, n); }
+function renderGrid(mode){
+  document.getElementById('d-grid-foot').textContent = BOOKS.length + ' books shown · selected pair (bet365.com, betway.com) above';
+  var el = document.getElementById('d-grid');
+  if (mode === 'BEST'){
+    var col = function(leg, label){ var t = topN(leg, 3);
+      return '<div><div class="best-col-label">' + label + '</div>' + t.map(function(x, r){
+        return '<div class="best-row ' + (r===0?'win':'') + '"><span class="best-rank">' + (r+1) + '</span><span>' + BOOKS[x.i].name + tagHtml(BOOKS[x.i], 'BEST') + '</span><span class="price">' + x.p.toFixed(2) + '</span></div>';
+      }).join('') + '</div>'; };
+    el.innerHTML = '<div class="best-cols">' + col(1, SEL1) + col(2, SEL2) + '</div>';
+  } else if (mode === 'AVERAGE'){
+    var cls = function(d){ return Math.abs(d)<0.05?'flat':(d>0?'pos':'neg'); };
+    var fmt = function(d){ return Math.abs(d)<0.05?'0.0%':(d>0?'+':'') + d.toFixed(1) + '%'; };
+    el.innerHTML = '<table class="gtable"><thead><tr><th>Book</th><th>' + trunc(SEL1,12) + '</th><th>Δ%</th><th>' + trunc(SEL2,12) + '</th><th>Δ%</th></tr></thead><tbody>' +
+      BOOKS.map(function(b){ return '<tr><td>' + b.name + tagHtml(b, 'AVERAGE') + '</td><td>' + b.e1.toFixed(2) + '</td><td class="g-delta ' + cls(dlt(b.e1,1)) + '">' + fmt(dlt(b.e1,1)) + '</td><td>' + b.e2.toFixed(2) + '</td><td class="g-delta ' + cls(dlt(b.e2,2)) + '">' + fmt(dlt(b.e2,2)) + '</td></tr>'; }).join('') +
+      '<tr><td><b>Average</b></td><td><b>' + avg(1).toFixed(2) + '</b></td><td>—</td><td><b>' + avg(2).toFixed(2) + '</b></td><td>—</td></tr></tbody></table>';
+  } else {
+    var w1 = topN(1,1)[0].i, w2 = topN(2,1)[0].i;
+    el.innerHTML = '<table class="gtable"><thead><tr><th>Book</th><th>' + trunc(SEL1,14) + '</th><th>' + trunc(SEL2,14) + '</th></tr></thead><tbody>' +
+      BOOKS.map(function(b, i){ return '<tr><td>' + b.name + tagHtml(b, 'ALL') + '</td><td class="' + (i===w1?'g-best':'') + '">' + b.e1.toFixed(2) + '</td><td class="' + (i===w2?'g-best':'') + '">' + b.e2.toFixed(2) + '</td></tr>'; }).join('') + '</tbody></table>';
+  }
+}
+(function gridDemo(){
+  var btns = document.querySelectorAll('.grid-tabs button');
+  btns.forEach(function(btn){ btn.addEventListener('click', function(){
+    btns.forEach(function(b){ b.classList.remove('on'); }); btn.classList.add('on'); renderGrid(btn.dataset.m);
+  }); });
+  renderGrid('BEST');
+})();
+
+/* ---------- ④ Odd History sparkline ---------- */
+function sparkSVG(values){
+  if (values.length < 2) return '<span class="spark-wait">—</span>';
+  var min = Math.min.apply(null, values), max = Math.max.apply(null, values), range = (max-min) || 1, W = 170, H = 24, p = 2, iw = W-2*p, ih = H-2*p;
+  var pts = values.map(function(v, i){ return (p + i/(values.length-1)*iw).toFixed(1) + ',' + (p + (1-(v-min)/range)*ih).toFixed(1); }).join(' ');
+  var lastV = values[values.length-1];
+  var lx = (p + iw).toFixed(1), ly = (p + (1-(lastV-min)/range)*ih).toFixed(1);
+  return '<svg viewBox="0 0 ' + W + ' ' + H + '"><polyline points="' + pts + '"/><circle cx="' + lx + '" cy="' + ly + '" r="2.2"/></svg>';
+}
+function sparkRow(shown, domain, values){
+  var cur = values[values.length-1];
+  var delta = values.length>1 ? cur - values[values.length-2] : 0;
+  var trend = delta>0.001?'up':delta<-0.001?'down':'flat';
+  var dtxt = values.length>1 ? (delta>0?'+':'') + delta.toFixed(2) : '—';
+  return '<div class="spark-row"><span class="spark-bk" title="' + domain + '">' + shown + '</span><span class="spark">' + sparkSVG(values) + '</span>' +
+         '<span class="spark-cur">' + cur.toFixed(2) + '</span><span class="spark-delta ' + trend + '">' + dtxt + '</span></div>';
+}
+(function oddHistoryDemo(){
+  var el = document.getElementById('d-spark');
+  // leg1 ползёт вниз (контора фиксит), leg2 почти стоит; имя — домен (канон bkNameStyle:"domain")
+  var seq1 = [2.12,2.09,2.06,2.04,2.01], seq2 = [1.95,1.96,1.95,1.97,1.96], n = 2;
+  function step(){
+    el.innerHTML = sparkRow('pinnacle.com', 'нога 1 — дорожка кэфа', seq1.slice(0,n)) + sparkRow('bet365.com', 'нога 2 — дорожка кэфа', seq2.slice(0,n));
+    n = n>=seq1.length ? 2 : n+1;
+  }
+  step(); setInterval(step, 1400);
+})();
+
+/* ---------- Часть 2/3 — поток строк + раскрытие панели по клику ---------- */
+var SURV = ['surv-high','surv-medium','surv-low'];
+// [спорт, событие, БК1(бренд), домен1, БК2, домен2, кэф1, кэф2, возраст, sel1, sel2]
+var POOL = [
+  ['Tennis','Alcaraz — Sinner','Pinnacle','pinnacle.com','bet365','bet365.com',2.08,2.05,0,'1 (Alcaraz)','2 (Sinner)'],
+  ['Soccer','Real — Barca','1xbet','1xbet.kz','Smarkets','smarkets.com',2.12,2.30,1,'1','2'],   // PALP — высокий процент
+  ['Basket','Lakers — Celtics','BetOnline','betonline.ag','Pinnacle','pinnacle.com',1.95,2.18,2,'Ф1(-3.5)','Ф2(+3.5)'],
+  ['Hockey','CSKA — SKA','bet365','bet365.com','Betfair Exchange','betfair.com',2.20,1.98,1,'ТБ 4.5','ТМ 4.5'],
+  ['TT','Dedek — Postelt','Lottoland','lottoland.co.uk','bet365','bet365.com',2.05,2.08,2,'1 (Dedek)','2 (Postelt)']
+];
+function rowPct(a){ return marginEff(a[6], a[7], a[2], a[4]).toFixed(1); }
+/* точка-инициатор ● в ленте (arb-row.vue:500-544): тир по сорту конторы (detectInitiatorWithTier interpretation.ts:582-594);
+   sharp/биржа = приглушённо-красная (.idot--sharp), обычная = нейтральная серая (.idot--regular). Демо детерминировано. */
+var SHARP_BK = 'Pinnacle';
+function bkTier(name){ return name === SHARP_BK ? 'sharp' : (COMM[name] ? 'exchange' : 'regular'); }
+function rowInitiator(a){ var rank = { sharp:2, exchange:1, regular:0 }, t1 = bkTier(a[2]), t2 = bkTier(a[4]); return rank[t1] > rank[t2] ? { leg:1, tier:t1 } : { leg:2, tier:t2 }; } // инициатор — нога с «острейшей» конторой; при равенстве — нога 2
+function initDot(tier){ var cls = tier==='regular'?'regular':'sharp'; var title = tier==='regular' ? 'Инициатор — эта нога двинула линию последней (её парную ставь первой)' : 'Инициатор движения — sharp/биржа: рынок выравнивается, вилка закроется быстро — не тяни'; return '<span class="idot idot--' + cls + '" title="' + title + '">●</span>'; }
+function buildPanel(a, dead){
+  if (!a) return '<div class="dp"><div class="dp-empty">Выбери вилку — покажу разбор</div></div>';
+  var o1 = a[6], o2 = a[7], f = fairOdds(o1, o2), m = marginEff(o1, o2, a[2], a[4]);
+  var palp = m > palpThreshold(a[0]);                                                            // isPALP: eff% > порог спорта
+  // Condition рендерится ТОЛЬКО при подвохе (detail-fair.vue:37) — чистая вилка секции не имеет
+  var cond = palp
+    ? '<div class="dp-sec cond cond--palp"><div class="dp-label">Condition</div><div class="prim">Подозрительно высокий процент</div><div class="expl">букмекер скорее всего отменит как palpable error, проверь линию у Pinnacle перед ставкой</div></div>'
+    : '';
+  // All Books — ПОЛНЫЙ грид, как DetailGrid реала (вкладки + top-3 + футер), не строка-огрызок
+  var pb = buildBooks(o1, o2, a[2], a[4]);
+  var pTop = function(leg){ return pb.map(function(b,i){ return { i:i, p:leg===1?b.e1:b.e2 }; }).sort(function(x,y){ return y.p-x.p; }).slice(0,3); };
+  var pCol = function(leg, label){ return '<div><div class="best-col-label">' + label + '</div>' + pTop(leg).map(function(x,r){
+      return '<div class="best-row ' + (r===0?'win':'') + '"><span class="best-rank">' + (r+1) + '</span><span>' + pb[x.i].name + tagHtml(pb[x.i],'BEST') + '</span><span class="price">' + x.p.toFixed(2) + '</span></div>'; }).join('') + '</div>'; };
+  var grid = '<div class="grid-tabs grid-tabs--static"><button class="on">BEST</button><button disabled>AVERAGE</button><button disabled>ALL</button></div>' +
+    '<div class="best-cols">' + pCol(1, a[9]) + pCol(2, a[10]) + '</div>' +
+    '<div class="g-foot">' + pb.length + ' books shown · selected pair (' + a[3] + ', ' + a[5] + ') above</div>';
+  return '<div class="dp">' + (dead ? '<div class="dp-dead"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke-width="2.2"><path d="M7.9 2h8.2L22 7.9v8.2L16.1 22H7.9L2 16.1V7.9L7.9 2z"/><path d="M15 9l-6 6M9 9l6 6"/></svg> Вилка ушла из потока — данные на момент смерти</div>' : '') +
+    '<div class="dp-sec"><div class="dp-label">Fair Odds</div><div class="fair">Fair: ' + f[0].toFixed(2) + ' / ' + f[1].toFixed(2) + ' | Margin: ' + m.toFixed(1) + '%</div></div>' +
+    cond +
+    '<div class="dp-sec"><div class="dp-label">All Books on this Market</div>' + grid + '</div>' +
+    '<div class="dp-sec"><div class="dp-label">Odd History</div><div class="fair" style="opacity:.75">Waiting for movement…</div><div style="margin-top:3px;font-size:10px;color:var(--t-dim)">учебная сцена статична — движений нет, дорожка пуста (в бою растёт с первого сдвига кэфа; живой рост — блок ④)</div></div></div>';
+}
+function legendLit(a){
+  var m = marginEff(a[6], a[7], a[2], a[4]);
+  ['lg-fair','lg-grid','lg-spark','lg-init'].forEach(function(id){ var e = document.getElementById(id); if (e) e.classList.add('lit'); });
+  var cond = document.getElementById('lg-cond'); if (cond) cond.classList.toggle('lit', m > palpThreshold(a[0]));
+  var dead = document.getElementById('lg-dead'); if (dead) dead.classList.remove('lit');
+}
+function renderRows(tbodyId, sel, onClick){
+  var tb = document.getElementById(tbodyId);
+  tb.innerHTML = POOL.map(function(a, i){
+    var surv = SURV[i%3], pct = rowPct(a), ini = rowInitiator(a);
+    var d1 = ini.leg===1 ? initDot(ini.tier) : '', d2 = ini.leg===2 ? initDot(ini.tier) : '';
+    return '<tr class="row ' + surv + ' ' + (i===sel?'sel':'') + '" data-i="' + i + '"><td class="st-pct">' + pct + '%</td><td>' + a[0] + '</td><td>' + a[1] + '</td><td class="st-bk" title="' + a[3] + '">' + a[3] + '</td><td class="st-odds">' + d1 + a[6].toFixed(2) + '</td><td class="st-bk" title="' + a[5] + '">' + a[5] + '</td><td class="st-odds">' + d2 + a[7].toFixed(2) + '</td><td>' + a[8] + 's</td></tr>';
+  }).join('');
+  tb.querySelectorAll('tr.row').forEach(function(tr){ tr.addEventListener('click', function(){ onClick(+tr.dataset.i); }); });
+}
+(function part2(){
+  var sel = 0;                                                                                    // Tennis (чисто) — панель БЕЗ Condition
+  function draw(){ renderRows('p2rows', sel, function(i){ sel = i; draw(); }); document.getElementById('p2panel').innerHTML = buildPanel(POOL[sel], false); legendLit(POOL[sel]); }
+  draw();
+})();
+(function part3(){
+  var sel = 1;                                                                                    // Soccer (PALP) — панель С Condition сразу за Fair
+  function draw(){ renderRows('p3rows', sel, function(i){ sel = i; draw(); }); document.getElementById('p3panel').innerHTML = buildPanel(POOL[sel], false); }
+  draw();
+})();
+</script>
+</body>
+</html>
