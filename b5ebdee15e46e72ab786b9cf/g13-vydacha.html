@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Выдача: вид и поведение ленты</title>
+<style>
+  :root{
+    /* каркас страницы (светлая рама учебника — паттерн Г14) */
+    --ink:#14161a; --paper:#f7f7f5; --hairline:#e7e7e4;
+    --panel:#ffffff; --surface2:#f4f4f5; --border:#e0e0e0;
+    --text:#1a1a1a; --text-secondary:#666; --text-tertiary:#8a8a8a;
+    --accent:#2563eb;
+    --amber:#b45309; --amber-bg:#fff7ed; --amber-border:#e0b070;
+    --shadow-1:0 1px 2px rgba(20,22,26,.05);
+    --r-panel:12px; --r-block:8px;
+    --font-display:"Avenir Next","Segoe UI",system-ui,sans-serif;
+    --mono:ui-monospace,Menlo,monospace;
+    --surv-high:#16a34a; --surv-med:#ca8a04; --surv-low:#dc2626;
+    --t-bg:#f6f7f9; --t-row:#ffffff; --t-border:#dde2ea; --t-text:#1a1a1a; --t-dim:#4d5765;
+    --t-amber:#f59e0b; --t-red:#c53a36; --t-green:#1a8a2e; --cyan:#0a76ad;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--paper);color:var(--text);font-size:15px;line-height:1.6}
+  .wrap{max-width:840px;margin:0 auto;padding:28px 18px 80px}
+  h1{font-family:var(--font-display);font-size:28px;font-weight:700;letter-spacing:-0.01em;margin:0 0 4px;text-wrap:balance}
+  h1::after{content:"";display:block;width:120px;height:3px;margin-top:10px;border-radius:2px;background:linear-gradient(90deg,var(--surv-high) 0 33%,var(--surv-med) 33% 66%,var(--surv-low) 66% 100%)} /* risk-ribbon */
+  .lead{color:var(--text-secondary);font-size:16px;margin:0 0 18px;text-wrap:pretty}
+  h2.part{font-family:var(--font-display);font-size:13px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--ink);margin:34px 0 6px;border-bottom:1px solid var(--hairline);padding-bottom:6px}
+  .part-sub{font-size:13px;color:var(--text-secondary);margin:0 0 14px}
+  .blk{background:var(--panel);border:1px solid var(--hairline);border-radius:var(--r-panel);box-shadow:var(--shadow-1);padding:16px 18px;margin:0 0 14px}
+  .blk h3{font-size:16px;margin:0 0 6px;font-weight:650}
+  .sig-why{font-size:13.5px;color:var(--text-secondary);margin:0 0 10px;text-wrap:pretty}
+  .sig-why b{color:var(--text)}
+  .demo{background:var(--t-bg);border-radius:var(--r-block);padding:12px;overflow-x:auto;position:relative}
+  .demo,.demo *{font-family:var(--mono);font-size:12.5px;color:var(--t-text)}
+  .btn{display:inline-block;background:#f4f4f5;border:1px solid var(--t-border);border-radius:6px;color:var(--t-text);padding:5px 12px;cursor:pointer;user-select:none;font-size:12px}
+  .btn:hover{border-color:var(--accent)}
+  .btn.on{border-color:var(--cyan);color:var(--cyan);font-weight:600}
+  .note{margin:10px 0 0;font-size:12.5px;color:var(--text-secondary)}
+  details{margin:10px 0 0;font-size:13px;color:var(--text-secondary)}
+  details summary{cursor:pointer;color:var(--text);font-weight:600;font-size:13px}
+  .honest{background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:var(--r-block);padding:8px 10px;font-size:12.5px;color:var(--amber);margin-top:10px}
+  .honest b{color:var(--amber)}
+  /* мини-лента */
+  table.feed{width:100%;border-collapse:collapse}
+  .feed th{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--t-dim);text-align:left;padding:4px 6px;border-bottom:1px solid var(--t-border)}
+  .feed td{padding:5px 6px;border-bottom:1px solid var(--t-border);font-variant-numeric:tabular-nums;font-size:12.5px;background:var(--t-row)}
+  .feed .pct{font-weight:700;color:var(--t-green)}
+  .feed .odds{text-align:right;white-space:nowrap}
+  .feed .age-fresh{color:var(--t-green);font-weight:600}
+  .feed .age-alive{color:var(--t-amber)}
+  .feed .age-dying{color:var(--t-red);font-weight:600}
+  tr.ghost td{opacity:.45}
+  .ghost-dot{color:var(--t-dim);margin-right:4px}
+  .ck{display:inline-flex;align-items:center;gap:5px;margin:0 10px 6px 0;font-size:12px;color:var(--t-dim);cursor:pointer;user-select:none}
+  .ck input{accent-color:var(--cyan);cursor:pointer}
+  .ck.lock{opacity:.55;cursor:not-allowed}
+  .ck.lock input{cursor:not-allowed}
+  .legend2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+  .legend2 .card{background:var(--panel);border:1px solid var(--hairline);border-radius:var(--r-block);padding:8px 11px;font-size:12.5px}
+  .legend2 .card b{display:block;margin-bottom:2px}
+  .legend2 .card span{color:var(--text-secondary);font-size:12px}
+  @media(max-width:560px){.legend2{grid-template-columns:1fr}}
+  .switch{display:inline-flex;border:1px solid var(--t-border);border-radius:6px;overflow:hidden;margin-right:8px}
+  .switch button{border:0;background:transparent;padding:4px 11px;cursor:pointer;font-size:12px;color:var(--t-dim)}
+  .switch button.on{background:var(--panel);color:var(--cyan);font-weight:600}
+  .calm td{transition:none!important}
+  .flash{animation:fl .8s ease-out}
+  @keyframes fl{0%{background:#fff7d9}100%{background:var(--t-row)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Выдача: вид и поведение ленты</h1>
+<p class="lead">Решение, которое обслуживает этот раздел Станции: <b>«настроить один раз, КАК лента показывает вилки и как ведёт себя, когда вилка умирает»</b> — и больше об этом не думать. Всё, что здесь задаётся, — дефолты станции: они действуют всюду, а пресет при желании захватывает свой вид поверх (Режимы → Вид). Быстрые кнопки правого ряда топбара — это срез тех же настроек: у каждого контрола есть дом, и дом — здесь.</p>
+
+<!-- ЧАСТЬ 1 -->
+<h2 class="part">Часть 1 · Учёба — что живёт в «Выдаче»</h2>
+<p class="part-sub">По одному решению на блок. Контролы живые — покрути.</p>
+
+<div class="blk">
+  <h3>① Колонки и порядок — сколько строки на экране</h3>
+  <p class="sig-why">Решение: <b>убрать из строки то, чем не пользуешься</b>, чтобы глаз пробегал ленту быстрее. Скрыть можно любую колонку, кроме минимума, без которого вилка перестаёт быть вилкой: <b>конторы + % + исход</b>. Порядок колонок тоже правится (в живом сканере — стрелками у колонки; сброс возвращает якорный порядок).</p>
+  <div class="demo">
+    <div id="d1-cks"></div>
+    <table class="feed"><thead id="d1-head"></thead><tbody id="d1-rows"></tbody></table>
+  </div>
+  <div class="note">Минимум (серые галки) не отключается: конторы, процент и исход — скелет строки. Остальное — по вкусу ритма.</div>
+</div>
+
+<div class="blk">
+  <h3>② Послежизнь вилки — строка-призрак</h3>
+  <p class="sig-why">Решение: <b>не терять место и видеть, ЧТО ушло</b>. Вилка исчезла из потока — строка не пропадает мгновенно: она остаётся ещё несколько секунд приглушённой, с меткой-призраком <b>●</b> у процента, числа заморожены. Глаз не прыгает по пересобравшейся ленте, и видно, какая вилка умерла. Сколько секунд держать — настраивается здесь же.</p>
+  <div class="demo">
+    <div style="margin-bottom:8px"><span class="btn" id="d2-kill">Вилка умерла</span> <span class="btn" id="d2-reset">Вернуть</span></div>
+    <table class="feed"><thead><tr><th>Arb%</th><th>Спорт</th><th>Событие</th><th style="text-align:right">Кэфы</th></tr></thead><tbody id="d2-rows"></tbody></table>
+  </div>
+  <div class="note">Метка ● и приглушение — те же, что в главе «Цвета и риски»: призрак — состояние строки, не новый риск.</div>
+</div>
+
+<div class="blk">
+  <h3>③ Фокус при исчезновении — держать или перескочить</h3>
+  <p class="sig-why">Решение: <b>что делает калькулятор, когда открытая в нём вилка умерла</b>. Два поведения: <b>«держать»</b> — калькулятор остаётся на умершей вилке с данными на момент смерти, и recovery-флоу под рукой (это по умолчанию: перекрытие важнее, чем листать дальше); <b>«выбрать верхнюю»</b> — перескочить на лучшую живую вилку. Ручка живёт здесь, в «Выдаче»; сам recovery — глава «Recovery».</p>
+  <div class="demo">
+    <div class="switch" id="d3-sw"><button data-m="hold" class="on">держать</button><button data-m="top">выбрать верхнюю</button></div>
+    <span id="d3-out" style="color:var(--t-dim)"></span>
+  </div>
+</div>
+
+<div class="blk">
+  <h3>④ Двойной клик по вилке — настраиваемое действие</h3>
+  <p class="sig-why">Решение: <b>что происходит по двойному клику по строке ленты</b>. Действие выбирается здесь; вариант «открыть обе конторы» открывает сайты обеих ног вкладками (зеркало из парка или канон-домен) — и <b>намеренно ничего не ставит</b>: постановка — только через калькулятор и GO, двойной клик лишь экономит открывание сайтов.</p>
+  <div class="demo">
+    <div class="switch" id="d4-sw"><button data-m="calc" class="on">вилка в калькулятор</button><button data-m="open">открыть обе конторы</button></div>
+    <span id="d4-out" style="color:var(--t-dim)"></span>
+  </div>
+</div>
+
+<div class="blk">
+  <h3>⑤ Вид ленты: формат кэфа · плотность и тема · спокойный режим · спорт-формы</h3>
+  <p class="sig-why">Ручки вида, у которых здесь дом, а в топбаре — быстрый срез. <b>Формат кэфа</b> — десятичный / американский / дробный, сохраняется; per-контора формат «как на её сайте» — в карточке конторы (✎ в Парке). <b>Плотность</b> (компактный / просторный) и <b>тема</b> (день / ночь) — те же дефолты вида: задаются здесь раз, быстрые кнопки в топбаре правят на ходу, пресет может захватить своё поверх. <b>Спокойный режим</b> — ночной бюджет движения: гасит вспышки и въезды строк, стрелки и цвета остаются — лента информативна, но не дёргает глаз. <b>Спорт в ленте</b> — иконки-формы или трёхбуквенные коды; полное имя спорта всегда в подсказке ячейки.</p>
+  <div class="demo">
+    <div style="margin-bottom:8px">
+      <span class="switch" id="d5-fmt"><button data-f="dec" class="on">1.95</button><button data-f="us">−105</button><button data-f="fr">19/20</button></span>
+      <label class="ck"><input type="checkbox" id="d5-calm">спокойный режим</label>
+    </div>
+    <table class="feed"><thead><tr><th>Arb%</th><th>Спорт</th><th>Событие</th><th style="text-align:right">Кэфы</th></tr></thead><tbody id="d5-rows"></tbody></table>
+  </div>
+  <div class="note" id="d5-note">Обычный режим: изменившаяся ячейка вспыхивает. Включи «спокойный» — вспышки погаснут, числа продолжат меняться.</div>
+</div>
+
+<div class="blk">
+  <h3>⑥ Честные границы раздела</h3>
+  <p class="sig-why">Что уже решено, но <b>придёт с бэком</b>: двухстрочный вид строки · выбор цветового канала (каким именно цветом-носителем лента показывает риск и выживаемость) · группировка объединённой ленты по пресетам · обновление партиями раз в секунду. И одна принятая идея в проработке: <b>калькулятор в окне конторы</b> — чтобы матрица была рядом с купоном. Пока этих ручек в живом разделе нет — обещать интерфейс раньше механики нечестно.</p>
+  <div class="honest"><b>Правки действуют сразу и сохраняются сами.</b> В «Выдаче» нет кнопки «Сохранить» — как и почти на всей Станции: изменил — работает и переживает перезагрузку. Настоящая кнопка сохранения на Станции одна, у «Путей».</div>
+</div>
+
+<!-- ЧАСТЬ 2 -->
+<h2 class="part">Часть 2 · В живом сканере</h2>
+<p class="part-sub">Мини-лента и панель «Станция → Выдача» рядом: переключай — лента отвечает сразу, как в сканере.</p>
+
+<div class="blk">
+  <div class="demo">
+    <div style="margin-bottom:8px">
+      <label class="ck"><input type="checkbox" id="p2-age" checked>колонка «Возраст»</label>
+      <label class="ck"><input type="checkbox" id="p2-ghost" checked>послежизнь (призрак)</label>
+      <label class="ck"><input type="checkbox" id="p2-calm">спокойный режим</label>
+    </div>
+    <table class="feed"><thead id="p2-head"></thead><tbody id="p2-rows"></tbody></table>
+  </div>
+  <div class="legend2">
+    <div class="card"><b>Дефолт станции</b><span>эти ручки действуют во всех режимах; пресет может захватить вид поверх</span></div>
+    <div class="card"><b>Призрак ●</b><span>умершая вилка держит место несколько секунд, числа заморожены</span></div>
+    <div class="card"><b>Спокойный режим</b><span>вспышек нет, данные те же — ночной бюджет движения</span></div>
+    <div class="card"><b>Быстрый срез — в топбаре</b><span>формат кэфа, плотность, тема, спокойный, колонки — те же настройки, быстрый доступ</span></div>
+  </div>
+</div>
+
+<!-- ЧАСТЬ 3 -->
+<h2 class="part">Часть 3 · Как в бою</h2>
+<p class="part-sub">Плотный поток без подсказок: вилки живут, стареют, умирают призраком и уходят — лента ведёт себя так, как настроена «Выдача».</p>
+
+<div class="blk">
+  <div class="demo">
+    <table class="feed"><thead><tr><th>Arb%</th><th>Возр.</th><th>Спорт</th><th>Событие</th><th style="text-align:right">Кэфы</th></tr></thead><tbody id="p3-rows"></tbody></table>
+  </div>
+</div>
+
+</div>
+
+<script>
+/* ============================================================
+   «Выдача» — движок учебной главы (сбор рассыпанного: строка/жесты Г1,
+   призрак Г2/Г3, топбар-срез Г9, дом контролов Г11).
+   R-3 — из кода форка:
+     раздел «Выдача» на Станции   [settings-panel.vue:161 SECTIONS; секция :810+ —
+       колонки/порядок (минимум «конторы + % + исход»), послежизнь, фокус при
+       исчезновении (держать/верхняя), двойной клик («открыть обе конторы» НЕ ставит),
+       формат кэфа (per-БК — карточка конторы), спокойный режим (ночной бюджет движения),
+       спорт-формы, «придёт с бэком», немедленный персист]
+     строка-призрак               [arb-row.vue:54,242,324-325 st-row--ghost + st-ghost-dot ●;
+       TTL в arbs.vue; scanner-table.vue:44-46 ghostIds]
+     фокус при исчезновении       [g7/recovery: «держать деталь» default — Станция → Выдача]
+   Math.random не используется (детерминированный seed).
+   ============================================================ */
+(function(){
+"use strict";
+var seed=11; function rnd(){ seed=(seed*1103515245+12345)&0x7fffffff; return seed/0x7fffffff; }
+function fmtOdds(o,f){
+  if(f==="us"){ var us=o>=2?Math.round((o-1)*100):-Math.round(100/(o-1)); return (us>0?"+":"")+us; }
+  if(f==="fr"){ var num=Math.round((o-1)*20), den=20, g=(function gcd(a,b){return b?gcd(b,a%b):a;})(num,den); return (num/g)+"/"+(den/g); }
+  return o.toFixed(2);
+}
+var POOL=[
+  {pct:3.84,sport:"SOC",ev:"Man City — Arsenal · ТБ 2.5",bk:"bet365.com / betonline.ag",o1:1.95,o2:2.02,age:5},
+  {pct:2.42,sport:"BAS",ev:"Lakers — Celtics · Ф −4.5",bk:"vbet.co.uk / bet365.com",o1:2.10,o2:1.92,age:14},
+  {pct:3.36,sport:"TEN",ev:"Alcaraz — Sinner · П1",bk:"lottoland.co.uk / bet365.com",o1:2.04,o2:2.09,age:9},
+  {pct:0.50,sport:"HOC",ev:"Rangers — Bruins · ТБ 5.5",bk:"betonline.ag / fon.bet",o1:2.00,o2:2.14,age:33}
+];
+function ageCls(s){ return s<10?"age-fresh":(s<30?"age-alive":"age-dying"); }
+
+/* ① колонки и порядок: минимум «конторы + % + исход» залочен */
+(function(){
+  var COLS=[
+    {k:"pct",t:"Arb%",lock:true},{k:"age",t:"Возр.",lock:false},{k:"sport",t:"Спорт",lock:false},
+    {k:"ev",t:"Событие · исход",lock:true},{k:"bk",t:"Конторы",lock:true},{k:"odds",t:"Кэфы",lock:false}
+  ];
+  var on={pct:true,age:true,sport:true,ev:true,bk:true,odds:true};
+  var cks=document.getElementById("d1-cks"), head=document.getElementById("d1-head"), rows=document.getElementById("d1-rows");
+  function render(){
+    cks.innerHTML=COLS.map(function(c){
+      return '<label class="ck'+(c.lock?' lock':'')+'" title="'+(c.lock?'Минимум строки — не отключается':'')+'"><input type="checkbox" data-k="'+c.k+'" '+(on[c.k]?'checked':'')+(c.lock?' disabled':'')+'>'+c.t+'</label>';
+    }).join("");
+    var vis=COLS.filter(function(c){return on[c.k];});
+    head.innerHTML='<tr>'+vis.map(function(c){return '<th'+(c.k==="odds"?' style="text-align:right"':'')+'>'+c.t+'</th>';}).join("")+'</tr>';
+    rows.innerHTML=POOL.slice(0,3).map(function(a){
+      return '<tr>'+vis.map(function(c){
+        if(c.k==="pct") return '<td class="pct">'+a.pct.toFixed(2)+'%</td>';
+        if(c.k==="age") return '<td class="'+ageCls(a.age)+'">'+a.age+'s</td>';
+        if(c.k==="sport") return '<td>'+a.sport+'</td>';
+        if(c.k==="ev") return '<td>'+a.ev+'</td>';
+        if(c.k==="bk") return '<td>'+a.bk+'</td>';
+        return '<td class="odds">'+a.o1.toFixed(2)+' / '+a.o2.toFixed(2)+'</td>';
+      }).join("")+'</tr>';
+    }).join("");
+  }
+  cks.addEventListener("change",function(e){ var k=e.target.dataset.k; if(k){ on[k]=e.target.checked; render(); } });
+  render();
+})();
+
+/* ② послежизнь: строка-призрак ● (числа заморожены, приглушение) */
+(function(){
+  var rows=document.getElementById("d2-rows"), kill=document.getElementById("d2-kill"), reset=document.getElementById("d2-reset");
+  var ghost=false;
+  function render(){
+    rows.innerHTML=POOL.slice(0,3).map(function(a,i){
+      var g=ghost&&i===1;
+      return '<tr'+(g?' class="ghost"':'')+'><td class="pct">'+(g?'<span class="ghost-dot" title="Вилка ушла из потока — строка-призрак ещё несколько секунд (числа заморожены)">●</span>':'')+a.pct.toFixed(2)+'%</td><td>'+a.sport+'</td><td>'+a.ev+'</td><td class="odds">'+a.o1.toFixed(2)+' / '+a.o2.toFixed(2)+'</td></tr>';
+    }).join("");
+  }
+  kill.onclick=function(){ ghost=true; render(); };
+  reset.onclick=function(){ ghost=false; render(); };
+  render();
+})();
+
+/* ③ фокус при исчезновении */
+(function(){
+  var sw=document.getElementById("d3-sw"), out=document.getElementById("d3-out");
+  var M={hold:"вилка в калькуляторе умерла → калькулятор ДЕРЖИТ её с данными на момент смерти; recovery под рукой (по умолчанию)",
+         top:"вилка умерла → калькулятор перескакивает на лучшую живую вилку ленты"};
+  function set(m){ sw.querySelectorAll("button").forEach(function(b){ b.classList.toggle("on",b.dataset.m===m); }); out.textContent=M[m]; }
+  sw.addEventListener("click",function(e){ var b=e.target.closest("[data-m]"); if(b) set(b.dataset.m); });
+  set("hold");
+})();
+
+/* ④ двойной клик */
+(function(){
+  var sw=document.getElementById("d4-sw"), out=document.getElementById("d4-out");
+  var M={calc:"двойной клик = вилка уходит в калькулятор (как одиночный по строке)",
+         open:"двойной клик = открыть сайты ОБЕИХ контор вкладками (зеркало/домен) — без постановки: ставит только GO"};
+  function set(m){ sw.querySelectorAll("button").forEach(function(b){ b.classList.toggle("on",b.dataset.m===m); }); out.textContent=M[m]; }
+  sw.addEventListener("click",function(e){ var b=e.target.closest("[data-m]"); if(b) set(b.dataset.m); });
+  set("calc");
+})();
+
+/* ⑤ формат кэфа + спокойный режим */
+(function(){
+  var fmtSw=document.getElementById("d5-fmt"), calmCk=document.getElementById("d5-calm"),
+      rows=document.getElementById("d5-rows"), note=document.getElementById("d5-note");
+  var fmt="dec", calm=false, arbs=POOL.slice(0,3).map(function(a){ return {pct:a.pct,sport:a.sport,ev:a.ev,o1:a.o1,o2:a.o2,hot:false}; });
+  function render(){
+    rows.innerHTML=arbs.map(function(a){
+      return '<tr'+(a.hot&&!calm?' class="flash"':'')+'><td class="pct">'+a.pct.toFixed(2)+'%</td><td>'+a.sport+'</td><td>'+a.ev+'</td><td class="odds">'+fmtOdds(a.o1,fmt)+' / '+fmtOdds(a.o2,fmt)+'</td></tr>';
+    }).join("");
+    note.textContent = calm
+      ? "Спокойный режим: числа меняются, вспышек нет — ночной бюджет движения."
+      : "Обычный режим: изменившаяся ячейка вспыхивает. Включи «спокойный» — вспышки погаснут, числа продолжат меняться.";
+  }
+  fmtSw.addEventListener("click",function(e){ var b=e.target.closest("[data-f]"); if(!b) return;
+    fmt=b.dataset.f; fmtSw.querySelectorAll("button").forEach(function(x){ x.classList.toggle("on",x.dataset.f===fmt); }); render(); });
+  calmCk.addEventListener("change",function(){ calm=calmCk.checked; render(); });
+  setInterval(function(){
+    var i=Math.floor(rnd()*arbs.length);
+    arbs.forEach(function(a){a.hot=false;});
+    arbs[i].o1=+(Math.max(1.5,arbs[i].o1+((rnd()-0.5)*0.1))).toFixed(2); arbs[i].hot=true;
+    render();
+  },2200);
+  render();
+})();
+
+/* ЧАСТЬ 2 — лента + панель «Выдача» рядом */
+(function(){
+  var head=document.getElementById("p2-head"), rows=document.getElementById("p2-rows");
+  var ckAge=document.getElementById("p2-age"), ckGhost=document.getElementById("p2-ghost"), ckCalm=document.getElementById("p2-calm");
+  var arbs=POOL.map(function(a){ return {pct:a.pct,sport:a.sport,ev:a.ev,o1:a.o1,o2:a.o2,age:a.age,ghostTtl:0,hot:false}; });
+  function render(){
+    var withAge=ckAge.checked, calm=ckCalm.checked;
+    head.innerHTML='<tr><th>Arb%</th>'+(withAge?'<th>Возр.</th>':'')+'<th>Спорт</th><th>Событие</th><th style="text-align:right">Кэфы</th></tr>';
+    rows.innerHTML=arbs.filter(function(a){ return a.ghostTtl>=0; }).map(function(a){
+      var g=a.ghostTtl>0;
+      return '<tr'+(g?' class="ghost"':(a.hot&&!calm?' class="flash"':''))+'><td class="pct">'+(g?'<span class="ghost-dot">●</span>':'')+a.pct.toFixed(2)+'%</td>'
+        +(withAge?'<td class="'+ageCls(a.age)+'">'+a.age+'s</td>':'')
+        +'<td>'+a.sport+'</td><td>'+a.ev+'</td><td class="odds">'+a.o1.toFixed(2)+' / '+a.o2.toFixed(2)+'</td></tr>';
+    }).join("");
+  }
+  function tick(){
+    arbs.forEach(function(a){
+      a.hot=false;
+      if(a.ghostTtl>0){ a.ghostTtl--; if(a.ghostTtl===0){ a.age=2; a.o1=+(1.7+rnd()*0.6).toFixed(2); a.o2=+(1.7+rnd()*0.6).toFixed(2); a.pct=+(1+rnd()*3.5).toFixed(2); } return; }
+      a.age++;
+      if(rnd()<0.25){ a.o1=+(Math.max(1.5,a.o1+((rnd()-0.5)*0.12))).toFixed(2); a.hot=true; }
+      if(a.age>30){ if(ckGhost.checked){ a.ghostTtl=4; } else { a.age=2; a.o1=+(1.7+rnd()*0.6).toFixed(2); a.o2=+(1.7+rnd()*0.6).toFixed(2); a.pct=+(1+rnd()*3.5).toFixed(2); } }
+    });
+    render();
+  }
+  [ckAge,ckGhost,ckCalm].forEach(function(c){ c.addEventListener("change",render); });
+  render(); setInterval(tick,1300);
+})();
+
+/* ЧАСТЬ 3 — плотный поток: призраки живут сами */
+(function(){
+  var rows=document.getElementById("p3-rows");
+  var seed3=29; function r3(){ seed3=(seed3*1103515245+12345)&0x7fffffff; return seed3/0x7fffffff; }
+  var arbs=[];
+  for(var i=0;i<7;i++){ var p=POOL[i%POOL.length]; arbs.push({pct:+(1+r3()*4).toFixed(2),sport:p.sport,ev:p.ev,o1:+(1.6+r3()*1.1).toFixed(2),o2:+(1.6+r3()*1.1).toFixed(2),age:Math.floor(r3()*9),ghostTtl:0}); }
+  function tick(){
+    arbs.forEach(function(a){
+      if(a.ghostTtl>0){ a.ghostTtl--; if(a.ghostTtl===0){ a.age=1+Math.floor(r3()*4); a.pct=+(1+r3()*4).toFixed(2); a.o1=+(1.6+r3()*1.1).toFixed(2); a.o2=+(1.6+r3()*1.1).toFixed(2); } return; }
+      a.age++; if(r3()<0.2) a.o1=+(Math.max(1.5,a.o1+((r3()-0.5)*0.12))).toFixed(2);
+      if(a.age>28+Math.floor(r3()*8)) a.ghostTtl=3;
+    });
+    rows.innerHTML=arbs.map(function(a){
+      var g=a.ghostTtl>0;
+      return '<tr'+(g?' class="ghost"':'')+'><td class="pct">'+(g?'<span class="ghost-dot">●</span>':'')+a.pct.toFixed(2)+'%</td><td class="'+ageCls(a.age)+'">'+a.age+'s</td><td>'+a.sport+'</td><td>'+a.ev+'</td><td class="odds">'+a.o1.toFixed(2)+' / '+a.o2.toFixed(2)+'</td></tr>';
+    }).join("");
+  }
+  tick(); setInterval(tick,1400);
+})();
+})();
+</script>
+</body>
+</html>
