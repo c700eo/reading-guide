@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Г12 · Станция — настроил и забыл</title>
+<style>
+  :root{
+    /* каркас страницы — читательская рама учебника (единая для всех глав) */
+    --ink:#14161a; --paper:#f7f7f5; --hairline:#e7e7e4;
+    --panel:#ffffff; --surface2:#f4f4f5; --border:#e0e0e0;
+    --text:#1a1a1a; --text-secondary:#666; --text-tertiary:#8a8a8a;
+    --accent:#0a76ad; --hl:rgba(10,118,173,.08);
+    --green:#1a8a2e; --green-bg:rgba(26,138,46,.10);
+    --amber:#b45309; --amber-bg:#fff7ed; --amber-border:#e0b070;
+    --shadow-1:0 1px 2px rgba(20,22,26,.05); --shadow-2:0 4px 16px rgba(20,22,26,.06);
+    --r-panel:12px; --r-block:8px;
+    --font-display:"Avenir Next","Segoe UI",system-ui,sans-serif;
+    --mono:ui-monospace,Menlo,monospace;
+    /* survival-триада продукта */
+    --surv-high:#16a34a; --surv-med:#ca8a04; --surv-low:#dc2626;
+    /* ДЕМО — светлая (дневная) палитра сканера */
+    --t-bg:#f6f7f9; --t-row:#ffffff; --t-row2:#f4f4f5; --t-card:#f4f4f5; --t-border:#dde2ea;
+    --t-text:#1a1a1a; --t-dim:#4d5765;
+    --cyan:#0a76ad;
+    --t-amber:#f59e0b; --t-green:#19776c; --t-red:#c53a36;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-font-smoothing:antialiased}
+  body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--paper);color:var(--text);font-size:15px;line-height:1.6}
+  .wrap{max-width:860px;margin:0 auto;padding:28px 18px 80px}
+  h1{font-family:var(--font-display);font-size:28px;font-weight:700;letter-spacing:-0.01em;margin:0 0 4px;text-wrap:balance}
+  h1::after{content:"";display:block;width:120px;height:3px;margin-top:10px;border-radius:2px;background:linear-gradient(90deg,var(--surv-high) 0 33%,var(--surv-med) 33% 66%,var(--surv-low) 66% 100%)}
+  .lead{color:var(--text-secondary);font-size:16px;margin:0 0 18px;text-wrap:pretty}
+  h2.part{font-family:var(--font-display);font-size:13px;letter-spacing:.02em;font-weight:700;color:var(--ink);margin:34px 0 6px;border-bottom:1px solid var(--hairline);padding-bottom:6px}
+  .part-sub{font-size:13px;color:var(--text-secondary);margin:0 0 14px}
+  .blk{background:var(--panel);border:1px solid var(--hairline);border-radius:var(--r-panel);box-shadow:var(--shadow-1);padding:16px 18px;margin:0 0 14px}
+  .blk h3{font-size:16px;margin:0 0 6px;font-weight:650}
+  .sig-why{font-size:13.5px;color:var(--text-secondary);margin:0 0 10px;text-wrap:pretty}
+  .sig-why b{color:var(--text)}
+  .demo{background:var(--t-bg);border-radius:var(--r-block);padding:12px;overflow-x:auto}
+  .demo,.demo *{font-family:var(--mono);font-size:12.5px;color:var(--t-text)}
+  .btn{display:inline-block;background:#ffffff;border:1px solid var(--t-border);border-radius:6px;color:var(--t-text);padding:5px 12px;cursor:pointer;user-select:none;font-size:12px}
+  .btn:hover{border-color:var(--cyan)}
+  .btn--on{border-color:var(--cyan);color:var(--cyan)}
+  .btn--ghost{background:transparent}
+  .btn--primary{background:var(--cyan);border-color:var(--cyan);color:#ffffff;font-weight:700}
+  .btn--sm{padding:3px 8px;font-size:11px}
+  .note{margin:10px 0 0;font-size:12.5px;color:var(--text-secondary)}
+  details{margin:10px 0 0;font-size:13px;color:var(--text-secondary)}
+  details summary{cursor:pointer;color:var(--text);font-weight:600;font-size:13px}
+  .honest{margin:12px 0 0;padding:9px 12px;border-left:3px solid var(--amber-border);background:var(--amber-bg);border-radius:0 var(--r-block) var(--r-block) 0;font-size:12.5px;color:var(--amber)}
+  .ic{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px}
+  /* ── станция: шапка ── */
+  .stn{background:var(--t-bg);border:1px solid var(--t-border);border-radius:var(--r-block);overflow:hidden}
+  .stn-head{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--t-border);flex-wrap:wrap}
+  .stn-title{font-size:14px;font-weight:700;color:var(--t-text)}
+  .stn-sub{font-size:11px;color:var(--t-dim);width:100%;margin-top:-4px}
+  .stn-search{display:inline-flex;align-items:center;gap:6px;background:#ffffff;border:1px solid var(--t-border);border-radius:6px;padding:3px 8px;flex:1 1 180px;min-width:150px}
+  .stn-search input{background:transparent;border:0;outline:0;color:var(--t-text);font-size:12px;width:100%}
+  .stn-search input::placeholder{color:var(--t-dim)}
+  .stn-x{margin-left:auto;color:var(--t-dim);cursor:pointer;font-size:15px;line-height:1}
+  .stn-summary{display:flex;flex-wrap:wrap;gap:12px;padding:6px 12px;border-bottom:1px solid var(--t-border);font-size:11px;color:var(--t-dim)}
+  .stn-summary b{color:var(--t-text)}
+  .stn-body{display:grid;grid-template-columns:130px 1fr;gap:0}
+  .stn-nav{border-right:1px solid var(--t-border);padding:8px 6px;display:flex;flex-direction:column;gap:2px}
+  .stn-nav a{padding:5px 8px;border-radius:5px;color:var(--t-dim);cursor:pointer;font-size:11.5px;white-space:nowrap;display:flex;align-items:center;justify-content:space-between}
+  .stn-nav a:hover{color:var(--t-text)}
+  .stn-nav a.on{background:rgba(10,118,173,.10);color:var(--cyan)}
+  .stn-nav a.dim{opacity:.3}
+  .stn-nav .cbadge{background:#f4f4f5;border:1px solid var(--t-border);border-radius:8px;padding:0 5px;font-size:10px;color:var(--t-dim)}
+  .stn-main{padding:12px 14px;min-height:120px}
+  .stn-h{font-size:13px;font-weight:700;color:var(--t-text);margin:0 0 8px;display:flex;align-items:center;gap:8px}
+  .stn-h .cnt{font-size:11px;color:var(--t-dim);font-weight:400}
+  .stn-foot{margin-top:10px;padding-top:8px;border-top:1px dashed var(--t-border);font-size:11px;color:var(--t-dim)}
+  .stn-card{background:var(--t-card);border:1px solid var(--t-border);border-radius:6px;padding:8px 10px;margin:8px 0;font-size:11.5px;color:var(--t-dim)}
+  .stn-card b{color:var(--t-text)}
+  /* ── общие контролы демо ── */
+  .row{display:flex;align-items:flex-start;gap:8px;padding:5px 2px}
+  .row .k{flex:0 0 auto}
+  .row .lbl{flex:1 1 auto;color:var(--t-text)}
+  .row .desc{font-size:11px;color:var(--t-dim);padding-left:24px;line-height:1.45}
+  .rblock{padding:5px 2px}
+  .rblock .head{display:flex;align-items:center;gap:8px}
+  .rblock .desc{font-size:11px;color:var(--t-dim);padding-left:24px;margin-top:1px}
+  input[type=checkbox],input[type=radio]{accent-color:var(--cyan)}
+  input[type=number],input[type=text].fld{background:#ffffff;border:1px solid var(--t-border);border-radius:4px;color:var(--t-text);padding:3px 6px;font-size:12px;font-family:var(--mono)}
+  input[type=number]{width:64px;text-align:right}
+  select.sel{background:#ffffff;border:1px solid var(--t-border);border-radius:4px;color:var(--t-text);padding:3px 6px;font-size:12px;font-family:var(--mono)}
+  .pill{display:inline-block;background:#f4f4f5;border:1px solid var(--t-border);border-radius:5px;padding:1px 7px;font-size:11px;color:var(--t-dim);margin:2px 3px 2px 0}
+  .kbd{display:inline-block;border:1px solid var(--t-border);border-bottom-width:2px;border-radius:4px;padding:0 5px;font-size:11px;color:var(--t-dim)}
+  .stub{display:inline-block;font-size:11px;color:var(--t-dim);font-style:italic}
+  .stub b{color:var(--t-amber);font-style:normal}
+  .glob{display:inline-block;background:rgba(10,118,173,.10);color:var(--cyan);border-radius:5px;padding:0 6px;font-size:10px;margin-left:6px}
+  /* строки потока */
+  .srow{display:grid;grid-template-columns:52px 40px 1fr 74px 52px;gap:8px;align-items:center;padding:6px 8px;background:var(--t-row);border:1px solid var(--t-border);border-left-width:3px;border-radius:6px;margin:6px 0}
+  .srow .pct{font-weight:700}
+  .srow .per{color:var(--t-dim);text-align:right}
+  .srow--late .per{color:var(--t-red);font-weight:700}
+  /* мини-матрица калькулятора */
+  .cmx{display:grid;grid-template-columns:70px 1fr 1fr;gap:5px 6px;background:transparent;border:0;margin:8px 0;max-width:340px}
+  .cmx>div{background:var(--t-row2,#f4f4f5);border:1px solid var(--t-border);border-radius:6px;padding:5px 8px}
+  .cmx>div.rh{background:transparent;border:0;padding:0;display:flex;align-items:center}
+  .cmx .rh{color:var(--t-dim);font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.4px}
+  .cmx .leg{position:relative}
+  .ord{display:inline-flex;width:16px;height:16px;border-radius:50%;align-items:center;justify-content:center;font-size:10px;font-weight:700;border:1px solid var(--t-border);color:var(--t-dim);margin-right:5px}
+  .ord--1{border-color:var(--cyan);color:var(--cyan)}
+  .sig{color:var(--t-amber)}
+  .toast{display:inline-block;background:#2c2c2c;border:1px solid var(--t-amber);color:var(--t-amber);border-radius:6px;padding:4px 9px;font-size:11.5px}
+  .ok{color:var(--t-green)}
+  .legend2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+  .legend2 .card{background:var(--panel);border:1px solid var(--hairline);border-radius:var(--r-block);padding:8px 11px;font-size:12.5px}
+  .legend2 .card b{display:block;font-size:12.5px;margin-bottom:2px}
+  .legend2 .card span{color:var(--text-secondary);font-size:12px}
+  /* таблица валют */
+  .cur{display:grid;grid-template-columns:46px 90px 100px 1fr;gap:8px;align-items:center;padding:5px 8px;border-bottom:1px solid var(--t-border);font-size:12px}
+  .cur.head{color:var(--t-dim);font-size:11px}
+  .cur .num{text-align:right;font-variant-numeric:tabular-nums}
+  .cur--norate{outline:1px solid rgba(10,118,173,.35);border-radius:5px}
+  .cur .norate{color:var(--t-red)}
+  .cur .base{color:var(--t-dim)}
+  .cur .own{color:var(--cyan)}
+  .tree{font-size:12px}
+  .tree .node{color:var(--t-text);padding:3px 0}
+  .tree .leaf{color:var(--t-dim);padding:2px 0 2px 18px}
+  .grid2{display:grid;grid-template-columns:1fr;gap:6px}
+  @media(min-width:620px){.grid2{grid-template-columns:1.3fr .9fr}}
+  /* эхо превью-кнопок: в бою действие настоящее, в тренажёре — подсказка, что произойдёт */
+  .echo{margin:6px 0 0;font-size:11px;color:var(--t-dim);border-left:2px solid var(--cyan);padding-left:8px}
+  /* «как в бою» — статичный снимок: контролы нарочно не обещают клика */
+  .snap .btn,.snap .stn-x,.snap .stn-nav a{cursor:default}
+  .snap .btn:hover{border-color:var(--t-border)}
+  .snap .stn-nav a:not(.on):hover{color:var(--t-dim)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Станция — настроил и забыл</h1>
+<p class="lead">Всё, что настраивается раз в месяц и должно просто работать: как выглядит лента, парк контор, звуки, валюты, калькулятор. Это полноэкранное полотно «Станция» с оглавлением из девяти разделов и поиском, открывается дверью «Станция» в топ-баре. Главный закон экрана: правки действуют сразу и сохраняются сами — кнопки «Сохранить» почти нигде нет.</p>
+
+<div class="blk" style="background:var(--hl);border-color:var(--accent)">
+  <h3 style="margin-bottom:4px">Две двери — не путать</h3>
+  <p class="sig-why" style="margin-bottom:0"><b>«Станция»</b> — глобальное, сквозное, полноэкранное полотно, трогается редко (этот экран). <b>«Режимы»</b> — второе полноэкранное полотно: слева активный пресет, в центре наборы, справа конторы в работе — трогается постоянно. Настройка одного пресета живёт в «Режимах»; настройка, общая для всех режимов, живёт на «Станции». Из шапки Станции всегда есть обратная дверь «← Режимы».</p>
+</div>
+
+<div class="blk">
+  <h3>Три слоя настройки: пульт · срез · два полотна</h3>
+  <p class="sig-why">Решение: <b>не открывать полный словарь ради одной быстрой правки и не потерять, к какому режиму она относится.</b> Топ-бар держит мгновенные рычаги вида и две двери. Слева от ленты живёт <b>срез активного пресета</b>: его цвет и имя совпадают с пилюлей в топ-баре, а под рукой — Профит %, кэфы, порог звука и состояние контор. Это не второй набор фильтров: правка сразу меняет ленту того же пресета и становится его черновиком; закрепляется она на полном полотне «Режимы» кнопкой «Сохранить в пресет». «Станция» при этом остаётся домом общих настроек, а не копией среза.</p>
+  <div class="legend2">
+    <div class="card"><b>Топ-бар</b><span>быстрый вид и двери «Режимы» / «Станция» — то, что нужно без ухода от потока.</span></div>
+    <div class="card"><b>Срез у ленты</b><span>самое трогаемое в активном пресете. Сверни ‹ — останется узкая рейка «срез», лента получит ширину; после перезагрузки сохранится именно состояние свёрнутости рейки.</span></div>
+    <div class="card"><b>Полотна</b><span>«Режимы» — полный словарь и сохранение черновика пресета; «Станция» — глобальные настройки с немедленным сохранением.</span></div>
+  </div>
+</div>
+
+<!-- ЧАСТЬ 1 -->
+<h2 class="part">Часть 1 · Учёба — по одному разделу</h2>
+<p class="part-sub">Разделы Станции по очереди, у каждого живое демо. Подписи и поведение — дословно из сканера.</p>
+
+<!-- 1. Станция целиком -->
+<div class="blk">
+  <h3>① Экран целиком: шапка, поиск, оглавление</h3>
+  <p class="sig-why">Решение: <b>найти нужную настройку за секунду и не бояться её потерять</b>. Сверху — заголовок, поиск по всем настройкам и сводка живых фактов (сколько контор в потоке, сколько настроено, сколько режимов, какой активен). Слева — якорное оглавление из девяти разделов, клик прыгает к разделу. Поиск гасит разделы, где ничего не нашлось. Подсказка «?» всплывает поверх полотна: у края окна прижимается внутрь, а при прокрутке скрывается, чтобы не висеть над уже ушедшим полем. Правки применяются к ленте сразу и сохраняются в браузере сами.</p>
+  <div class="demo">
+    <div class="stn">
+      <div class="stn-head">
+        <span class="stn-title">Станция — настроил и забыл</span>
+        <span class="stn-sub">глобальное: трогается раз в месяц — выдача, парк контор, звуки, валюты, калькулятор</span>
+        <label class="stn-search"><svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="d1-q" type="text" placeholder="поиск по всем настройкам станции…"></label>
+        <span class="btn btn--ghost btn--sm" id="d1-modes" title="Режимы — операционные настройки: пресеты, их пороги, конторы в работе">← Режимы</span>
+        <span class="stn-x" id="d1-close" title="Закрыть (Esc)">×</span>
+      </div>
+      <div class="stn-summary">
+        <span>Контор в потоке <b>18</b></span>
+        <span>Настроено per-БК <b>5</b></span>
+        <span>Режимов <b>4</b></span>
+        <span>Активный — <b>Tight</b> · в выдаче ещё <b>2</b></span>
+      </div>
+      <div class="stn-body">
+        <nav class="stn-nav" id="d1-nav">
+          <a data-s="feed">Выдача</a>
+          <a data-s="park">Парк контор <span class="cbadge">5</span></a>
+          <a data-s="sounds">Звуки</a>
+          <a data-s="notify">Оповещения</a>
+          <a data-s="currency">Валюты</a>
+          <a data-s="leagues">Лиги</a>
+          <a data-s="calculator" class="on">Калькулятор</a>
+          <a data-s="paths">Пути</a>
+          <a data-s="service">Служебное</a>
+        </nav>
+        <div class="stn-main">
+          <div class="stn-h" id="d1-title">Калькулятор</div>
+          <div class="stn-card" id="d1-hint">Клик по разделу слева — оглавление прыгнет сюда. Введи слово в поиск — лишние разделы погаснут.</div>
+          <div class="stn-card"><b>Каждый раздел читается тремя строками.</b><br>Сводка — что здесь. Как работает — механика в одну фразу. Рекомендуем — как настроить под ночь/день.</div>
+          <div class="stn-foot">правки действуют сразу и сохраняются сами</div>
+        </div>
+      </div>
+    </div>
+    <div class="note" style="color:var(--t-dim);padding:6px 2px 0">жми разделы слева · попробуй в поиске «валюты», «звук», «пути»</div>
+  </div>
+  <details><summary>Почему «Сохранить» почти нет</summary>
+    Станционные настройки применяются к ленте и калькулятору мгновенно и пишутся в браузер сами — они переживают перезагрузку и подхватываются во всех вкладках сканера. Настоящая кнопка «Сохранить в пресет» осталась ровно в одном разделе — «Пути»: там правило сперва собирается, а фиксируется в пресет отдельным действием.</details>
+</div>
+
+<!-- 2. Порядок ног -->
+<div class="blk">
+  <h3>② Калькулятор · порядок ног — какой ногой ставить первой</h3>
+  <p class="sig-why">Решение: <b>выбрать логику один раз, чтобы в 15-секундном окне не считать, какую ногу ставить первой</b>. Порядок постановки виден в калькуляторе кружками 1/2 у ног. Школы расходятся, поэтому логик четыре — выбранная сразу раскладывает кружки на всех вилках.</p>
+  <div class="demo">
+    <div class="stn-card" style="margin-top:0">Порядок ног — какую ставить первой (кружки 1/2 в калькуляторе)</div>
+    <div id="d2-radios">
+      <label class="rblock"><span class="head"><input type="radio" name="d2" value="eff-odds" checked><span class="lbl">По эффективному кэфу</span></span><span class="desc">выше кэф — первой (по умолчанию)</span></label>
+      <label class="rblock"><span class="head"><input type="radio" name="d2" value="event-type"><span class="lbl">По типу события</span></span><span class="desc">тотал — ТБ первой; форы — по под-выбору ниже</span></label>
+      <div id="d2-sub-evt" style="display:none;padding:0 0 4px 24px">
+        <label style="margin-right:14px"><input type="radio" name="d2h" value="plus" checked> Ф+ первой</label>
+        <label><input type="radio" name="d2h" value="minus"> Ф− первой</label>
+      </div>
+      <label class="rblock"><span class="head"><input type="radio" name="d2" value="arb-percent"><span class="lbl">По % вилки</span></span><span class="desc">жирная вилка — ТБ первой, иначе по кэфу</span></label>
+      <div id="d2-sub-arb" style="display:none;padding:0 0 4px 24px">Жирная — от, %: <input type="number" id="d2-thr" value="3" step="0.5" min="0.5" style="width:56px"></div>
+      <label class="rblock"><span class="head"><input type="radio" name="d2" value="problem-bk"><span class="lbl">Проблемная контора первой</span></span><span class="desc">контора с быстрым фиксом — её кэф умрёт первым</span></label>
+    </div>
+    <div style="color:var(--t-dim);padding:8px 2px 0">вилка в работе: <b style="color:var(--t-text)">Real — Barca · ТБ 2.5</b> (Soccer, 3.6%)</div>
+    <div class="cmx">
+      <div class="rh">БК</div>
+      <div class="leg" id="d2-l1"><span class="ord ord--1" id="d2-o1">1</span>bet365 <span style="color:var(--t-dim)">· ТБ 2.5</span></div>
+      <div class="leg" id="d2-l2"><span class="ord" id="d2-o2">2</span>Pinnacle <span style="color:var(--t-dim)">· ТМ 2.5</span></div>
+      <div class="rh">Кэф</div>
+      <div>1.95</div>
+      <div>2.14</div>
+    </div>
+    <div class="note" style="color:var(--t-dim);padding:0 2px">кружок <b style="color:var(--cyan)">1</b> — эту ногу ставить первой. Переключи логику — кружки переедут.</div>
+  </div>
+  <details><summary>Что делает каждая логика</summary>
+    <b>По эффективному кэфу</b> — первой идёт нога с бОльшим кэфом (её сложнее поймать, ставим пока живёт). <b>По типу события</b> — на тотале первой ТБ (Over), на форе — по под-выбору Ф+/Ф− (школы Vilkipro и Шаталова расходятся). <b>По % вилки</b> — если вилка жирнее порога, первой ТБ, иначе по кэфу. <b>Проблемная контора первой</b> — нога конторы, которая быстро режет кэф; её ставим, пока она есть. Во всех непокрытых случаях — честный откат на «по кэфу».</details>
+</div>
+
+<!-- 3. lockSemantic + П-24 + П-25 -->
+<div class="blk">
+  <h3>③ Калькулятор · «Поставлено» вместо «Блокировки»</h3>
+  <p class="sig-why">Решение: <b>отметить ногу, которая уже стоит у конторы, чтобы поток её больше не пересчитывал</b>. Включённая фиксация (по умолчанию): кнопка «Поставлено» замораживает ставку и кэф ноги. Если кэф в потоке уезжает — нога подсвечивается янтарным сигналом, но числа не пересчитываются: у конторы ставка уже стоит по старому кэфу, пересчёт был бы враньём.</p>
+  <div class="demo">
+    <div class="rblock"><span class="head"><input type="checkbox" id="d3-t" checked><span class="lbl">Фиксация ставки и кэфа после реальной постановки (рекомендуется)</span></span><span class="desc" id="d3-desc">Включено (по умолчанию) — кнопка «Поставлено» замораживает ставку и кэф ноги; при дрейфе нога подсвечивается янтарным сигналом, но не пересчитывается.</span></div>
+    <div class="rblock"><span class="head"><input type="checkbox" checked disabled><span class="lbl">Адаптивная высота калькулятора</span></span><span class="desc">Включено (по умолчанию) — детальная панель занимает остаток высоты; выключишь — равное деление 50/50.</span></div>
+    <div class="rblock"><span class="head"><input type="checkbox" checked disabled><span class="lbl">Сохранять выбранную вилку при смене пресета</span></span><span class="desc">Включено (по умолчанию) — переключил пресет пилюлей или ⌥N, а выбранная вилка и её расчёт остаются в калькуляторе, пока она жива в потоке.</span></div>
+    <div class="cmx" style="max-width:420px">
+      <div class="rh">Нога 1</div>
+      <div>bet365 · кэф <b id="d3-odds">2.10</b></div>
+      <div>ставка <b>476&nbsp;€</b> <span class="btn btn--on btn--sm" id="d3-btn" style="margin-left:6px">Поставлено</span></div>
+    </div>
+    <div style="padding:4px 2px"><span id="d3-sig" style="display:none" class="sig">кэф в потоке уехал → сигнал, числа держатся</span></div>
+    <div style="padding:2px 2px"><span class="btn btn--sm" id="d3-drift">Дёрнуть кэф в потоке</span> <span style="color:var(--t-dim)">— второй клик откатывает</span></div>
+  </div>
+  <details><summary>Выключенная фиксация — устаревший режим «Блокировка»</summary>
+    Если фиксацию выключить, кнопка называется «Блокировка»: она просто останавливает пересчёт ставки этой ноги при дрейфе кэфа — но без явной отметки реальной постановки. Режим оставлен для миграции. По умолчанию включена фиксация «Поставлено».</details>
+</div>
+
+<!-- 4. defer П-26а -->
+<div class="blk">
+  <h3>④ Смена режима фиксации не дёргает живую позицию</h3>
+  <p class="sig-why">Решение: <b>менять настройку можно в любой момент — открытая пара не пострадает</b>. Это единственное исключение из закона «правки сразу»: если прямо сейчас в калькуляторе идёт живая пара, смена режима фиксации не применяется мгновенно. Она встаёт в очередь и включится, когда пара закроется — даже если настройку сменили в другой вкладке браузера. Сканер говорит об этом плашкой дословно.</p>
+  <div class="demo">
+    <div style="padding:4px 2px">поток: пара <b>активна</b> (нога 1 поставлена) · <span class="btn btn--sm" id="d4-sw">Сменить режим фиксации</span></div>
+    <div style="padding:4px 2px"><span class="toast" id="d4-toast" style="display:none">Lock semantic будет применён после закрытия активного flow.</span></div>
+    <div style="padding:0 2px 4px;color:var(--t-dim);font-size:11px;display:none" id="d4-gloss">по-русски: режим фиксации применится, когда закроется активная пара (плашка показана дословно, как в сканере)</div>
+    <div style="padding:2px 2px"><span class="btn btn--sm" id="d4-close">Закрыть пару</span> <span id="d4-ok" style="display:none" class="ok">режим применился</span></div>
+  </div>
+</div>
+
+<!-- 5. поздняя стадия + Min profit note -->
+<div class="blk">
+  <h3>⑤ Калькулятор · поздняя стадия матча — пороги по спортам</h3>
+  <p class="sig-why">Решение: <b>видеть, что матч догорает, до того как взял вилку</b>. У конца матча кэф дёргается резко, конторы фиксируют подозрительные движения почти мгновенно — вилка на такой минуте живёт иначе. Порог у каждого спорта свой, и единицы разные: у футбола и гандбола — минута второго тайма, у баскетбола и ам. футбола — сколько секунд осталось в четвёртой четверти, у хоккея — минута третьего периода. Тот же порог питает и фильтр «скрывать поздний матч» в Режимах.</p>
+  <div class="demo">
+    <div class="row"><span class="lbl">Футбол — late-stage с минуты во 2-м тайме</span><input type="number" id="d5-n" value="75" min="0" max="120"><span style="color:var(--t-dim);font-size:11px">мин</span></div>
+    <div style="padding:6px 2px 2px;color:var(--t-dim)">строки потока (футбол, 2-й тайм):</div>
+    <div class="srow" id="d5-r1" style="border-left-color:var(--surv-med)"><span class="pct">4.1%</span><span>SOC</span><span>Real — Barca · ТБ 2.5</span><span></span><span class="per" id="d5-p1">2H 71'</span></div>
+    <div class="srow" id="d5-r2" style="border-left-color:var(--surv-high)"><span class="pct">3.2%</span><span>SOC</span><span>Ajax — PSV · ТМ 3.0</span><span></span><span class="per" id="d5-p2">2H 78'</span></div>
+    <div class="srow" id="d5-r3" style="border-left-color:var(--surv-low)"><span class="pct">6.0%</span><span>SOC</span><span>Lyon — Nice · Ф1 −1</span><span></span><span class="per" id="d5-p3">2H 89'</span></div>
+    <div class="note" style="color:var(--t-dim);padding:2px 2px">двинь порог — красная минута пересчитается: выше порога = поздняя стадия</div>
+  </div>
+  <details><summary>Пороги остальных спортов (по умолчанию)</summary>
+    Баскетбол — меньше 120 секунд до конца четвёртой четверти или овертайма; хоккей — с 17-й минуты третьего периода; гандбол — с 25-й минуты второго тайма (подпись в UI несёт пометку TENTATIVE — порог предварительный, до живой калибровки); ам. футбол — меньше 120 секунд в четвёртой четверти или овертайме (тоже TENTATIVE).</details>
+  <div class="honest">Честно: у волейбола и бейсбола порог через настройки пока не задаётся — там поздняя стадия определяется по самому периоду («Set 5», «9th Inning»).</div>
+  <p class="note"><b>Формат Min profit</b> (€ / % ROI / вклад ног) в разделе не настраивается — он меняется быстрее: кликом по самому значению «Min profit» в калькуляторе, по кругу.</p>
+</div>
+
+<!-- 6. Валюты -->
+<div class="blk">
+  <h3>⑥ Валюты — базовая и свой курс</h3>
+  <p class="sig-why">Решение: <b>читать таблицу в удобной валюте и не встать, когда курс какой-то конторы не пришёл</b>. Курсы приходят с нашего бэка. Базовая валюта (радио первой колонкой) — в чём показаны суммы и курсы в таблице; расчёт профита в калькуляторе остаётся в евро. Свой курс перекрывает автоматический и сразу входит в расчёт ставок. Строки без курса выделены и зовут вписать свой — ввод работает всегда.</p>
+  <div class="demo">
+    <div class="stn-h" style="font-size:12px">Базовая валюта и курсы <span class="cnt">курсы с бэка · обновлено 3 мин назад</span></div>
+    <div class="cur head"><span>базовая</span><span>валюта</span><span class="num">курс к EUR</span><span>свой курс</span></div>
+    <div class="cur"><span><input type="radio" name="d6" checked></span><span>EUR €</span><span class="num">1</span><span class="base">канон · базовая</span></div>
+    <div class="cur"><span><input type="radio" name="d6"></span><span>USD $</span><span class="num">0.9180</span><span><label class="own"><input type="checkbox"> авто</label></span></div>
+    <div class="cur"><span><input type="radio" name="d6"></span><span>GBP £</span><span class="num">1.1720</span><span><label class="own"><input type="checkbox"> авто</label></span></div>
+    <div class="cur cur--norate"><span><input type="radio" name="d6"></span><span>RUB ₽</span><span class="num norate">нет курса</span><span><input type="number" class="fld" placeholder="впиши свой →" style="width:120px"></span></div>
+  </div>
+  <div class="legend2">
+    <div class="card"><b>Базовая — только чтение</b><span>меняет валюту таблицы; профит калькулятора всё равно считается в евро</span></div>
+    <div class="card"><b>«нет курса» — красным</b><span>бэк курс не отдал; свой курс работает всегда и сразу входит в расчёт</span></div>
+    <div class="card"><b>свой / авто</b><span>галка фиксирует свой курс поверх авто; крестик × сбрасывает обратно к авто</span></div>
+    <div class="card"><b>Хранение — каноном X→EUR</b><span>смена валюты чтения не искажает зафиксированные свои курсы</span></div>
+  </div>
+  <div class="honest">Контора, у которой курса нет и свой не вписан, в расчёт не попадёт — калькулятор об этом предупредит.</div>
+</div>
+
+<!-- 7. Звуки -->
+<div class="blk">
+  <h3>⑦ Звуки — улов, смерть ноги, залп, громкость</h3>
+  <p class="sig-why">Решение: <b>слышать улов и не оглохнуть в залпе</b>. Звук улова выбирает пресет (Режимы → Алерт); здесь — дефолт для пресетов без своего выбора. Смерть ноги — глобальное событие, не пресетное. Громкость общая (по умолчанию 70).</p>
+  <div class="demo">
+    <div class="row"><span class="lbl">Появление улова</span>
+      <select class="sel"><option>Пинг (классический)</option><option>Дабл (два коротких)</option><option>Низкий (спокойный)</option><option>Трель (вверх)</option></select>
+      <span class="btn btn--sm" data-echo="Образец: здесь прозвучит выбранный сигнал — в демо звук не проигрывается, в сканере кнопка играет образец." data-echo-to="e7" title="Прослушать"><svg class="ic" viewBox="0 0 24 24" style="width:9px;height:9px"><polygon points="6 3 20 12 6 21 6 3" fill="currentColor" stroke="none"/></svg></span>
+      <span style="color:var(--t-dim);font-size:11px">какой именно — выбирает пресет</span>
+    </div>
+    <div class="row"><span class="lbl">Смерть ноги в калькуляторе <span class="glob">глобальное</span></span>
+      <select class="sel"><option>Отключён</option><option>Пинг (классический)</option><option>Дабл (два коротких)</option><option>Низкий (спокойный)</option><option>Трель (вверх)</option></select>
+      <span class="btn btn--sm" data-echo="Образец: здесь прозвучит выбранный сигнал — в демо звук не проигрывается, в сканере кнопка играет образец." data-echo-to="e7" title="Прослушать"><svg class="ic" viewBox="0 0 24 24" style="width:9px;height:9px"><polygon points="6 3 20 12 6 21 6 3" fill="currentColor" stroke="none"/></svg></span>
+    </div>
+    <div class="row"><span class="lbl">Залп уловов</span><span style="color:var(--t-dim);font-size:11px">звучит жирнейшая, остальные — тостом</span></div>
+    <div class="row"><span class="lbl">Громкость</span><input type="range" min="0" max="100" value="70" style="accent-color:var(--cyan)"><span style="color:var(--t-dim);font-size:11px">70 · относительно системной</span></div>
+    <div style="padding:4px 2px"><span class="stub">набор звуков — <b>образец</b>: механика выбора и прослушки готова, файлы подберутся отдельно</span></div>
+    <div class="echo" id="e7" style="display:none"></div>
+  </div>
+  <p class="note">Залп: если несколько пресетов поймали в одну секунду — звучит один сигнал, пресета с самой жирной вилкой; остальные приходят тостами. Какофонии нет.</p>
+</div>
+
+<!-- 8. Оповещения -->
+<div class="blk">
+  <h3>⑧ Оповещения — три двери push</h3>
+  <p class="sig-why">Решение: <b>разбудить ночью только на нужное</b>. Push проходит три двери подряд: канал (разрешён ли push вообще) → категория (улов пресета / смерть ноги) → ступень алерта пресета (Режимы). Закрыта любая — до системного уведомления не дойдёт, но ступень честно падает на звук. Ночью держат открытой одну категорию — «улов пресета».</p>
+  <div class="demo">
+    <div class="row"><span class="lbl">Дверь 1 · Desktop-push</span><label><input type="checkbox" checked> разрешены</label><span style="color:var(--t-dim);font-size:11px">разрешение браузера спрашивается при выборе ступени push в алерте пресета</span></div>
+    <div class="row"><span class="lbl">Дверь 2 · Категории</span><label style="margin-right:12px"><input type="checkbox" checked> улов пресета</label><label><input type="checkbox" checked> смерть ноги</label></div>
+    <div class="row"><span class="lbl">Дверь 3 · Ступень push</span><span style="color:var(--t-dim);font-size:11px">выбирается в алерте пресета — Режимы → Алерт</span></div>
+    <div class="row"><span class="lbl">Счётчик во вкладке</span><label><input type="checkbox" checked> показывать (N) в title</label></div>
+    <div style="padding:4px 2px"><span class="stub">системные — <b>придёт</b> (событий этой категории пока нет) · Telegram / email — появятся позже</span></div>
+  </div>
+  <p class="note">Смерть ноги — глобальная категория, у неё нет пресетной двери: включается прямо здесь, второй дверью.</p>
+</div>
+
+<!-- 9. Лиги -->
+<div class="blk">
+  <h3>⑨ Лиги — словарь всех виденных, с рабочими тумблерами</h3>
+  <p class="sig-why">Решение: <b>видеть весь накопленный словарь лиг, править состав не отходя и унести словарь на другую машину</b>. Справочник пополняется сам из потока и переживает перезагрузку. Написания одной лиги от разных БК <b>схлопнуты в одну строку</b> — бейдж «×N» показывает, сколько вариантов за ней (наведи — увидишь состав); тумблер строки включает/выключает <b>все написания разом</b> и правит <b>активный пресет</b> прямо отсюда. Импорт словаря и классы лиг — в Режимах.</p>
+  <div class="demo">
+    <div class="stn-h" style="font-size:12px">Лиги <span class="cnt">18 лиг · 20 написаний от БК · вкл/выкл правит активный пресет — All Sports</span></div>
+    <div style="padding:2px 2px 6px"><span class="btn btn--ghost btn--sm" data-echo="В бою: скачает словарь лиг файлом — его можно импортировать на другой машине." data-echo-to="e9"><svg class="ic" viewBox="0 0 24 24" style="width:10px;height:10px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg> Экспорт</span> <span style="color:var(--t-dim);font-size:11px">импорт и классы лиг — Режимы → Спорты и лиги</span></div>
+    <div class="echo" id="e9" style="display:none"></div>
+    <div class="tree">
+      <div class="node">Soccer <span style="color:var(--t-dim)">· 8</span></div>
+      <div class="leaf"><label style="display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" checked>Premier League</label></div>
+      <div class="leaf"><label style="display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" checked>La Liga</label></div>
+      <div class="node">Baseball <span style="color:var(--t-dim)">· 3</span></div>
+      <div class="leaf"><label style="display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" checked>Japan NPB <span class="pill" title="Написания этой лиги от разных БК: Japan - NPB · Japan NPB · Japan. NPB — тумблер каскадит на все разом">×3</span></label></div>
+      <div class="node">Tennis <span style="color:var(--t-dim)">· 2</span></div>
+      <div class="leaf"><label style="display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox">Roland Garros <span class="pill" title="Написания: ATP Roland Garros · Roland-Garros — тумблер каскадит на оба">×2</span></label></div>
+    </div>
+    <div class="stn-foot">Написания одной лиги от разных БК схлопнуты (×N) — наведи на бейдж и увидишь состав. Тумблер строки правит активный пресет. Склейка разных НАЗВАНИЙ одной лиги («CPBL» ↔ «Chinese Taipei. CPBL») — честно ждёт нормализации от бэка.</div>
+  </div>
+</div>
+
+<!-- 10. Служебное -->
+<div class="blk">
+  <h3>⑩ Служебное — профиль станции, сбросы, хоткеи</h3>
+  <p class="sig-why">Решение: <b>унести всю настройку одним файлом и держать под рукой сбросы</b>. Экспорт складывает в один файл манифест всех настроек: пресеты, группы, пути, свои курсы, парк с зеркалами, справочник лиг, дефолты. Память новизны в файл не едет (всплеск «новых» в первую ночь — норма). Импорт спросит явно, заменит текущее целиком и перезагрузит страницу.</p>
+  <div class="demo">
+    <div class="row"><span class="lbl">Профиль станции</span>
+      <span class="btn btn--ghost btn--sm" data-echo="В бою: сложит все настройки в один файл betsynd-station.json." data-echo-to="e10"><svg class="ic" viewBox="0 0 24 24" style="width:10px;height:10px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg> Экспорт всего</span>
+      <span class="btn btn--ghost btn--sm" data-echo="В бою: спросит подтверждение, заменит настройки целиком и перезагрузит страницу." data-echo-to="e10"><svg class="ic" viewBox="0 0 24 24" style="width:10px;height:10px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg> Импорт</span>
+    </div>
+    <div class="row"><span class="lbl">Горячие клавиши</span><span><span class="pill">Alt+1..9 — пресеты/группы</span><span class="pill">↑↓ — по ленте</span><span class="pill">⌘↵ — открыть обе</span><span class="pill">Esc — закрыть панель</span> <span style="color:var(--t-dim);font-size:11px">фиксированные</span></span></div>
+    <div class="row"><span class="lbl">Память потока</span><span><span class="btn btn--ghost btn--sm" data-echo="В бою: каталог виденных контор наполнится заново из потока; настройки per-БК не тронутся." data-echo-to="e10">сбросить каталог виденных контор</span> <span class="btn btn--ghost btn--sm" data-echo="В бою: сотрёт только память «что уже видели»; справочник лиг и разметка целы." data-echo-to="e10">сбросить память «новых» лиг/БК</span></span></div>
+    <div class="echo" id="e10" style="display:none"></div>
+    <div style="padding:4px 2px"><span class="stub">История ставок — <b>отдельная будущая задача</b>: каждый улов помнит, какой режим его поймал — разбор по режимам появится позже</span></div>
+  </div>
+  <details><summary>Чем два сброса отличаются</summary>
+    «Сбросить каталог виденных контор» — каталог наполнится заново из потока; настройки per-БК не трогаются. «Сбросить память новых» — стирает только память «что уже видели» (по ней подсвечиваются истинно новые лиги/конторы); сам справочник лиг, вкл/выкл и разметка нетронуты: твои ручные решения сканер помнит, они сильнее авто-включения.</details>
+</div>
+
+<!-- ЧАСТЬ 2 -->
+<h2 class="part">Часть 2 · В живом сканере</h2>
+<p class="part-sub">Станция рядом с потоком. Меняй порог футбола и логику порядка ног — эффект виден сразу в строках и в кружках калькулятора. Легенда — под демо.</p>
+
+<div class="blk">
+  <div class="demo">
+    <div class="grid2">
+      <div>
+        <div style="padding:2px 2px;color:var(--t-dim)">поток · футбол 2H</div>
+        <div class="srow" id="p2-r1" style="border-left-color:var(--surv-high)"><span class="pct">3.6%</span><span>SOC</span><span>Milan — Roma · ТБ 2.5</span><span></span><span class="per" id="p2-per1">2H 74'</span></div>
+        <div class="srow" id="p2-r2" style="border-left-color:var(--surv-med)"><span class="pct">4.4%</span><span>SOC</span><span>Betis — Sevilla · ТМ 2.5</span><span></span><span class="per" id="p2-per2">2H 81'</span></div>
+        <div style="padding:6px 2px 2px;color:var(--t-dim)">калькулятор · пара:</div>
+        <div class="cmx" style="max-width:100%">
+          <div class="rh">БК</div>
+          <div class="leg"><span class="ord ord--1" id="p2-o1">1</span>bet365 · ТБ</div>
+          <div class="leg"><span class="ord" id="p2-o2">2</span>Pinnacle · ТМ</div>
+          <div class="rh">Кэф</div><div>1.95</div><div>2.14</div>
+        </div>
+      </div>
+      <div>
+        <div style="padding:2px 2px;color:var(--t-dim)">Станция:</div>
+        <div class="row"><span class="lbl">Футбол — late-stage с мин.</span><input type="number" id="p2-n" value="75" min="0" max="120"><span style="color:var(--t-dim);font-size:11px">мин</span></div>
+        <div style="padding:4px 2px 2px;color:var(--t-dim)">порядок ног:</div>
+        <label class="rblock"><span class="head"><input type="radio" name="p2ord" value="eff-odds" checked><span class="lbl">По эффективному кэфу</span></span></label>
+        <label class="rblock"><span class="head"><input type="radio" name="p2ord" value="event-type"><span class="lbl">По типу события (ТБ первой)</span></span></label>
+        <div class="stn-foot" style="margin-top:6px">правки действуют сразу и сохраняются сами</div>
+      </div>
+    </div>
+  </div>
+  <div class="legend2">
+    <div class="card"><b>Красная минута</b><span>матч в поздней стадии по порогу этого спорта — кэф дёргается, двойная осторожность</span></div>
+    <div class="card"><b>Кружок 1 переехал</b><span>сменил логику порядка ног — первая нога сменилась во всех вилках сразу</span></div>
+    <div class="card"><b>Порог — общий для станции</b><span>тот же порог красит минуту и питает фильтр «скрывать поздний матч»</span></div>
+    <div class="card"><b>Без «Сохранить»</b><span>правки применились к ленте и калькулятору мгновенно и записались сами</span></div>
+  </div>
+</div>
+
+<!-- ЧАСТЬ 3 -->
+<h2 class="part">Часть 3 · Как в бою</h2>
+<p class="part-sub">Плотный вид Станции — так экран выглядит в сканере, без подсказок.</p>
+
+<div class="blk">
+  <div class="demo snap">
+    <div class="stn">
+      <div class="stn-head">
+        <span class="stn-title">Станция — настроил и забыл</span>
+        <span class="stn-sub">глобальное: трогается раз в месяц — выдача, парк контор, звуки, валюты, калькулятор</span>
+        <label class="stn-search"><svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input type="text" placeholder="поиск по всем настройкам станции…" disabled></label>
+        <span class="btn btn--ghost btn--sm">← Режимы</span>
+        <span class="stn-x">×</span>
+      </div>
+      <div class="stn-summary"><span>Контор в потоке <b>18</b></span><span>Настроено per-БК <b>5</b></span><span>Режимов <b>4</b></span><span>Активный — <b>Tight</b> · в выдаче ещё <b>2</b></span></div>
+      <div class="stn-body">
+        <nav class="stn-nav">
+          <a>Выдача</a><a>Парк контор <span class="cbadge">5</span></a><a>Звуки</a><a>Оповещения</a><a>Валюты</a><a>Лиги</a><a class="on">Калькулятор</a><a>Пути</a><a>Служебное</a>
+        </nav>
+        <div class="stn-main">
+          <div class="stn-h">Калькулятор</div>
+          <div class="row" style="margin-top:0"><span class="k"><input type="checkbox" checked disabled></span><span class="lbl">Адаптивная высота калькулятора</span></div>
+          <div class="row"><span class="k"><input type="checkbox" checked disabled></span><span class="lbl">Фиксация ставки и кэфа после реальной постановки (рекомендуется)</span></div>
+          <div class="row"><span class="k"><input type="checkbox" checked disabled></span><span class="lbl">Сохранять выбранную вилку при смене пресета</span></div>
+          <div class="stn-card" style="margin-top:6px">Порядок ног — какую ставить первой (кружки 1/2 в калькуляторе)</div>
+          <div class="rblock"><span class="head"><input type="radio" checked disabled><span class="lbl">По эффективному кэфу</span></span><span class="desc">выше кэф — первой (по умолчанию)</span></div>
+          <div class="rblock"><span class="head"><input type="radio" disabled><span class="lbl">По типу события</span></span></div>
+          <div class="rblock"><span class="head"><input type="radio" disabled><span class="lbl">По % вилки</span></span></div>
+          <div class="rblock"><span class="head"><input type="radio" disabled><span class="lbl">Проблемная контора первой</span></span></div>
+          <div class="stn-card" style="margin-top:6px">Поздняя стадия матча</div>
+          <div class="row"><span class="lbl">Футбол — late-stage с минуты во 2-м тайме</span><input type="number" value="75" disabled><span style="color:var(--t-dim);font-size:11px">мин</span></div>
+          <div class="row"><span class="lbl">Баскетбол — remaining в Q4/OT меньше</span><input type="number" value="120" disabled><span style="color:var(--t-dim);font-size:11px">сек</span></div>
+          <div class="stn-foot">правки действуют сразу и сохраняются сами · формат Min profit — кликом по значению в калькуляторе</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="note">Часть 3 — статичный боевой вид (поля выключены нарочно: это снимок, тренажёр — выше). Настройки Станции живут в браузере: переживают перезагрузку и подхватываются во всех вкладках сканера.</p>
+</div>
+
+<script>
+// ① Станция: nav-прыжок + поиск-гашение
+(function(){
+  var nav=document.getElementById('d1-nav'), title=document.getElementById('d1-title'),
+      hint=document.getElementById('d1-hint'), q=document.getElementById('d1-q');
+  if(!nav) return;
+  var labels={};
+  nav.querySelectorAll('a').forEach(function(a){ labels[a.dataset.s]=a.textContent.replace(/\s*\d+\s*$/,'').trim(); });
+  nav.addEventListener('click',function(e){
+    var a=e.target.closest('a'); if(!a) return;
+    nav.querySelectorAll('a').forEach(function(x){ x.classList.remove('on'); });
+    a.classList.add('on');
+    title.textContent=labels[a.dataset.s];
+    hint.textContent='Раздел «'+labels[a.dataset.s]+'» — правки действуют сразу и сохраняются сами.';
+  });
+  q.addEventListener('input',function(){
+    var v=q.value.trim().toLowerCase();
+    nav.querySelectorAll('a').forEach(function(a){
+      var hit = v==='' || a.dataset.s.indexOf(v)>=0 || labels[a.dataset.s].toLowerCase().indexOf(v)>=0;
+      a.classList.toggle('dim', !hit);
+    });
+    hint.textContent = v==='' ? 'Клик по разделу слева — оглавление прыгнет сюда. Введи слово в поиск — лишние разделы погаснут.'
+      : 'Поиск «'+v+'» — совпавшие разделы подсвечены, лишние погашены.';
+  });
+  var modes=document.getElementById('d1-modes'), close=document.getElementById('d1-close');
+  if(modes) modes.addEventListener('click',function(){ hint.textContent='«Режимы» — полноэкранное операционное полотно: активный пресет слева, наборы в центре, конторы справа. В сканере эта дверь ведёт туда.'; });
+  if(close) close.addEventListener('click',function(){ hint.textContent='«×» или клавиша Esc закрывают Станцию и возвращают к ленте.'; });
+})();
+
+// ② порядок ног: логика раскладывает кружки 1/2 (self-contained демо-вилка Real—Barca ТБ 2.5)
+(function(){
+  var radios=document.querySelectorAll('input[name=d2]'), o1=document.getElementById('d2-o1'), o2=document.getElementById('d2-o2'),
+      subEvt=document.getElementById('d2-sub-evt'), subArb=document.getElementById('d2-sub-arb'), thr=document.getElementById('d2-thr');
+  // демо-факты вилки: нога1 bet365 ТБ(Over) кэф 1.95 fast-fix; нога2 Pinnacle ТМ кэф 2.14; тотал; arb 3.6%
+  var L={ over:1, effHigh:2, fastFix:1, arb:3.6, isTotal:true };
+  function first(logic){
+    if(logic==='event-type'){ return L.isTotal ? L.over : L.effHigh; }
+    if(logic==='arb-percent'){ var t=parseFloat(thr.value)||3; return (L.arb>=t && L.isTotal) ? L.over : L.effHigh; }
+    if(logic==='problem-bk'){ return L.fastFix; }
+    return L.effHigh; // eff-odds default
+  }
+  function render(){
+    var logic='eff-odds'; radios.forEach(function(r){ if(r.checked) logic=r.value; });
+    subEvt.style.display = logic==='event-type' ? 'block' : 'none';
+    subArb.style.display = logic==='arb-percent' ? 'block' : 'none';
+    var f=first(logic);
+    o1.textContent = f===1 ? '1':'2'; o1.className='ord'+(f===1?' ord--1':'');
+    o2.textContent = f===2 ? '1':'2'; o2.className='ord'+(f===2?' ord--1':'');
+  }
+  radios.forEach(function(r){ r.addEventListener('change',render); });
+  thr.addEventListener('input',render);
+  render();
+})();
+
+// ③ lockSemantic + П-24 циклический дрейф
+(function(){
+  var t=document.getElementById('d3-t'), desc=document.getElementById('d3-desc'), btn=document.getElementById('d3-btn'),
+      sig=document.getElementById('d3-sig'), odds=document.getElementById('d3-odds'), drift=document.getElementById('d3-drift'),
+      drifted=false, placed=true;
+  function renderMode(){
+    if(t.checked){ desc.textContent='Включено (по умолчанию) — кнопка «Поставлено» замораживает ставку и кэф ноги; при дрейфе нога подсвечивается янтарным сигналом, но не пересчитывается.'; btn.textContent='Поставлено'; }
+    else{ desc.textContent='Выключено — устаревший режим: кнопка «Блокировка» останавливает пересчёт ставки при дрейфе кэфа, без явной отметки реальной постановки.'; btn.textContent='Блокировка'; }
+    btn.classList.toggle('btn--on', placed); // нажата = нога отмечена поставленной
+  }
+  function renderDrift(){
+    if(drifted){
+      odds.textContent='2.04'; sig.style.display='inline';
+      sig.textContent = placed ? 'кэф в потоке уехал → сигнал, числа держатся'
+                               : 'кэф в потоке уехал → нога не отмечена, фиксации нет — поток пересчитал бы ставку';
+    } else { odds.textContent='2.10'; sig.style.display='none'; }
+  }
+  btn.addEventListener('click',function(){ placed=!placed; renderMode(); renderDrift(); }); // отметить/снять постановку ноги
+  t.addEventListener('change',function(){ drifted=false; renderMode(); renderDrift(); });
+  drift.addEventListener('click',function(){ drifted=!drifted; renderDrift(); }); // второй клик откатывает, по кругу
+  renderMode(); renderDrift();
+})();
+
+// ④ defer-машина (П-26а): смена при активной паре → плашка → закрытие → применение
+(function(){
+  var sw=document.getElementById('d4-sw'), toast=document.getElementById('d4-toast'), gloss=document.getElementById('d4-gloss'),
+      close=document.getElementById('d4-close'), ok=document.getElementById('d4-ok'), queued=false;
+  sw.addEventListener('click',function(){ queued=true; toast.style.display='inline-block'; gloss.style.display='block'; ok.style.display='none'; });
+  close.addEventListener('click',function(){ if(queued){ toast.style.display='none'; gloss.style.display='none'; ok.style.display='inline'; queued=false; } });
+})();
+
+// ⑤ порог late-stage: minute > threshold во 2H → late (Soccer)
+(function(){
+  var n=document.getElementById('d5-n'), rows=[{el:'d5-r1',min:71},{el:'d5-r2',min:78},{el:'d5-r3',min:89}];
+  function render(){ var th=parseInt(n.value,10); if(isNaN(th)||th<0) return;
+    rows.forEach(function(r){ document.getElementById(r.el).classList.toggle('srow--late', r.min>th); }); }
+  n.addEventListener('change',render); n.addEventListener('input',render); render();
+})();
+
+// Часть 2: порог + логика вместе
+(function(){
+  var n=document.getElementById('p2-n'), rows=[{el:'p2-r1',min:74},{el:'p2-r2',min:81}];
+  function renderLate(){ var th=parseInt(n.value,10); if(isNaN(th)||th<0) return;
+    rows.forEach(function(r){ document.getElementById(r.el).classList.toggle('srow--late', r.min>th); }); }
+  n.addEventListener('change',renderLate); n.addEventListener('input',renderLate); renderLate();
+  var ord=document.querySelectorAll('input[name=p2ord]'), o1=document.getElementById('p2-o1'), o2=document.getElementById('p2-o2');
+  function renderOrd(){ var logic='eff-odds'; ord.forEach(function(r){ if(r.checked) logic=r.value; });
+    // eff-odds: нога2 (2.14) первой; event-type: тотал → ТБ (нога1) первой
+    var f = logic==='event-type' ? 1 : 2;
+    o1.textContent=f===1?'1':'2'; o1.className='ord'+(f===1?' ord--1':'');
+    o2.textContent=f===2?'1':'2'; o2.className='ord'+(f===2?' ord--1':''); }
+  ord.forEach(function(r){ r.addEventListener('change',renderOrd); }); renderOrd();
+})();
+
+// превью-кнопки без своей механики (экспорт/импорт/сброс/прослушка): клик показывает, что кнопка делает в бою
+(function(){
+  document.querySelectorAll('.btn[data-echo]').forEach(function(b){
+    b.addEventListener('click',function(){
+      var out=document.getElementById(b.getAttribute('data-echo-to'));
+      if(out){ out.textContent=b.getAttribute('data-echo'); out.style.display='block'; }
+    });
+  });
+})();
+</script>
+</div>
+</body>
+</html>
