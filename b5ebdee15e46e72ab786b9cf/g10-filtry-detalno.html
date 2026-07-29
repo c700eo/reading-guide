@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Режимы — настройка режима охоты (учебная глава, 3 части)</title>
+<style>
+  /* Цвета/метки/формулы — из кода форка (R-3); привязки координат живут в report-g11.md рядом.
+     Демо-скин .sc — светлая (дневная) палитра реального сканера: фон #f6f7f9, акцент #0a76ad. */
+  :root{
+    /* каркас страницы (учебная методичка, светлый) */
+    --paper:#f7f7f5; --panel:#ffffff; --hairline:#e7e7e4;
+    --text:#1a1a1a; --text-secondary:#575d66; --accent:#0a76ad;
+    --note-bg:#fff8e6; --note-border:#f0d99a; --note-text:#6b5418;
+    --shadow-1:0 1px 2px rgba(20,22,26,.05); --shadow-2:0 4px 16px rgba(20,22,26,.06);
+    --r-panel:12px; --r-block:8px;
+    --font-display:"Avenir Next","Segoe UI",system-ui,sans-serif;
+    --mono:ui-monospace,Menlo,monospace;
+    /* демо-скин — светлые (дневные) токены реального сканера (index.css :root) */
+    --sc-bg:#f6f7f9; --sc-s1:#ffffff; --sc-s2:#f4f4f5; --sc-s3:#f5f5ff; --sc-hover:#efeff1;
+    --sc-border:#dde2ea; --sc-border-sub:#ebebeb;
+    --sc-text:#1a1a1a; --sc-2:#4d5765; --sc-3:#636d7c;
+    --sc-cyan:#0a76ad; --sc-teal:#19776c; --sc-teal-bg:rgba(25,119,108,.10);
+    --sc-red:#991b1b; --sc-red-strong:#7f1d1d; --sc-red-bg:#fff0f0; --sc-red-bd:#e88a8a;
+    /* палитра уловов (данные-цвета пресетов, темонезависимы — реальные значения из кода форка) */
+    --pv-brass:#d4a72c; --pv-olive:#8fa653; --pv-slate:#7a8ba6; --pv-rose:#ad6a86; --pv-siena:#b3763f; --pv-petrol:#4e8098;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+  body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--paper);color:var(--text);font-size:15px;line-height:1.6}
+  .wrap{max-width:820px;margin:0 auto;padding:28px 18px 90px}
+  h1{font-size:28px;margin:0 0 6px;font-family:var(--font-display);font-weight:700;letter-spacing:-0.01em;text-wrap:balance}
+  h1::after{content:"";display:block;width:120px;height:3px;margin-top:10px;border-radius:2px;background:linear-gradient(90deg,var(--sc-cyan) 0 50%,var(--sc-teal) 50% 100%)}
+  h2.part-t{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--text);font-weight:700;margin:0 0 4px}
+  h3{font-size:18px;margin:0 0 4px;font-family:var(--font-display);font-weight:600;text-wrap:balance}
+  .lead{color:var(--text-secondary);font-size:16px;margin:0 0 8px;text-wrap:pretty}
+  .lead b{color:var(--text)}
+  .block-band{margin:22px 0 2px;font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--accent);font-weight:700;border-bottom:1px solid var(--hairline);padding-bottom:4px}
+  .block-band.pending{color:var(--text-secondary)}
+  .part{background:var(--panel);border:1px solid var(--hairline);border-radius:var(--r-panel);padding:20px 20px 22px;margin:14px 0;box-shadow:var(--shadow-1),var(--shadow-2)}
+  .part-head{border-left:3px solid var(--accent);padding-left:10px;margin-bottom:14px}
+  .part-head{border-image:linear-gradient(180deg,var(--sc-cyan),var(--sc-teal)) 1}
+  .part-head .step{font-size:12px;color:var(--text-secondary)}
+  .signal{border-top:1px solid var(--hairline);padding:16px 0 4px}
+  .signal:first-of-type{border-top:none;padding-top:4px}
+  .sig-why{color:var(--text-secondary);font-size:14px;margin:2px 0 10px;text-wrap:pretty}
+  .demo-cap{font-size:11px;color:var(--text-secondary);margin:6px 2px 0}
+  details.note{background:var(--note-bg);border:1px solid var(--note-border);border-radius:var(--r-block);padding:8px 10px;font-size:12.5px;color:var(--note-text);margin-top:8px}
+  details.note summary{cursor:pointer;font-weight:600;color:var(--note-text)}
+  details.note[open] summary{margin-bottom:5px}
+  details.note b{color:var(--note-text)}
+  button{font-family:inherit}
+
+  /* ── ДЕМО-СКИН (реплика светлого сканера) ── */
+  .sc{background:var(--sc-bg);color:var(--sc-text);border:1px solid var(--sc-border);border-radius:var(--r-block);padding:12px;overflow-x:auto;font-size:13.5px}
+  .sc-box{background:var(--sc-s2);border:1px solid var(--sc-border);border-radius:7px;padding:9px 11px;margin:8px 0}
+  .sc-h{font-size:12.5px;font-weight:700;color:var(--sc-text);margin:0 0 6px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .sc-sub{font-size:10.5px;color:var(--sc-3);text-transform:uppercase;letter-spacing:.05em}
+  .sc-2{color:var(--sc-2)} .sc-3{color:var(--sc-3)}
+  .sc-cnt{font-size:11px;color:var(--sc-3);font-family:var(--mono)}
+  .tip{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;border:1px solid var(--sc-border);color:var(--sc-3);font-size:9px;cursor:help;flex-shrink:0}
+  .rec{font-size:10.5px;color:var(--sc-3)}
+  .sc a.bridge{color:var(--sc-cyan);text-decoration:none;font-size:11px;border-bottom:1px dashed rgba(10,118,173,.4);cursor:pointer}
+  .sc a.bridge:hover{border-bottom-style:solid}
+
+  /* dirty-шапка */
+  .db{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--sc-s1);border:1px solid var(--sc-border);border-radius:7px;padding:8px 11px}
+  .db-dot{width:8px;height:8px;border-radius:50%;background:var(--sc-cyan);flex-shrink:0}
+  .db-txt{font-size:12px;color:var(--sc-text)}
+  .db-txt b{color:var(--sc-cyan)}
+  .db-txt.clean b{color:var(--sc-3);font-weight:600}
+  .db-btn{border:1px solid var(--sc-border);background:transparent;color:var(--sc-2);border-radius:5px;padding:4px 10px;font-size:11.5px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+  .db-btn.save{margin-left:auto}
+  .db-btn.save.hot{border-color:var(--sc-cyan);color:var(--sc-cyan);background:rgba(10,118,173,.10);font-weight:600}
+  .db-btn:hover{border-color:var(--sc-cyan);color:var(--sc-text)}
+
+  /* якорь-навигация */
+  .anav{display:flex;gap:4px;flex-wrap:wrap;margin:8px 0 2px}
+  .anav a{font-size:11.5px;color:var(--sc-2);text-decoration:none;padding:3px 8px;border:1px solid var(--sc-border-sub);border-radius:20px;cursor:pointer}
+  .anav a.on,.anav a:hover{border-color:var(--sc-cyan);color:var(--sc-cyan)}
+
+  /* три зоны полотна */
+  .zones{display:grid;grid-template-columns:1.35fr 1fr 1fr;gap:8px;margin-top:8px}
+  @media(max-width:640px){.zones{grid-template-columns:1fr}}
+  .zone{background:var(--sc-s1);border:1px solid var(--sc-border);border-radius:7px;padding:9px}
+  .zone .zt{font-size:11px;color:var(--sc-cyan);font-weight:700;margin-bottom:6px}
+
+  /* контролы */
+  .ctl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:5px 0}
+  .lbl{font-size:11.5px;color:var(--sc-2);min-width:96px}
+  .num{width:58px;background:var(--sc-bg);border:1px solid var(--sc-border);color:var(--sc-text);border-radius:5px;padding:3px 6px;font-family:var(--mono);font-size:12px;text-align:right}
+  .num:focus{outline:none;border-color:var(--sc-cyan)}
+  .pair{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--sc-3)}
+  .chk{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--sc-text);cursor:pointer}
+  .chk.dim{color:var(--sc-3);cursor:not-allowed}
+  .chk input{accent-color:var(--sc-cyan)}
+  .seg{display:inline-flex;border:1px solid var(--sc-border);border-radius:5px;overflow:hidden}
+  .seg button{padding:3px 10px;font-size:11px;background:transparent;border:none;color:var(--sc-2);cursor:pointer;border-right:1px solid var(--sc-border)}
+  .seg button:last-child{border-right:none}
+  .seg button.on{background:var(--sc-s3);color:var(--sc-cyan)}
+  .seg button:disabled{color:var(--sc-border-sub);cursor:not-allowed}
+
+  /* заглушка */
+  .stub{font-size:11px;color:var(--sc-3);font-style:italic}
+  .pending{opacity:.5}
+  .pending-tag{display:inline-block;font-family:var(--mono);font-size:9px;letter-spacing:.04em;text-transform:uppercase;color:var(--sc-3);border:1px dashed var(--sc-border);border-radius:3px;padding:1px 5px;margin-left:6px}
+
+  /* гистограмма */
+  .histo{display:flex;align-items:flex-end;gap:2px;height:56px;margin:4px 0}
+  .histo .bar{flex:1;background:var(--sc-cyan);opacity:.85;border-radius:2px 2px 0 0;min-height:2px}
+  .histo .bar.cut{background:var(--sc-border);opacity:1}
+  .histo-axis{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--sc-3)}
+  .thr-row{display:flex;align-items:center;gap:8px;margin:6px 0;font-family:var(--mono);font-size:12px;color:var(--sc-2)}
+  .thr-row input[type=range]{flex:1;accent-color:var(--sc-cyan)}
+  .thr-val{color:var(--sc-cyan);font-weight:700;min-width:64px;text-align:right}
+
+  /* дерево исходов */
+  .tree-g{border-bottom:1px solid var(--sc-border-sub);padding:3px 0}
+  .tree-p{display:flex;align-items:center;gap:6px;font-size:12.5px}
+  .tree-x{background:none;border:none;cursor:pointer;color:var(--sc-3);font-size:11px}
+  .tree-k{padding:3px 0 3px 22px;display:flex;flex-direction:column;gap:2px}
+  .kid-badge{font-family:var(--mono);font-size:9px;color:var(--sc-red);margin-left:4px}
+
+  /* мини-список лиг */
+  .ml-row{display:flex;align-items:center;gap:7px;font-size:12px;padding:2px 0}
+  .ml-row.dormant{opacity:.45}
+  .ml-tag{font-family:var(--mono);font-size:9.5px;color:var(--sc-3)}
+  .pill{font-size:9.5px;padding:1px 6px;border-radius:10px;border:1px solid var(--sc-border);color:var(--sc-2)}
+  .pill.acc{border-color:var(--sc-cyan);color:var(--sc-cyan)}
+
+  /* свотчи палитры */
+  .swatches{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  .sw{width:20px;height:20px;border-radius:5px;border:1px solid var(--sc-border);cursor:pointer;position:relative}
+  .sw.none{background:var(--sc-s3)}
+  .sw.sel{outline:2px solid var(--sc-cyan);outline-offset:1px}
+  .sw.none::after{content:"—";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--sc-3);font-size:11px}
+
+  /* строки-реплика ленты */
+  table.scan{width:100%;border-collapse:collapse}
+  table.scan th{font-size:9.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--sc-3);text-align:left;padding:4px 6px;border-bottom:1px solid var(--sc-border)}
+  table.scan td{padding:5px 6px;border-bottom:1px solid var(--sc-border-sub);font-variant-numeric:tabular-nums;font-size:13px}
+  table.scan.dense td{padding:2px 6px;font-size:12.5px}
+  .st-pct{font-weight:700} .st-odds{font-family:var(--mono);white-space:nowrap}
+  .catch-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:middle}
+  .surv-hi td:first-child{border-left:3px solid #16a34a}
+  .surv-md td:first-child{border-left:3px solid #ca8a04}
+  .surv-lo td:first-child{border-left:3px solid #dc2626}
+  .badge{font-family:var(--mono);font-size:9px;padding:0 4px;border-radius:2px;margin-left:4px;background:var(--sc-red-bg);color:var(--sc-red-strong)}
+  .counter{font-family:var(--mono);font-size:12.5px;color:var(--sc-cyan);font-weight:700;margin:6px 0}
+
+  /* срез-столбик у ленты */
+  .slice-wrap{display:flex;gap:0;border:1px solid var(--sc-border);border-radius:7px;overflow:hidden;margin:8px 0}
+  .slice{flex:0 0 250px;background:var(--sc-s1);border-right:1px solid var(--sc-border);padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+  @media(max-width:640px){.slice{flex:0 0 210px}}
+  .slice-head{display:flex;align-items:center;gap:6px}
+  .slice-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .slice-name{font-size:12px;font-weight:700;color:var(--sc-text)}
+  .slice-tag{margin-left:auto;font-size:10px;color:var(--sc-3)}
+  .slice-x{border:none;background:transparent;color:var(--sc-3);cursor:pointer;font-size:14px;line-height:1;padding:0 3px}
+  .slice-ctl{display:flex;flex-direction:column;gap:3px}
+  .slice-l{font-size:10px;font-weight:600;color:var(--sc-2)}
+  .slice-off{border:1px solid var(--sc-border);background:transparent;color:var(--sc-3);cursor:pointer;font-size:10px;padding:2px 6px}
+  .slice-modes{margin-top:2px;width:100%;padding:6px 8px;border:1px solid var(--sc-border);background:var(--sc-s2);color:var(--sc-text);font-size:12px;cursor:pointer;border-radius:5px}
+  .slice-modes:hover{border-color:var(--sc-cyan);color:var(--sc-cyan)}
+  .slice-note{font-size:10px;line-height:1.4;color:var(--sc-3)}
+  .slice-feed{flex:1;padding:8px 6px;background:var(--sc-bg);min-width:0}
+  .rail{flex:0 0 18px;background:var(--sc-s1);border-right:1px solid var(--sc-border);color:var(--sc-3);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;padding-top:10px;border:none}
+  .rail-word{writing-mode:vertical-rl;font-size:9px;letter-spacing:.08em}
+
+  /* мосты */
+  .bridges{display:flex;flex-direction:column;gap:6px}
+  .bridge-row{display:flex;align-items:center;gap:8px;background:var(--sc-s2);border:1px solid var(--sc-border);border-radius:6px;padding:8px 11px;font-size:12.5px;color:var(--sc-text)}
+  .bridge-row .arrow{margin-left:auto;color:var(--sc-cyan)}
+
+  /* снапшот-блоки (иллюстрация без интерактива): убираем hover/pointer — элемент не обещает клик */
+  .frozen .db-btn,.frozen .anav a,.frozen .seg button,.frozen .rail,.frozen .slice-modes,.frozen a.bridge{pointer-events:none;cursor:default}
+  /* транзиентная подсказка у мостов на Станцию */
+  .bridge-hint{font-size:10.5px;color:var(--sc-3);opacity:0;transition:opacity .18s;margin-left:2px;white-space:nowrap}
+  a.bridge.flash{border-bottom-style:solid}
+  /* шапка полотна — op-head (filter-overlay.vue:986-1104): заголовок + поиск + Станция→ + × */
+  .ophead{display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid var(--sc-border);flex-wrap:wrap}
+  .ophead-t{font-size:13px;font-weight:700;color:var(--sc-text)}
+  .ophead-sub{font-size:10.5px;color:var(--sc-3);flex-basis:100%;margin-top:-4px}
+  .ophead-search{display:inline-flex;align-items:center;background:#ffffff;border:1px solid var(--sc-border);border-radius:6px;padding:2px 8px;flex:1 1 210px;min-width:170px;font-size:11px;color:var(--sc-3)}
+  .ophead-btn{background:#ffffff;border:1px solid var(--sc-border);border-radius:6px;color:var(--sc-2);padding:3px 9px;font-size:11px;cursor:pointer}
+  .ophead-x{color:var(--sc-3);cursor:pointer;font-size:15px;line-height:1;padding:0 4px}
+  .zhead{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--sc-text);padding:2px 0 6px}
+  .zhead .pen{color:var(--sc-3);cursor:pointer}
+  .zhead .altpill{border:1px solid var(--sc-border);border-radius:4px;padding:0 5px;font-size:9.5px;color:var(--sc-3)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Режимы — тонкая настройка того, что ловлю сегодня</h1>
+  <p class="lead">Решение, которое обслуживает эта функция: <b>«пресет дал грубый режим — теперь на экране «Режимы» отрезать ровно то, на что охота сегодня, и держать самое трогаемое рядом с лентой».</b> Пресет (глава «Пресеты и режимы») переключает весь профиль охоты одним движением. Экран <b>«Режимы»</b> — мастерская под ним: полотно из трёх зон одним взглядом — слева рычаги активного пресета, в центре сами пресеты и группы, справа его конторы. У ленты живёт <b>срез</b> — быстрый слой с самым трогаемым и дверью «Режимы →». А сквозное (полный словарь лиг, парк контор, вид выдачи) переезжает на соседний экран — <b>«Станцию»</b>. Три части ниже: сначала каждый рычаг отдельно, потом полотно живьём, потом плотный боевой вид.</p>
+
+  <details class="note"><summary>Полотно, поиск и настройка «внутри спорта»</summary>Полотно <b>«Режимы»</b> показывает три зоны сразу, без переключения вкладок; поиск ходит по всем настройкам, а не по одной зоне. Настройка «внутри спорта» (какие рынки, какие периоды, какие конторы несут этот рынок) — в секции «На что ставим» и в разделе «Пути» на Станции. Подсказка у <b>?</b> — отдельный слой: не режется прокруткой полотна, держится внутри окна и прячется при прокрутке, чтобы не висеть над другим полем.</details>
+  <details class="note"><summary>Если лента пуста</summary>Сканер не оставляет абстрактное «ничего не найдено», а прямо подсказывает маршрут проверки: <b>«Конторы (≥2), Профит %, Возраст, Рынки»</b>. Это четыре первых места, где сужение чаще всего отрезает весь поток.</details>
+
+  <!-- ============ ЧАСТЬ 1 — УЧЁБА ============ -->
+  <section class="part">
+    <div class="part-head">
+      <h2 class="part-t">Часть 1 · Учёба</h2>
+      <div class="step">Сначала полотно целиком — три зоны и шапка сохранения. Потом каждый рычаг активного пресета по отдельности, со своим демо. В конце — срез у ленты и мосты на Станцию.</div>
+    </div>
+
+    <div class="block-band">A · Полотно «Режимы» одним взглядом</div>
+
+    <div class="signal">
+      <h3>Три зоны и шапка сохранения</h3>
+      <p class="sig-why">Экран открывается дверью «Режимы» в верхней панели. Слева — рычаги активного пресета (по ним и якорная навигация). В центре — список пресетов и групп: правится любой, не переключая ленту. Справа — конторы этого пресета. Сверху — шапка полотна: заголовок, поиск по настройкам, дверь «Станция →» и крестик (Esc тоже закрывает); ниже — счётчик правок и кнопка сохранения.</p>
+      <div class="sc frozen">
+        <div class="ophead"><span class="ophead-t">Режимы — операционные настройки</span><span class="ophead-search">поиск по настройкам… (напр. «звук», «кэф»)</span><button class="ophead-btn">Станция →</button><span class="ophead-x" title="Закрыть (Esc)">×</span><span class="ophead-sub">то, что меняется ежечасно: пресеты, их пороги, конторы в работе</span></div>
+        <div class="db">
+          <span class="db-dot"></span>
+          <span class="db-txt" id="intro-db">● изменено: <b>0 — всё сохранено</b></span>
+          <button class="db-btn save" id="intro-save">Сохранить в пресет</button>
+          <button class="db-btn">Отменить</button>
+          <button class="db-btn">Сохранить как новый…</button>
+        </div>
+        <div class="anav">
+          <a class="on">Пороги</a><a>Спорты и лиги</a><a>На что ставим</a><a>Алерт</a><a>Вид</a>
+        </div>
+        <div class="zones">
+          <div class="zone">
+            <div class="zt">Настройки активного пресета</div>
+            <div class="sc-3" style="font-size:11.5px">Пороги · Тайм-окна · Гигиена · Спорты и лиги · На что ставим · Алерт · Вид — рычаги, что режут именно улов этого пресета.</div>
+          </div>
+          <div class="zone">
+            <div class="zt">Пресеты</div>
+            <div class="sc-3" style="font-size:11.5px">Список пресетов и групп (гиперпресетов). «Новый», поиск, активный отмечен. Дом управления пресетами — глава «Пресеты и режимы».</div>
+          </div>
+          <div class="zone">
+            <div class="zt">Конторы ЭТОГО пресета</div>
+            <div class="sc-3" style="font-size:11.5px">Подписка · ★ закрепить · глаз-резерв · ✕ никогда. Набор контор именно этого улова. Полный парк — на Станции.</div>
+          </div>
+        </div>
+      </div>
+      <div class="demo-cap">Полотно неподвижно: три зоны на месте, переключаются не вкладки, а якоря секций слева. Кнопка сохранения ниже станет живой, когда рычаг реально тронут.</div>
+      <details class="note"><summary>Как устроено сохранение (счётчик, черновик, гард ухода)</summary>Правки бьют по ленте <b>сразу</b> — видно эффект. Но в пресет они ложатся только по кнопке «Сохранить в пресет». Пока не сохранено, шапка считает: <b>«● изменено: N»</b> — сколько полей этого экрана тронуто (в покое — «0 — всё сохранено», кнопка приглушена). Черновик <b>переживает перезагрузку</b>: вернёшься — правки на месте, всплывёт «Восстановлен несохранённый черновик режима». Уйти с несохранённым — спросит, молча не потеряет. <b>Переключение пресета</b> черновик отбрасывает (лента живёт по активному). Счётчик покрывает поля этого экрана; «Пути» пресета правятся на Станции и сохраняются там своей кнопкой.</details>
+    </div>
+
+    <div class="block-band">B · Рычаги активного пресета (левая зона)</div>
+
+    <div class="signal">
+      <h3>① Пороги — процент, кэфы, возраст, коридоры</h3>
+      <p class="sig-why">Над порогом процента — гистограмма: где в потоке плотность вилок. Порог ставится не вслепую, а по картинке — видно, сколько останется выше него. Минус в пороге легален: так ловят коридоры. Тот же приём у кэфов (своя гистограмма) и у возраста.</p>
+      <div class="sc">
+        <div class="sc-box">
+          <div class="sc-h">Пороги <span class="sc-sub">суб-группа</span></div>
+          <div class="ctl"><span class="lbl">Профит, % <span class="tip" title="Отрицательные значения легальны — так ловят коридоры (валуйная сторона до −10%).">?</span></span>
+            <span class="pair">от <input class="num" id="d-min" value="1.5"> до <input class="num" value="100"></span></div>
+          <div class="histo" id="d-histo"></div>
+          <div class="histo-axis"><span>0%</span><span>2%</span><span>4%</span><span>6%+</span></div>
+          <div class="thr-row"><span>Мин %</span><input type="range" id="d-thr" min="-20" max="60" value="15"><span class="thr-val" id="d-thr-val">1.5%</span></div>
+          <div class="counter" id="d-left"></div>
+          <div class="rec">рекомендуемое 1–100 · минус ловит коридоры</div>
+          <div class="ctl" style="margin-top:8px"><span class="lbl">Кэфы (обе ноги) <span class="tip" title="Диапазон коэффициентов, в котором вилка попадает в ленту. Кэф-диапазон доверия КОНКРЕТНОЙ конторе — в её профиле (Станция → Парк контор).">?</span></span>
+            <span class="pair">от <input class="num" value="1.30"> до <input class="num" value="3.50"></span></div>
+          <div class="rec">узкий 1.3–3.5 отсекает экзотику</div>
+          <div class="ctl" style="margin-top:6px"><span class="lbl">Возраст вилки, сек</span><span class="pair">от <input class="num" value="0"> до <input class="num" value="60"></span></div>
+          <div class="ctl"><span class="lbl">Число исходов</span>
+            <label class="chk"><input type="checkbox" checked>2</label>
+            <label class="chk"><input type="checkbox" checked>3</label>
+            <span class="tip" title="2 — Total/Handicap/Match Winner; 3 — 1X2. 4-исходные вилки в потоке не приходят — появятся с бэком.">?</span></div>
+          <div class="ctl"><span class="lbl">Коридоры</span>
+            <label class="chk"><input type="checkbox">показывать</label>
+            <span class="pair">ширина от <input class="num" value="0"> до <input class="num" value="2.0"></span>
+            <span class="tip" title="Насколько разошлись линии двух контор (в пунктах линии). Узкий коридор — почти вилка; широкий — большой люфт исхода.">?</span></div>
+        </div>
+      </div>
+      <div class="demo-cap">Двигай мин-порог — серым гаснут корзины ниже него, счётчик показывает, сколько вилок осталось. Ползунок уходит и в минус: коридор по проценту минусовой, но при попадании счёта между линиями срабатывают обе ставки.</div>
+      <details class="note"><summary>Что гистограмма даёт вилочнику</summary>Порог без картинки — гадание: поставил 2% и не знаешь, отрезал половину потока или один хвост. Гистограмма показывает <b>форму распределения</b> — где основная масса вилок, а где редкий хвост высокого процента (обычно подозрительный). Видно цену каждого шага порога: «сдвину с 1 на 1.5 — потеряю вот столько». Распределение считается уже после технических чисток, до самого порога — то есть по реальному потоку, а не по сырью.</details>
+    </div>
+
+    <div class="signal">
+      <h3>② Тайм-окна — когда вилка мне интересна</h3>
+      <p class="sig-why">Вторая суб-группа порогов — про время. Часть рычагов режет поток уже сейчас (окно реальной минуты матча, поздняя стадия). Часть — приглушена: ждёт полей от расширения, весь поток пока идёт как live. Приглушённые видно намеренно: рычаг задуман, а не «его нет».</p>
+      <div class="sc">
+        <div class="sc-box">
+          <div class="sc-h">Тайм-окна <span class="sc-sub">суб-группа</span></div>
+          <div class="ctl"><span class="lbl">Live / Prematch</span>
+            <span class="seg"><button disabled>Live</button><button disabled>Prematch</button><button class="on" disabled>Оба</button></span>
+            <span class="pending-tag">ждёт данных бэкенда</span></div>
+          <div class="ctl"><span class="lbl">Live: с начала матча, мин</span>
+            <label class="chk"><input type="checkbox">включить</label></div>
+          <div class="ctl"><span class="lbl">Время матча, мин <span class="tip" title="Окно реальной минуты матча. Минута приходит не по всем матчам — вилки без минуты фильтр НЕ отсеивает (защита реальной минуты).">?</span></span>
+            <label class="chk"><input type="checkbox">включить</label>
+            <span class="pair">от <input class="num" value="0"> до <input class="num" value="85"></span>
+            <label class="chk dim"><input type="checkbox" disabled>перерывы / таймауты</label></div>
+          <div class="ctl"><span class="lbl">Поздний матч</span>
+            <label class="chk"><input type="checkbox">скрывать late-stage</label>
+            <label class="chk dim"><input type="checkbox" disabled>счёт равный (live)</label></div>
+          <div class="ctl"><span class="lbl">До перерыва осталось ≥, мин</span>
+            <label class="chk dim"><input type="checkbox" disabled>включить</label> <span class="pending-tag">ждёт данных бэкенда</span></div>
+          <div class="ctl"><span class="lbl">Prematch: до старта, мин</span>
+            <label class="chk dim"><input type="checkbox" disabled>включить</label> <span class="pending-tag">ждёт данных бэкенда</span></div>
+        </div>
+      </div>
+      <div class="demo-cap">«Скрывать late-stage» и окно минуты режут поток сейчас. Приглушённые контролы ждут своё поле из стрима — включатся с расширением, честно, без выдумки. Пороги поздней стадии per-спорт — на Станции (Калькулятор); вилки без данных минуты в этот отсев не попадают.</div>
+    </div>
+
+    <div class="signal">
+      <h3>③ Гигиена — пять бейджей, пять рычагов в одном месте</h3>
+      <p class="sig-why">Третья суб-группа. Тревожные бейджи из ленты (глава «Цвета и риски») тут превращаются в рычаги «убрать с глаз заранее». Пять бейджей — пять галок рядом. Плюс возвратные исходы, ликвидность и технические чистки.</p>
+      <div class="sc">
+        <div class="sc-box">
+          <div class="sc-h">Гигиена <span class="sc-sub">суб-группа · пять рычагов бейджей</span></div>
+          <div class="ctl" style="flex-direction:column;align-items:flex-start;gap:4px">
+            <label class="chk"><input type="checkbox" id="g-palp">скрыть рискованные <span class="badge">PALP</span></label>
+            <label class="chk"><input type="checkbox" id="g-sg">скрыть SAME GAME</label>
+            <label class="chk"><input type="checkbox" id="g-cf">скрыть CONFLICTING</label>
+            <label class="chk"><input type="checkbox" checked id="g-bk">только разные конторы <span class="sc-3" style="font-size:10.5px">(прячет SAME BK — клон-семья)</span></label>
+            <label class="chk dim"><input type="checkbox" disabled>одинаковые правила расчёта <span class="pending-tag">ждёт данных бэкенда</span></label>
+          </div>
+          <div class="counter" id="g-cnt"></div>
+          <div class="ctl" style="margin-top:6px;flex-direction:column;align-items:flex-start;gap:4px">
+            <label class="chk"><input type="checkbox">скрыть возвратные <span class="sc-3" style="font-size:10.5px">(целые форы/тоталы — полный push, DNB)</span></label>
+            <label class="chk"><input type="checkbox" checked>дедуп по маркету</label>
+            <label class="chk"><input type="checkbox" checked>скрыть невозможные</label>
+          </div>
+          <div class="ctl"><span class="lbl">Ликвидность, от <span class="tip" title="Доступная сумма на исход — для exchange-контор (Betfair, Smarkets…), у них публичная ликвидность. Регулярные БК имеют непубличные лимиты — для них фильтр не отсекает.">?</span></span>
+            <label class="chk"><input type="checkbox">включить</label> <input class="num" value="50"> $</div>
+          <div class="ctl"><span class="lbl">Вероятные ошибки</span>
+            <span class="stub" style="border:1px solid var(--sc-border);border-radius:5px;padding:3px 8px">вероятность ошибки — скоро</span></div>
+        </div>
+      </div>
+      <div class="demo-cap">Отметь первые три (hide-бейджи) — счётчик показывает, сколько строк риска ушло из потока. «Только разные конторы» включена сразу: прячет пары внутри одной клон-семьи (вилка-фантом). «Одинаковые правила расчёта» серая — тоже защитный отрез, но признак совпадения правил пока не приходит в поток.</div>
+      <details class="note"><summary>Про «Вероятные ошибки» — почему пусто</summary>Будущий главный рычаг: отсев по предсказанной надёжности вилки. Сейчас неактивен — градация готовится в нашей аналитической лаборатории на 31 миллионе ставок бота. До неё любая эвристика — иллюзия контроля, а догадка про деньги хуже честного «пока нет». Это и есть наш долгий моат: масштаб и тип ошибки формализуются на данных, не на глазок.</details>
+    </div>
+
+    <div class="signal">
+      <h3>④ Спорты и лиги — грубый отрез и точный словарь</h3>
+      <p class="sig-why">Самый грубый отрез — оставить свои спорты. Дальше — классы лиг (женские, молодёжные — эвристикой по имени) и словарь всех виденных лиг, который копится сам. Точечное решение в словаре всегда сильнее класса.</p>
+      <div class="sc">
+        <div class="sc-box">
+          <div class="sc-h">Спорты и лиги <a class="bridge">полный справочник лиг →</a></div>
+          <div class="ctl"><button class="db-btn" id="sp-all">все</button><button class="db-btn" id="sp-none">ни одного</button>
+            <span class="sc-cnt" id="sp-cnt">выбрано 10 из 10 — дефолт; узкий срез (2–3 спорта) — норма профи</span></div>
+          <div class="ctl" id="sp-grid" style="gap:4px 14px;flex-wrap:wrap">
+            <label class="chk"><input type="checkbox" checked>Soccer</label>
+            <label class="chk"><input type="checkbox" checked>Basketball</label>
+            <label class="chk"><input type="checkbox" checked>Tennis</label>
+            <label class="chk"><input type="checkbox" checked>Table Tennis</label>
+            <label class="chk"><input type="checkbox" checked>Volleyball</label>
+            <label class="chk"><input type="checkbox" checked>Handball</label>
+            <label class="chk"><input type="checkbox" checked>Hockey</label>
+            <label class="chk"><input type="checkbox" checked>Baseball</label>
+            <label class="chk"><input type="checkbox" checked>American Football</label>
+            <label class="chk"><input type="checkbox" checked>eSports</label>
+          </div>
+          <div class="ctl"><span class="lbl">Классы лиг <span class="tip" title="Распознаём по названию: Women/U19/U21/Youth/Friendly/Reserves. Честная эвристика — полная классификация придёт с бэком.">?</span></span>
+            <span class="seg"><button class="on">показывать отмеченные</button><button>скрывать отмеченные</button></span></div>
+          <div class="ctl" style="gap:4px 10px;flex-wrap:wrap">
+            <label class="chk"><input type="checkbox">Женские</label>
+            <label class="chk"><input type="checkbox">Молодёжные</label>
+            <label class="chk dim"><input type="checkbox" disabled>Вторые лиги</label>
+            <label class="chk dim"><input type="checkbox" disabled>Третьи и ниже</label>
+          </div>
+          <div class="sc-box" style="background:var(--sc-bg);margin-top:6px">
+            <div class="ctl"><span class="sc-2" style="font-size:11px">найти лигу…</span><span class="sc-cnt" style="margin-left:auto">128 · скрыто 12</span>
+              <span class="seg"><button class="on">всё</button><button>белый</button><button>чёрный</button></span></div>
+            <div class="ml-row"><input type="checkbox" checked><span>Premier League</span><span class="ml-tag">Soccer</span></div>
+            <div class="ml-row"><input type="checkbox" checked><span>Japan NPB <span class="pill" title="Написания этой лиги от разных БК: Japan - NPB · Japan NPB · Japan. NPB — тумблер каскадит на все разом">×3</span></span><span class="ml-tag">Baseball</span></div>
+            <div class="ml-row"><input type="checkbox" checked><span>WTA Roland Garros</span><span class="ml-tag">Tennis</span><span class="pill acc">мимо класса</span></div>
+            <div class="ml-row dormant"><input type="checkbox"><span>Prva Liga <span class="pill" title="Написания: Serbia. Prva Liga · Serbia - Prva Liga">×2</span></span><span class="ml-tag">Soccer</span></div>
+          </div>
+          <div class="ctl"><span class="lbl">Страны</span><span class="stub">пусто на живом потоке — ждёт словарь стран от бэка; пока не показываем — включится на реальных данных</span></div>
+        </div>
+      </div>
+      <div class="demo-cap">Словарь лиг — постоянный: копит всё виденное и переживает перезагрузку. Спящие лиги (сейчас нет вилок) приглушены, но управляемы — настройка сохраняется на будущее. Режим списка: всё / белый (только отмеченные) / чёрный (скрыть отмеченные). «Мимо класса» — лига включена руками, класс её не скрывает. Полный справочник и экспорт — на Станции.</div>
+    </div>
+
+    <div class="signal">
+      <h3>⑤ На что ставим — события, исходы, периоды, маска контор</h3>
+      <p class="sig-why">Здесь режут внутри спорта: дерево исходов (группа целиком или отдельный подтип), периоды матча и маска рынков per-контора. Одно правило на весь сканер: вилка проходит, если проходит по всем осям сразу — спорт ∧ лига ∧ событие ∧ исход ∧ период ∧ статус контор. Исключение (чёрный) всегда сильнее включения.</p>
+      <div class="sc">
+        <div class="sc-box">
+          <div class="sc-h">На что ставим — события и исходы <span class="tip" title="Порядок применения (одно правило): вилка проходит по ВСЕМ осям. Исключение сильнее включения; у контор ✕ сильнее ★. Маска конторы — жёсткая рамка ПОВЕРХ пресета. Пути — точечное уточнение поверх всего.">?</span></div>
+          <div class="ctl"><span class="sc-2" style="font-size:11px">Исходы <span class="sc-cnt">6 категорий</span></span>
+            <span class="seg" style="margin-left:auto"><button class="on">всё</button><button>белый</button><button>чёрный</button></span></div>
+          <div id="d-tree"></div>
+          <div class="ctl" style="margin-top:8px;flex-wrap:wrap;gap:4px 10px"><span class="lbl">Периоды <span class="sc-cnt">14</span></span>
+            <label class="chk"><input type="checkbox" checked>матч</label>
+            <label class="chk"><input type="checkbox" checked>1-я половина</label>
+            <label class="chk"><input type="checkbox" checked>2-я половина</label>
+            <label class="chk"><input type="checkbox" checked>1-я четверть</label>
+            <label class="chk"><input type="checkbox" checked>2-я четверть</label>
+            <label class="chk"><input type="checkbox" checked>3-я четверть</label>
+            <label class="chk"><input type="checkbox" checked>4-я четверть</label>
+            <label class="chk"><input type="checkbox" checked>1-й период</label>
+            <label class="chk"><input type="checkbox" checked>2-й период</label>
+            <label class="chk"><input type="checkbox" checked>3-й период</label>
+            <label class="chk"><input type="checkbox" checked>период</label>
+            <label class="chk"><input type="checkbox" checked>сет</label>
+            <label class="chk"><input type="checkbox" checked>гейм</label>
+            <label class="chk"><input type="checkbox" checked>карта</label></div>
+          <div class="ctl pending"><span class="lbl sc-3">События в перерыве</span><span class="stub">показывать вилки в паузе матча — ждёт признака перерыва от бэка</span></div>
+          <div class="ctl pending"><span class="lbl sc-3">События матча</span><span class="stub">статистические рынки (угловые, карты) — ждут данных бэкенда, пока честный образец</span></div>
+          <div class="ctl pending"><span class="lbl sc-3">Азиатские линии</span><span class="stub">целые/четвертные раздельно — ждёт полей бэка; предпочтение форм в калькуляторе уже живёт (Станция → Калькулятор)</span></div>
+          <div class="ctl" style="margin-top:4px"><span class="lbl">Маска per-БК</span><a class="bridge">развернуть ▾</a> <span class="sc-cnt">инлайн: дроп конторы (домен) + чекбоксы шести категорий</span>
+            <span class="sc-cnt">снятая категория гасит вилки, где нога этой конторы несёт такой рынок — правила видны в Станция → Пути</span></div>
+        </div>
+      </div>
+      <div class="demo-cap">Дерево: раскрыл группу (тоталы, форы, исходы) — снял лишний подтип, остальное в группе осталось; у свёрнутой группы виден счётчик убранного (−N). Периоды — отдельная ось, не зависит от типа рынка. Маска per-БК — жёсткая рамка поверх пресета: например, у одной конторы брать только основные исходы, а её угловые не трогать.</div>
+    </div>
+
+    <div class="signal">
+      <h3>⑥ Алерт этого пресета — как я увижу и услышу улов</h3>
+      <p class="sig-why">Отдельного экрана алертов нет: пресет сам — правило алерта. Когда прилетает вилка этого класса, вот её цвет в общей ленте, порог, звук и ступень действия. Один контракт на пресет.</p>
+      <div class="sc">
+        <div class="sc-box">
+          <div class="sc-h">Алерт этого пресета</div>
+          <div class="ctl"><span class="lbl">Подсветка строк <span class="tip" title="Улов = вилки, пойманные именно этим пресетом. В общей ленте они несут его цвет.">?</span></span>
+            <span class="swatches" id="d-sw"></span></div>
+          <div class="ctl"><span class="lbl">Включён</span><label class="chk"><input type="checkbox" checked>алерт при вилке выше порога</label></div>
+          <div class="ctl"><span class="lbl">Звук</span>
+            <select class="num" id="d-snd" style="width:auto;text-align:left"></select>
+            <button class="db-btn" id="snd-play" title="Прослушать выбранный звук">▶</button>
+            <span class="pair">только выше <input class="num" value="3" style="width:44px"> %</span></div>
+          <div class="ctl"><span class="lbl">Действие</span>
+            <select class="num" style="width:auto;text-align:left">
+              <option>Тост (тихо)</option><option selected>Звук + тост</option><option>Звук + тост + системное уведомление</option>
+            </select></div>
+        </div>
+      </div>
+      <div class="demo-cap">Цвет улова — из палитры уловов (латунь, олива, серо-синий, пыльная роза, сиена, петроль; есть «без цвета»). Звук — четыре паттерна-образца с прослушкой; «свой файл» подберётся отдельно, громкость — на Станции (Звуки). Алерт работает в фоновой вкладке и при паузе. Push уходит при включённой ступени здесь И разрешении браузера; глобальный канал — Станция (Оповещения). Порог, звук и действие — свои у каждого пресета.</div>
+      <details class="note"><summary>Тихая защита от немого алерта</summary>Если порог звука выставлен выше верхней границы процента пресета, алерт не сработает никогда — вилок выше порога просто не будет. Экран это ловит живым предупреждением рядом с полем, чтобы профи не остался в тишине, думая, что «настроил».</details>
+    </div>
+
+    <div class="signal">
+      <h3>⑦ Вид выдачи в этом пресете</h3>
+      <p class="sig-why">Пресет может нести свой вид ленты: набор и порядок колонок (снимком), плотность, тему — «ночной просторный» против «дневного плотного». Переключил пресет — станция перестроилась целиком.</p>
+      <div class="sc">
+        <div class="sc-box">
+          <div class="sc-h">Вид выдачи в этом пресете</div>
+          <div class="ctl"><span class="lbl">Захват вида <span class="tip" title="Захват происходит кнопкой «Сохранить в пресет», когда вид реально менялся при этом пресете. Молчаливого пришивания нет.">?</span></span>
+            <span class="pill">захвачено: тема + плотность + колонки</span></div>
+          <div class="ctl"><span class="lbl">Дефолты станции</span><a class="bridge">колонки, порядок, послежизнь → Станция · Выдача</a></div>
+        </div>
+      </div>
+      <div class="demo-cap">Правило: при переключении вид пересобирается целиком — захваченное берётся из пресета, остальное из дефолтов Станции. Пресет без захвата = чистые дефолты. Правки топ-баром — временные, до переключения.</div>
+    </div>
+
+    <div class="block-band">C · Срез у ленты и мосты на Станцию</div>
+
+    <div class="signal">
+      <h3>⑧ Срез — быстрый слой рядом с лентой</h3>
+      <p class="sig-why">Не всё требует полотна. У ленты живёт узкий столбик активного пресета: имя, самое трогаемое (профит, кэфы, порог звука), сводка контор и дверь «Режимы →». Полный словарь — за дверью, здесь только то, что правят на ходу.</p>
+      <div class="slice-wrap" id="slice-demo">
+        <aside class="slice">
+          <div class="slice-head"><span class="slice-dot" style="background:var(--pv-petrol)"></span><b class="slice-name">All Sports</b><span class="slice-tag">срез</span><button class="slice-x" id="slice-collapse" title="Свернуть срез (останется рейка-ручка)">‹</button></div>
+          <div class="slice-ctl"><span class="slice-l">Профит %</span><span class="pair">от <input class="num" value="1.5"> до <input class="num" value="100"></span></div>
+          <div class="slice-ctl"><span class="slice-l">Кэфы</span><span class="pair">от <input class="num" value="1.30"> до <input class="num" value="3.50"></span></div>
+          <div class="slice-ctl"><span class="slice-l">Звук выше</span><span class="pair"><input class="num" value="3" style="width:44px"> % <span class="sc-3" style="font-size:10.5px">из алерта пресета</span></span></div>
+          <div class="slice-ctl"><span class="slice-l">Конторы</span><span class="sc-cnt">14 вкл · 2 заглушено</span></div>
+          <button class="slice-modes">Режимы →</button>
+          <div class="slice-note">срез = самое трогаемое; полный словарь — на экране Режимы</div>
+        </aside>
+        <div class="slice-feed">
+          <div class="sc-3" style="font-size:10.5px;margin-bottom:4px">лента (справа от среза)</div>
+          <table class="scan dense"><tbody id="slice-rows"></tbody></table>
+        </div>
+      </div>
+      <div class="demo-cap">Жми «‹» — срез свернётся в узкую рейку-ручку, лента получит всю ширину; клик по рейке вернёт срез. Свёрнутость переживает перезагрузку. Если алерт пресета выключен, вместо порога звука тут «выкл» с дверью прямо в секцию «Алерт».</div>
+    </div>
+
+    <div class="signal">
+      <h3>⑨ Мосты на Станцию</h3>
+      <p class="sig-why">Что сквозное и настраивается редко — переезжает на соседний экран «Станцию» («настроил и забыл»). Из «Режимов» туда ведут явные двери, чтобы граница «настройки пресета против настроек станции» была видна.</p>
+      <div class="sc">
+        <div class="bridges">
+          <div class="bridge-row">Полный справочник лиг — словарь всех виденных, дерево и экспорт<span class="arrow">Станция · Лиги →</span></div>
+          <div class="bridge-row">Маска per-БК — полная матрица «спорт × подтипы» рынков конторы<span class="arrow">Станция · Пути →</span></div>
+          <div class="bridge-row">Выключить контору везде — глобальный рубильник поверх всех пресетов<span class="arrow">Станция · Парк контор →</span></div>
+        </div>
+      </div>
+      <div class="demo-cap">Граница проста: в «Режимах» — рычаги улова ЭТОГО пресета (✕ у конторы = убрать из этого пресета). На «Станции» — сквозное для всех пресетов (✕ в парке = убрать контору из всей ленты, с ленивым возвратом по таймеру). Два уровня статусов конторы — тема соседней главы «Мои конторы».</div>
+    </div>
+  </section>
+
+  <!-- ============ ЧАСТЬ 2 — ПОЛОТНО ЖИВЬЁМ ============ -->
+  <section class="part">
+    <div class="part-head">
+      <h2 class="part-t">Часть 2 · Полотно живьём</h2>
+      <div class="step">Три зоны на месте, шапка считает правки. Тронь рычаг слева — счётчик «● изменено» растёт, кнопка сохранения загорается, задетая секция подсвечивается в навигации, а лента справа режется. Текст никуда не прыгает — подсвечивается «что сейчас».</div>
+    </div>
+    <div class="sc">
+      <div class="ophead"><span class="ophead-t">Режимы — операционные настройки</span><span class="ophead-search">поиск по настройкам… (напр. «звук», «кэф»)</span><button class="ophead-btn">Станция →</button><span class="ophead-x" title="Закрыть (Esc)">×</span><span class="ophead-sub">то, что меняется ежечасно: пресеты, их пороги, конторы в работе</span></div>
+      <div class="db">
+        <span class="db-dot"></span>
+        <span class="db-txt" id="p2-db">● изменено: <b class="clean">0 — всё сохранено</b></span>
+        <button class="db-btn save" id="p2-save">Сохранить в пресет</button>
+        <button class="db-btn" id="p2-reset">Отменить</button>
+      </div>
+      <div class="anav" id="p2-anav">
+        <a data-sec="thr">Пороги</a><a data-sec="sport">Спорты и лиги</a><a>На что ставим</a><a data-sec="alert">Алерт</a><a>Вид</a>
+      </div>
+      <div class="zones">
+        <div class="zone">
+          <div class="zt">Настройки активного пресета</div>
+          <div class="ctl"><span class="lbl">Профит, мин %</span>
+            <input type="range" id="p2-thr" min="-20" max="50" value="0" style="flex:1;accent-color:var(--sc-cyan)">
+            <span class="thr-val" id="p2-thr-val">0%</span></div>
+          <div class="ctl"><span class="lbl">Спорты</span>
+            <label class="chk"><input type="checkbox" data-sp="Футбол" checked>Футбол</label>
+            <label class="chk"><input type="checkbox" data-sp="Теннис" checked>Теннис</label>
+            <label class="chk"><input type="checkbox" data-sp="Баскетбол" checked>Баскетбол</label>
+            <label class="chk"><input type="checkbox" data-sp="Хоккей" checked>Хоккей</label></div>
+          <div class="ctl"><span class="lbl">Алерт: скрыть</span>
+            <label class="chk"><input type="checkbox" id="p2-palp">рискованные (PALP)</label></div>
+        </div>
+        <div class="zone">
+          <div class="zt">Пресеты</div>
+          <div class="ml-row"><span class="catch-dot" style="background:var(--pv-petrol)"></span><b>All Sports</b> <span class="sc-cnt" style="margin-left:auto">активный</span></div>
+          <div class="ml-row"><span class="catch-dot" style="background:var(--pv-olive)"></span>Soccer EU</div>
+          <div class="ml-row"><span class="catch-dot" style="background:var(--pv-brass)"></span>Tight</div>
+          <div class="sc-cnt" style="margin-top:6px">в ленте: 1 груп. + 2</div>
+        </div>
+        <div class="zone">
+          <div class="zt">Конторы ЭТОГО пресета</div>
+          <div class="sc-cnt">8 из 8 в расчёте</div>
+          <div class="sc-3" style="font-size:11px;margin-top:4px">✓ в расчёте · ★ закрепить · глаз — резерв · ✕ никогда</div>
+        </div>
+      </div>
+      <div class="counter" id="p2-counter" style="margin-top:8px"></div>
+      <table class="scan"><thead><tr><th>%</th><th>Спорт</th><th>Событие</th><th>БК 1</th><th>Кэф 1</th><th>БК 2</th><th>Кэф 2</th><th>Возр.</th></tr></thead><tbody id="p2-rows"></tbody></table>
+    </div>
+    <div class="demo-cap">Счётчик считает тронутые поля этого экрана. «Отменить» вернёт всё и обнулит счётчик — как отброшенный черновик. Цветная полоса слева у строки — уровень выживаемости вилки (зелёная надёжнее, красная рискованнее), из главы «Цвета и риски».</div>
+  </section>
+
+  <!-- ============ ЧАСТЬ 3 — КАК В БОЮ ============ -->
+  <section class="part">
+    <div class="part-head">
+      <h2 class="part-t">Часть 3 · Как в бою</h2>
+      <div class="step">Плотное полотно под боевым пресетом, без подсказок (Esc закрывает полотно с открытия; при несохранённых правках — гард подтверждения): три зоны заполнены, срез свёрнут в рейку, лента получила ширину. Так экран выглядит в работе.</div>
+    </div>
+    <div class="sc frozen">
+      <div class="ophead"><span class="ophead-t">Режимы — операционные настройки</span><span class="ophead-search">поиск по настройкам… (напр. «звук», «кэф»)</span><button class="ophead-btn">Станция →</button><span class="ophead-x" title="Закрыть (Esc)">×</span><span class="ophead-sub">то, что меняется ежечасно: пресеты, их пороги, конторы в работе</span></div>
+        <div class="db">
+        <span class="db-dot" style="background:var(--sc-3)"></span>
+        <span class="db-txt clean">● изменено: <b class="clean">0 — всё сохранено</b></span>
+        <button class="db-btn save">Сохранить в пресет</button>
+        <button class="db-btn">Отменить</button>
+        <button class="db-btn">Сохранить как новый…</button>
+      </div>
+      <div class="anav"><a class="on">Пороги</a><a>Спорты и лиги</a><a>На что ставим</a><a>Алерт</a><a>Вид</a></div>
+      <div class="zones">
+        <div class="zone">
+          <div class="zt">Настройки активного пресета</div>
+          <div class="zhead"><span class="catch-dot" style="background:var(--pv-petrol)"></span><b>All Sports</b><span class="pen" title="Переименовать пресет">✎</span><span class="altpill">Alt+1</span><span class="sc-cnt">настройки этого пресета</span></div>
+          <div class="ctl"><span class="lbl">Профит, %</span><span class="pair">от <b class="sc-text">1.5</b> до 100</span></div>
+          <div class="ctl"><span class="lbl">Кэфы</span><span class="pair">от <b class="sc-text">1.30</b> до <b class="sc-text">3.50</b></span></div>
+          <div class="ctl"><span class="lbl">Возраст, сек</span><span class="pair">0 – 60</span></div>
+          <div class="ctl"><span class="lbl">Гигиена</span><span class="sc-cnt">скрыть PALP · только разные конторы · дедуп</span></div>
+          <div class="ctl"><span class="lbl">Спорты</span><span class="sc-cnt">Soccer · Tennis (2 из 10)</span></div>
+          <div class="ctl"><span class="lbl">Late-stage</span><span class="sc-cnt">скрывать</span></div>
+          <div class="ctl"><span class="lbl">Алерт</span><span class="catch-dot" style="background:var(--pv-petrol)"></span><span class="sc-cnt">выше 3% · трель · звук + тост</span></div>
+        </div>
+        <div class="zone">
+          <div class="zt">Пресеты</div>
+          <div class="ml-row"><span class="catch-dot" style="background:var(--pv-petrol)"></span><b>All Sports</b></div>
+          <div class="ml-row"><span class="catch-dot" style="background:var(--pv-olive)"></span>Soccer EU</div>
+          <div class="ml-row"><span class="catch-dot" style="background:var(--pv-brass)"></span>Tight</div>
+          <div class="ml-row"><span class="pill">⊞ Вечер (3)</span></div>
+          <div class="sc-cnt" style="margin-top:4px">найти пресет… · Alt — 9 слотов</div>
+        </div>
+        <div class="zone">
+          <div class="zt">Конторы ЭТОГО пресета <span class="sc-cnt">8 из 8</span></div>
+          <div class="ml-row"><span>✓ bet365.com</span></div>
+          <div class="ml-row"><span>✓ fon.bet</span></div>
+          <div class="ml-row"><span>✓ lottoland.co.uk</span></div>
+          <div class="ml-row"><span>✓ vbet.co.uk</span></div>
+          <div class="ml-row"><span>✓ livescorebet.com</span></div>
+          <div class="ml-row dormant"><span>✕ silverglow58.xyz</span></div>
+          <div class="sc-cnt" style="margin-top:4px">Мои конторы (8) · Станция сейчас</div>
+        </div>
+      </div>
+    </div>
+    <div class="slice-wrap frozen">
+      <button class="rail"><span>›</span><span class="rail-word">срез</span></button>
+      <div class="slice-feed" style="flex:1;padding:6px">
+        <div class="sc-3" style="font-size:10.5px;margin-bottom:4px">лента на всю ширину (срез свёрнут)</div>
+        <table class="scan dense"><thead><tr><th>%</th><th>Спорт</th><th>Событие</th><th>БК 1</th><th>Кэф 1</th><th>БК 2</th><th>Кэф 2</th><th>Возр.</th></tr></thead><tbody id="p3-rows"></tbody></table>
+      </div>
+    </div>
+    <div class="demo-cap">Плотно, боевой пресет: узкая воронка (Футбол + Теннис, ≥1.5%, скрыты рискованные), срез свёрнут в рейку, лента во всю ширину. Строки несут цвет улова активного пресета у процента.</div>
+  </section>
+
+</div>
+
+<script>
+/* ============================================================
+   Режимы (g11) — движок учебной главы. Механизмы — из кода форка (R-3),
+   полный список привязок file:line — в report-g11.md рядом. Ключевое:
+     Экран «Режимы» = FilterOverlay, 3 зоны: op-active (лево) / op-presets (центр) / op-bk (право).
+     Dirty-шапка «● изменено: N» + «Сохранить в пресет» / «Отменить» / «Сохранить как новый…».
+     Якоря: Пороги · Спорты и лиги · На что ставим · Алерт · Вид.
+     Пороги: minArbPercent/maxArbPercent (минус легален — коридоры), minOdds/maxOdds, minAge/maxAge, minCorridorWidth.
+     Гигиена: hideRisky(PALP)/hideSameGame/hideConflicting/diffBooksOnly(SAME BK)/sameRulesOnly(заглушка).
+     Списки: режимы всё/белый/чёрный (show-all/white/black). Палитра улова v3: латунь/олива/серо-синий/роза/сиена/петроль.
+     Алерт: 4 звука (Пинг/Дабл/Низкий/Трель), ступени Тост/Звук+тост/+системное уведомление.
+     Срез (preset-slice): Профит/Кэфы/Звук выше/Конторы + «Режимы →» + рейка, свёрнутость переживает reload.
+   Процент вилки = (1 − 1/o1 − 1/o2)×100 — data/arbs.ts:278. Поток демо синтетический; фильтрация идентична на любом.
+   ============================================================ */
+const MIN = "−"; // U+2212 минус
+const margin = (o1,o2) => (1 - 1/o1 - 1/o2) * 100;
+function fmtPct(v){ return (v<0? MIN + Math.abs(v).toFixed(1) : v.toFixed(1)) + "%"; }
+
+/* поток вилок демо: [спорт, событие, бк1, бк2, o1, o2, age, badge] */
+function pool(){ return [
+  ["Soccer","Реал Мадрид — Барселона","pinnacle.com","bet365.com",2.10,2.05,8,null],
+  ["Soccer","PSG — Bayern","1xbet.kz","smarkets.com",2.12,2.28,3,"PALP"],
+  ["Tennis","Carlos Alcaraz — Jannik Sinner","bet365.com","pinnacle.com",1.95,2.18,22,null],
+  ["Basketball","Los Angeles Lakers — Boston Celtics","betonline.ag","bet365.com",2.20,1.98,14,"SAME GAME"],
+  ["Tennis","Swiatek — Gauff","pinnacle.com","lottoland.co.uk",2.05,2.10,5,null],
+  ["Hockey","Локомотив — ЦСКА","bet365.com","fon.bet",2.15,2.02,30,"CONFLICTING"],
+  ["Basketball","Miami Heat — Milwaukee Bucks","pinnacle.com","bet365.com",1.90,2.30,11,null],
+]; }
+const SURV = ["surv-hi","surv-md","surv-lo"];
+function row(a,i,dot){
+  const pct = margin(a[4],a[5]);
+  const badge = a[7] ? `<span class="badge">${a[7]}</span>` : "";
+  const d = dot ? `<span class="catch-dot" style="background:${dot}"></span>` : "";
+  return `<tr class="${SURV[i%3]}"><td class="st-pct">${d}${pct.toFixed(1)}%</td><td>${a[0]}</td><td>${a[1]}${badge}</td><td>${a[2]}</td><td class="st-odds">${a[4].toFixed(2)}</td><td>${a[3]}</td><td class="st-odds">${a[5].toFixed(2)}</td><td class="sc-3">${a[6]}s</td></tr>`;
+}
+
+/* ① Пороги — гистограмма profit% + порог (минус легален) */
+(function(){
+  const el=document.getElementById("d-histo"), thr=document.getElementById("d-thr");
+  const val=document.getElementById("d-thr-val"), left=document.getElementById("d-left"), min=document.getElementById("d-min");
+  const buckets=[2,5,9,14,18,17,13,9,6,4,3,2,2,1,1,1], total=buckets.reduce((a,b)=>a+b,0), max=Math.max(...buckets);
+  function draw(){
+    const t=+thr.value, pct=t/10;
+    val.textContent=fmtPct(pct);
+    if(min) min.value = pct.toFixed(1);
+    const cutIdx=Math.max(0, Math.round(t/60*buckets.length));
+    el.innerHTML=buckets.map((b,i)=>`<div class="bar ${i<cutIdx?"cut":""}" style="height:${(b/max*100).toFixed(0)}%"></div>`).join("");
+    const kept=buckets.slice(cutIdx).reduce((a,b)=>a+b,0);
+    left.textContent = t<0 ? `порог в минусе — коридоры в ленте, отсева нет (${total} из ${total})` : `выше порога: ${kept} из ${total} вилок`;
+  }
+  thr.addEventListener("input",draw); draw();
+})();
+
+/* ③ Гигиена — мини-счётчик скрытого */
+(function(){
+  const cnt=document.getElementById("g-cnt"), p=pool();
+  function upd(){
+    const hp=g("g-palp"),hs=g("g-sg"),hc=g("g-cf"),hb=g("g-bk");
+    // SAME BK демонстрируем через «только разные конторы»: одна пара из клон-семьи
+    const hidden=p.filter(a=>(hp&&a[7]==="PALP")||(hs&&a[7]==="SAME GAME")||(hc&&a[7]==="CONFLICTING")).length + (hb?1:0);
+    cnt.textContent = hidden? `скрыто: ${hidden} из ${p.length+1}` : `показаны все ${p.length+1}`;
+  }
+  function g(id){return document.getElementById(id).checked;}
+  ["g-palp","g-sg","g-cf","g-bk"].forEach(id=>document.getElementById(id).addEventListener("change",upd)); upd();
+})();
+
+/* ⑤ Дерево исходов (родитель→дети, счётчик убранного) */
+(function(){
+  const tree={"Total":["Fulltime totals","Half totals","Individual totals"],"Handicap":["Fulltime handicap","Half handicap"],"Match Result":["MW: победитель"],"1X2":["Исход 1X2"],"Double Chance":["1X / 12 / X2"],"Goals":["Обе забьют","N-й гол"]};
+  const el=document.getElementById("d-tree"), open={"Тоталы":true};
+  function draw(){
+    el.innerHTML=Object.keys(tree).map(g=>{
+      const kids=tree[g], o=open[g];
+      return `<div class="tree-g"><div class="tree-p"><input type="checkbox" checked><b>${g}</b>`+
+        `<button class="tree-x" data-g="${g}">${o?"▾":"▸"}${!o?` <span class="kid-badge">−1</span>`:""}</button></div>`+
+        (o?`<div class="tree-k">${kids.map((k,i)=>`<label class="chk" style="font-size:11.5px"><input type="checkbox" ${i===kids.length-1?"":"checked"}>${k}</label>`).join("")}</div>`:"")+`</div>`;
+    }).join("");
+    el.querySelectorAll(".tree-x").forEach(b=>b.addEventListener("click",()=>{open[b.dataset.g]=!open[b.dataset.g];draw();}));
+  }
+  draw();
+})();
+
+/* ⑥ Палитра улова v3 + звуки */
+(function(){
+  const PAL=[["transparent","Без цвета","none"],["#d4a72c","Латунь"],["#8fa653","Олива"],["#7a8ba6","Серо-синий"],["#ad6a86","Пыльная роза"],["#b3763f","Сиена"],["#4e8098","Петроль"]];
+  const sw=document.getElementById("d-sw"); let sel=6;
+  function draw(){
+    sw.innerHTML=PAL.map((c,i)=>`<span class="sw ${c[2]==="none"?"none":""} ${i===sel?"sel":""}" data-i="${i}" title="${c[1]}" style="${c[0]==="transparent"?"":`background:${c[0]}`}"></span>`).join("");
+    sw.querySelectorAll(".sw").forEach(s=>s.addEventListener("click",()=>{sel=+s.dataset.i;draw();}));
+  }
+  draw();
+  const snd=document.getElementById("d-snd");
+  ["Пинг (классический)","Дабл (два коротких)","Низкий (спокойный)","Трель (вверх)","Свой файл… (подберётся отдельно)"].forEach((s,i)=>{
+    const o=document.createElement("option"); o.textContent=s; if(i===3)o.selected=true; if(i===4)o.disabled=true; snd.appendChild(o);
+  });
+})();
+
+/* ⑧ Срез — свернуть/развернуть + лента */
+(function(){
+  const wrap=document.getElementById("slice-demo"), rows=document.getElementById("slice-rows");
+  const p=pool().filter(a=>!a[7]); // боевой срез: без рисковых
+  rows.innerHTML=p.map((a,i)=>row(a,i,"#4e8098")).join("");
+  const btn=document.getElementById("slice-collapse");
+  btn.addEventListener("click",()=>{
+    const aside=wrap.querySelector(".slice");
+    if(aside.dataset.collapsed){ aside.style.display=""; wrap.querySelector(".rail-tmp")?.remove(); delete aside.dataset.collapsed; }
+    else {
+      aside.style.display="none"; aside.dataset.collapsed="1";
+      const rail=document.createElement("button"); rail.className="rail rail-tmp"; rail.innerHTML='<span>›</span><span class="rail-word">срез</span>';
+      rail.addEventListener("click",()=>{aside.style.display="";rail.remove();delete aside.dataset.collapsed;});
+      wrap.prepend(rail);
+    }
+  });
+})();
+
+/* Часть 2 — живое полотно: dirty-счётчик + подсветка секции + рез ленты */
+(function(){
+  const thr=document.getElementById("p2-thr"), thrVal=document.getElementById("p2-thr-val");
+  const db=document.getElementById("p2-db"), save=document.getElementById("p2-save"), reset=document.getElementById("p2-reset");
+  const cnt=document.getElementById("p2-counter"), tb=document.getElementById("p2-rows"), palp=document.getElementById("p2-palp");
+  const anav=document.getElementById("p2-anav"), p=pool(), total=p.length;
+  const base={thr:0, sports:new Set(["Футбол","Теннис","Баскетбол","Хоккей"]), palp:false};
+  const touched=new Set();
+  function litSec(sec){ anav.querySelectorAll("a").forEach(a=>a.classList.toggle("on",a.dataset.sec===sec)); }
+  function activeSports(){ return new Set([...document.querySelectorAll('.zone input[data-sp]:checked')].map(c=>c.dataset.sp)); }
+  function drawDirty(){
+    const n=touched.size;
+    db.innerHTML = n? `● изменено: <b>${n}</b>` : `● изменено: <b class="clean">0 — всё сохранено</b>`;
+    save.classList.toggle("hot", n>0);
+  }
+  function draw(sec){
+    const minPct=+thr.value/10, sp=activeSports(), hideP=palp.checked;
+    thrVal.textContent=fmtPct(minPct);
+    const shown=p.filter(a=>sp.has(a[0]) && margin(a[4],a[5])>=minPct && !(hideP&&a[7]==="PALP"));
+    tb.innerHTML=shown.map((a,i)=>row(a,i,"#4e8098")).join("");
+    cnt.textContent=`${shown.length} из ${total} вилок в ленте`;
+    if(sec) litSec(sec);
+    drawDirty();
+  }
+  thr.addEventListener("input",()=>{ if(+thr.value!==base.thr)touched.add("thr"); else touched.delete("thr"); draw("thr"); });
+  document.querySelectorAll('.zone input[data-sp]').forEach(c=>c.addEventListener("change",()=>{
+    const cur=activeSports(), diff=cur.size!==base.sports.size || [...cur].some(s=>!base.sports.has(s));
+    if(diff)touched.add("sports"); else touched.delete("sports"); draw("sport");
+  }));
+  palp.addEventListener("change",()=>{ if(palp.checked!==base.palp)touched.add("palp"); else touched.delete("palp"); draw("alert"); });
+  reset.addEventListener("click",()=>{
+    thr.value=base.thr; palp.checked=base.palp;
+    document.querySelectorAll('.zone input[data-sp]').forEach(c=>c.checked=base.sports.has(c.dataset.sp));
+    touched.clear(); litSec(null); draw();
+  });
+  // «Сохранить в пресет» фиксирует черновик: правки становятся новым сохранённым состоянием, счётчик → 0
+  save.addEventListener("click",()=>{
+    base.thr=+thr.value; base.palp=palp.checked; base.sports=activeSports();
+    touched.clear(); litSec(null); draw();
+  });
+  // якоря секций кликабельны — подсвечивают выбранную секцию (как в живом сканере)
+  anav.querySelectorAll("a").forEach(a=>a.addEventListener("click",()=>{
+    anav.querySelectorAll("a").forEach(x=>x.classList.remove("on")); a.classList.add("on");
+  }));
+  draw();
+})();
+
+/* Часть 3 — плотная боевая воронка */
+(function(){
+  const p=pool().filter(a=>["Футбол","Теннис"].includes(a[0]) && margin(a[4],a[5])>=1.5 && !a[7]);
+  document.getElementById("p3-rows").innerHTML=p.map((a,i)=>row(a,i,"#4e8098")).join("");
+})();
+
+/* Сегменты (всё/белый/чёрный, показывать/скрывать) — одиночный выбор; disabled и снапшоты не трогаем */
+(function(){
+  document.querySelectorAll('.sc:not(.frozen) .seg').forEach(seg=>{
+    seg.querySelectorAll('button:not([disabled])').forEach(b=>b.addEventListener('click',()=>{
+      seg.querySelectorAll('button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+    }));
+  });
+})();
+
+/* Мосты на Станцию: клик даёт короткую подсказку о цели (в демо экрана «Станция» нет) */
+(function(){
+  document.querySelectorAll('a.bridge').forEach(a=>{
+    if(a.closest('.frozen')) return;
+    a.addEventListener('click',e=>{
+      e.preventDefault(); a.classList.add('flash');
+      let h=a.nextElementSibling;
+      if(!(h&&h.classList&&h.classList.contains('bridge-hint'))){ h=document.createElement('span'); h.className='bridge-hint'; h.textContent=' — откроется экран «Станция»'; a.after(h); }
+      h.style.opacity='1'; clearTimeout(a._bt); a._bt=setTimeout(()=>{ h.style.opacity='0'; a.classList.remove('flash'); },1600);
+    });
+  });
+  document.querySelectorAll('.slice-modes').forEach(b=>{
+    if(b.closest('.frozen')) return;
+    b.addEventListener('click',()=>{ const o=b.textContent; b.textContent='открывается полотно «Режимы» →'; clearTimeout(b._t); b._t=setTimeout(()=>{b.textContent=o;},1500); });
+  });
+})();
+
+/* ④ Спорты: «все/ни одного» + живой счётчик «выбрано N из M» */
+(function(){
+  const grid=document.getElementById('sp-grid'), cnt=document.getElementById('sp-cnt');
+  const all=document.getElementById('sp-all'), none=document.getElementById('sp-none');
+  if(!grid||!cnt) return;
+  const boxes=[...grid.querySelectorAll('input[type=checkbox]')], total=boxes.length;
+  function upd(){ const n=boxes.filter(c=>c.checked).length; cnt.textContent=`выбрано ${n} из ${total} — узкий пресет, норма профи`; }
+  boxes.forEach(c=>c.addEventListener('change',upd));
+  all&&all.addEventListener('click',()=>{ boxes.forEach(c=>c.checked=true); upd(); });
+  none&&none.addEventListener('click',()=>{ boxes.forEach(c=>c.checked=false); upd(); });
+  upd();
+})();
+
+/* ⑥ Прослушка звука: короткий тон (WebAudio) + визуальный отклик */
+(function(){
+  const btn=document.getElementById('snd-play'), sel=document.getElementById('d-snd');
+  if(!btn) return;
+  btn.addEventListener('click',()=>{
+    const o=btn.textContent; btn.textContent='♪'; clearTimeout(btn._t); btn._t=setTimeout(()=>{btn.textContent=o;},450);
+    try{
+      const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return;
+      const ctx=btn._ac||(btn._ac=new AC());
+      const i=sel?sel.selectedIndex:0, freq=[660,520,330,780][i%4]||600;
+      const osc=ctx.createOscillator(), g=ctx.createGain();
+      osc.type='sine'; osc.frequency.value=freq; osc.connect(g); g.connect(ctx.destination);
+      g.gain.setValueAtTime(.0001,ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(.12,ctx.currentTime+.02);
+      g.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+.22);
+      osc.start(); osc.stop(ctx.currentTime+.24);
+    }catch(e){}
+  });
+})();
+</script>
+</body>
+</html>
