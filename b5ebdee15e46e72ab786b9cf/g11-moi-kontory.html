@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Мои конторы — парк на двух уровнях (учебная глава, 3 части)</title>
+<style>
+  /* Цвета/метки/формулы — из кода форка; привязки координат живут в r3-registry-g12.md рядом.
+     Демо-скин .sc — светлая (дневная) палитра реального сканера: фон #f6f7f9, циан #0a76ad. */
+  :root{
+    --paper:#f7f7f5; --panel:#ffffff; --hairline:#e7e7e4;
+    --text:#1a1a1a; --text-secondary:#575d66; --accent:#0a76ad;
+    --note-bg:#fff8e6; --note-border:#f0d99a; --note-text:#6b5418;
+    --shadow-1:0 1px 2px rgba(20,22,26,.05); --shadow-2:0 4px 16px rgba(20,22,26,.06);
+    --r-panel:12px; --r-block:8px;
+    --font-display:"Avenir Next","Segoe UI",system-ui,sans-serif;
+    --mono:ui-monospace,Menlo,monospace;
+    /* демо-скин: светлые (дневные) токены реального сканера (index.css) */
+    --sc-bg:#f6f7f9; --sc-s1:#ffffff; --sc-s2:#f4f4f5; --sc-s3:#efeff1;
+    --sc-border:#dde2ea; --sc-border-sub:#ebebeb;
+    --sc-text:#1a1a1a; --sc-2:#4d5765; --sc-3:#636d7c;
+    --sc-cyan:#0a76ad; --sc-teal:#19776c; --sc-teal-bg:rgba(25,119,108,.10);
+    --sc-red:#991b1b; --sc-red-strong:#c53a36; --sc-red-bg:#fff0f0; --sc-red-bd:#e88a8a;
+    --sc-amber:#f59e0b;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+  body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--paper);color:var(--text);font-size:15px;line-height:1.6}
+  .wrap{max-width:820px;margin:0 auto;padding:28px 18px 90px}
+  h1{font-size:28px;margin:0 0 6px;font-family:var(--font-display);font-weight:700;letter-spacing:-0.01em;text-wrap:balance}
+  h1::after{content:"";display:block;width:120px;height:3px;margin-top:10px;border-radius:2px;background:linear-gradient(90deg,var(--sc-cyan) 0 50%,var(--sc-teal) 50% 100%)}
+  h2.part-t{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--text);font-weight:700;margin:0 0 4px}
+  h3{font-size:18px;margin:0 0 4px;font-family:var(--font-display);font-weight:600;text-wrap:balance}
+  .lead{color:var(--text-secondary);font-size:16px;margin:0 0 8px;text-wrap:pretty}
+  .lead b{color:var(--text)}
+  .block-band{margin:22px 0 2px;font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--accent);font-weight:700;border-bottom:1px solid var(--hairline);padding-bottom:4px}
+  .part{background:var(--panel);border:1px solid var(--hairline);border-radius:var(--r-panel);padding:20px 20px 22px;margin:14px 0;box-shadow:var(--shadow-1),var(--shadow-2)}
+  .part-head{border-left:3px solid var(--accent);padding-left:10px;margin-bottom:14px;border-image:linear-gradient(180deg,var(--sc-cyan),var(--sc-teal)) 1}
+  .part-head .step{font-size:12px;color:var(--text-secondary)}
+  .signal{border-top:1px solid var(--hairline);padding:16px 0 4px}
+  .signal:first-of-type{border-top:none;padding-top:4px}
+  .sig-why{color:var(--text-secondary);font-size:14px;margin:2px 0 10px;text-wrap:pretty}
+  .sig-why b{color:var(--text)}
+  .demo-cap{font-size:11px;color:var(--text-secondary);margin:6px 2px 0}
+  details.note{background:var(--note-bg);border:1px solid var(--note-border);border-radius:var(--r-block);padding:8px 10px;font-size:12.5px;color:var(--note-text);margin-top:8px}
+  details.note summary{cursor:pointer;font-weight:600;color:var(--note-text)}
+  details.note[open] summary{margin-bottom:5px}
+  details.note b{color:var(--note-text)}
+  button{font-family:inherit}
+  ul.tight{margin:6px 0;padding-left:20px}
+  ul.tight li{margin:3px 0}
+
+  /* ── ДЕМО-СКИН (дневная реплика сканера) ── */
+  .sc{background:var(--sc-bg);color:var(--sc-text);border:1px solid var(--sc-border);border-radius:var(--r-block);padding:12px;overflow-x:auto;font-size:13.5px}
+  .sc-box{background:var(--sc-s2);border:1px solid var(--sc-border);border-radius:7px;padding:9px 11px;margin:8px 0}
+  .sc-h{font-size:12.5px;font-weight:700;color:var(--sc-text);margin:0 0 6px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .sc-sub{font-size:10.5px;color:var(--sc-3);text-transform:uppercase;letter-spacing:.05em}
+  .sc-2{color:var(--sc-2)} .sc-3{color:var(--sc-3)}
+  .sc-cnt{font-size:11px;color:var(--sc-3);font-family:var(--mono)}
+  .ic{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;vertical-align:middle}
+  .tip{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;border:1px solid var(--sc-border);color:var(--sc-3);font-size:9px;cursor:help;flex-shrink:0}
+  .sc a.bridge{color:var(--sc-cyan);text-decoration:none;font-size:11px;border-bottom:1px dashed rgba(10,118,173,.4);cursor:pointer}
+  .sc a.bridge:hover{border-bottom-style:solid}
+  .stub{font-size:11px;color:var(--sc-3);font-style:italic}
+  .stub b{color:var(--sc-2);font-style:normal}
+
+  /* легенда осей (видимая, не title-only) */
+  .axleg{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--sc-2);background:var(--sc-s1);border:1px solid var(--sc-border-sub);border-radius:6px;padding:6px 9px;margin:6px 0}
+  .axleg span{display:inline-flex;align-items:center;gap:5px}
+  .axleg .g{color:var(--sc-teal)} .axleg .a{color:var(--sc-amber)} .axleg .r{color:var(--sc-red)}
+
+  /* строка конторы в БК-узле пресета */
+  .bkrow{display:flex;align-items:center;gap:8px;padding:5px 8px;border-bottom:1px solid var(--sc-border-sub)}
+  .bkrow:last-child{border-bottom:0}
+  .bkrow .chk{margin:0}
+  .bkrow input[type=checkbox]{accent-color:var(--sc-cyan);width:14px;height:14px}
+  .bkrow .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .bkrow .nm{flex:1 1 auto;font-size:12.5px}
+  .bkrow.off .nm{color:var(--sc-3);text-decoration:line-through}
+  .bkrow.hid .nm{color:var(--sc-3);font-style:italic}
+  .cbadge{font-size:10px;color:var(--sc-3);border:1px solid var(--sc-border);border-radius:3px;padding:0 4px;cursor:help}
+  .mchip{display:inline-flex;align-items:center;gap:3px;font-size:10.5px;color:#b45309;border:1px solid #b45309;border-radius:10px;padding:0 6px;font-family:var(--mono)}
+  button.mchip{cursor:pointer}
+  .mchip .ic{width:10px;height:10px}
+  .tri{display:inline-flex;gap:3px;align-items:center}
+  .tbtn{width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;background:none;border:1px solid transparent;border-radius:4px;color:var(--sc-3);cursor:pointer;font-size:13px;line-height:1;padding:0}
+  .tbtn:hover:not(:disabled){border-color:var(--sc-border);color:var(--sc-text)}
+  .tbtn:disabled{opacity:.32;cursor:not-allowed}
+  .tbtn.on-star{color:var(--sc-amber)}
+  .tbtn.on-eye{color:var(--sc-cyan)}
+  .tbtn.on-exc{color:var(--sc-red)}
+  .tbtn .ic{width:13px;height:13px}
+
+  /* кнопки/чипы общие */
+  .b{border:1px solid var(--sc-border);background:transparent;color:var(--sc-2);border-radius:5px;padding:4px 10px;font-size:11.5px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+  .b:hover:not(:disabled){border-color:var(--sc-cyan);color:var(--sc-text)}
+  .b:disabled{opacity:.4;cursor:not-allowed}
+  .b.on{border-color:var(--sc-cyan);color:var(--sc-cyan);background:rgba(10,118,173,.10)}
+  .b.ghost{border-style:dashed}
+  .warn{margin:6px 0;padding:6px 9px;border:1px solid #e0b070;border-radius:6px;color:#b45309;background:#fff7ed;font-size:11.5px}
+  .expl{padding:7px 9px;background:var(--sc-s1);border-radius:6px;font-size:12px;color:var(--sc-2);margin-top:6px}
+  .expl b{color:var(--sc-text)}
+
+  /* дашборд парка (Станция) */
+  .park{width:100%;border-collapse:collapse;font-size:11.5px;font-family:var(--mono)}
+  .park th{font-size:9.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--sc-3);text-align:left;padding:4px 7px;border-bottom:1px solid var(--sc-border);white-space:nowrap;font-family:system-ui}
+  .park td{padding:5px 7px;border-bottom:1px solid var(--sc-border-sub);white-space:nowrap}
+  .park tr:last-child td{border-bottom:0}
+  .park .num{color:var(--sc-2);text-align:right}
+  .park .fld{background:var(--sc-bg);border:1px solid var(--sc-border-sub);border-radius:4px;color:var(--sc-text);padding:2px 5px;font-size:11px;font-family:var(--mono)}
+  .park .fld.w{width:110px} .park .fld.n{width:46px;text-align:right}
+  .park input.fld::placeholder{color:var(--sc-3)}
+  .park .prow.off td .pn{color:var(--sc-3);text-decoration:line-through}
+  .park .exp{background:none;border:none;color:var(--sc-3);cursor:pointer;padding:0}
+  .park .st-tri{display:inline-flex;gap:2px}
+  .profile{background:var(--sc-s1);border-radius:6px;padding:8px 10px;margin:2px 0}
+  .sport-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:3px 10px;margin:5px 0}
+  .sport-grid label{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--sc-text);cursor:pointer}
+  .sport-grid input{accent-color:var(--sc-cyan)}
+  .prow-lbl{font-size:11px;color:var(--sc-2);min-width:140px;display:inline-block}
+
+  /* модал профиля */
+  .modal{background:var(--sc-s1);border:1px solid var(--sc-border);border-radius:8px;padding:0;max-width:420px;margin:6px 0}
+  .modal-h{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--sc-border);font-weight:700;font-size:13px}
+  .modal-b{padding:10px 12px;display:flex;flex-direction:column;gap:11px}
+  .grp{font-size:9.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--sc-3);font-weight:700;margin-top:3px}
+  .fld-l{font-size:12px;font-weight:600;color:var(--sc-text);display:flex;flex-direction:column;gap:2px}
+  .fld-hint{font-weight:400;font-size:10.5px;color:var(--sc-3)}
+  .fld-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px}
+  .in{background:var(--sc-bg);border:1px solid var(--sc-border);border-radius:4px;color:var(--sc-text);padding:4px 8px;font-size:12px;font-family:var(--mono)}
+  .in.narrow{width:88px} .in.grow{flex:1;min-width:0}
+  .in:focus{outline:1px solid var(--sc-cyan)}
+  .radio{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--sc-text);cursor:pointer}
+  .cpbtn{border:1px solid var(--sc-border);background:transparent;color:var(--sc-2);border-radius:4px;padding:4px 9px;font-size:13px;cursor:pointer}
+  .cpbtn:hover:not(:disabled){color:var(--sc-text);border-color:var(--sc-cyan)} .cpbtn:disabled{opacity:.4;cursor:not-allowed}
+  .clone-fam{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .clone-sample{font-size:10.5px;color:#b45309}
+  .modal-note{font-size:10.5px;color:var(--sc-2);background:var(--sc-bg);border-radius:5px;padding:7px 9px;line-height:1.5}
+  .calcline{margin-top:2px;padding:7px 9px;background:var(--sc-bg);border-radius:6px;font-size:12px;color:var(--sc-2);font-family:var(--mono)}
+  .calcline b{color:var(--sc-teal)}
+
+  /* лента мини-потока */
+  .feed{margin-top:4px}
+  .frow{display:grid;grid-template-columns:52px 1fr 128px 70px;gap:8px;align-items:center;padding:6px 8px;background:var(--sc-s1);border:1px solid var(--sc-border-sub);border-left-width:3px;border-radius:6px;margin:5px 0;font-size:12px}
+  #p2feed .frow{cursor:pointer}
+  .frow .pc{font-weight:700;color:var(--sc-teal);font-family:var(--mono)}
+  .frow.neg .pc{color:var(--sc-red)}
+  .frow .bk{color:var(--sc-3);font-size:11px}
+  .frow .od{font-family:var(--mono);color:var(--sc-2);text-align:right}
+  .frow.sel{outline:1px solid var(--sc-cyan)}
+  .frow.pinned{border-left-color:var(--sc-amber)}
+  .frow--low{border-left-color:var(--sc-red)} .frow--med{border-left-color:var(--sc-amber)}
+
+  /* карта уровней */
+  .lvmap{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:8px}
+  .lvmap th{font-size:11px;text-transform:uppercase;letter-spacing:.3px;color:var(--sc-3);text-align:left;padding:6px 8px;border-bottom:1px solid var(--sc-border)}
+  .lvmap td{padding:7px 8px;border-bottom:1px solid var(--sc-border-sub);vertical-align:top;color:var(--sc-2)}
+  .lvmap td b{color:var(--sc-text)}
+  .lvmap tr:last-child td{border-bottom:0}
+
+  /* два столбца в бою */
+  .duo{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:680px){.duo{grid-template-columns:1fr}}
+  .os{background:var(--sc-s1);border:1px solid var(--sc-border-sub);border-radius:6px;padding:7px 9px;margin-top:6px}
+  .os .osh{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--sc-cyan);font-weight:700;margin-bottom:4px}
+  .os .cnt{font-size:11px;color:var(--sc-2);font-family:var(--mono)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Мои конторы</h1>
+<p class="lead">Сканер работает не «со всеми букмекерами вообще», а с конкретным парком контор — там, где есть аккаунты и деньги. И статус одной конторы живёт на <b>двух уровнях</b>, а спутать их — классическая ловушка. Уровень <b>пресета</b> (режим охоты): с какими конторами охотится ИМЕННО этот режим. Уровень <b>станции</b> (весь парк): экономика конторы и глобальный рубильник, который бьёт поверх ВСЕХ пресетов. (Не путать с тремя СТАТУСАМИ конторы из главы «Recovery» — Активная / Резервная / Выключенная: то — состояние конторы, здесь — два уровня, НА КОТОРЫХ это состояние живёт.) Тот же значок ✕ на разных уровнях достаёт по-разному — эта глава разводит уровни явно.</p>
+
+<!-- ЧАСТЬ 1 -->
+<div class="part">
+  <div class="part-head">
+    <h2 class="part-t">Часть 1 · Учёба</h2>
+    <div class="step">Каждый рычаг отдельно — сначала два уровня, потом что живёт на каждом. Демо на реальных конторах потока.</div>
+  </div>
+
+  <!-- BAND A -->
+  <div class="block-band">A · Два уровня — рамка главы</div>
+
+  <div class="signal">
+    <h3>① Один парк, два экрана</h3>
+    <p class="sig-why">Решение: <b>не искать все настройки конторы в одном месте</b>. Оперативное — «берём ли её в охоту этим режимом» — на экране «Режимы», в узле контор справа: набор переключается вместе с пресетом. Постоянное — валюта, зеркало, комиссия, лимит, глобальное выключение — на экране «Станция», в Парке контор: настроил и забыл, действует поверх всех режимов. Один и тот же ✕ на уровне пресета убирает контору из улова этого режима, на уровне станции — гасит её во всей ленте.</p>
+    <div class="sc">
+      <div class="sc-box">
+        <div class="sc-h">Где что живёт</div>
+        <table class="lvmap">
+          <tr><th>Вопрос про контору</th><th>Уровень</th><th>Экран</th></tr>
+          <tr><td><b>Охотиться ли ею в этом режиме?</b> подписка · закрепить · резерв · исключить из режима</td><td><b>Пресет</b></td><td>Режимы → узел контор справа</td></tr>
+          <tr><td><b>Какие у неё деньги и правила?</b> валюта · зеркало · округление · комиссия · лимит · кэф-диапазон · клон-семья</td><td><b>Станция</b></td><td>Станция → Парк контор</td></tr>
+          <tr><td><b>Выключить её везде?</b> глобальный рубильник поверх всех режимов, с таймером возврата</td><td><b>Станция</b></td><td>Станция → Парк контор</td></tr>
+        </table>
+      </div>
+      <div class="expl">Правило-ориентир: если настройка <b>переключается вместе с режимом</b> — она на уровне пресета. Если действует <b>одинаково во всех режимах</b> — на уровне станции.</div>
+    </div>
+    <details class="note"><summary>Почему не свести всё в один список</summary>
+      Режим охоты и экономика конторы меняются с разной частотой. Состав контор под режим переключается по десять раз за смену (ночная Азия ≠ европейский вечер), а валюта счёта или зеркало входа задаются один раз и живут. Смешать их в одном месте — значит либо настраивать деньги заново в каждом пресете, либо терять глобальное выключение при смене режима. Два уровня разводят «оперативное» и «постоянное».</details>
+  </div>
+
+  <!-- BAND B -->
+  <div class="block-band">B · Уровень пресета — узел контор в «Режимах»</div>
+
+  <div class="signal">
+    <h3>② Галка — подписка и пауза</h3>
+    <p class="sig-why">Решение: <b>сканировать пары только включённых для этого пресета контор</b>. Галка — подписка; точка рядом <b>только повторяет её состояние</b>: в расчёте или на паузе, отдельным рычагом она не является. Вилка — это пара контор, и бэк сканирует именно пары: восемь включённых контор дают 28 пар для поиска расхождений. Снятая галка ставит контору на паузу — её пары не сканируются, вилки с ней не приходят; вернуть — один клик, без побочных эффектов. Осталась одна контора — сканировать нечего: вилке нужны две разные ноги.</p>
+    <div class="sc">
+      <div class="sc-box">
+        <div class="sc-h">Конторы этого пресета <span class="sc-3" id="g2cnt"></span></div>
+        <div id="g2list"></div>
+        <div class="warn" id="g2warn" style="display:none">Нужно ≥2 конторы — арбу нужны разные конторы на двух ногах.</div>
+      </div>
+    </div>
+    <p class="demo-cap">Снятие галки — не косметика: бэк реально перестаёт сканировать пары этой конторы. Меньше контор — меньше пар — меньше вилок.</p>
+    <details class="note"><summary>Почему список контор не «кто сейчас в потоке»</summary>
+      Узел «Режимов» строится из фиксированного набора поддерживаемых контор, а не из живых вилок момента — иначе галки мигали бы при пропадании последней вилки конторы. Сейчас в нём восемь контор. Вручную заведённая контора появляется в <b>Парке</b> как её глобальная карточка настроек, но не добавляется автоматически в этот узел «Режимов»: сюда она попадёт, когда её поддержит сам сканер.</details>
+  </div>
+
+  <div class="signal">
+    <h3>③ Три статуса в паре: закрепить · резерв · никогда</h3>
+    <p class="sig-why">Решение: <b>задать конторе роль в этом режиме, а не просто вкл/выкл</b>. Рядом с галкой — три рычага, и легенда осей — на виду. Звезда ★ закрепляет: показывать только вилки с участием этой конторы (минимум одна её нога в каждой вилке ленты). Глаз — резерв: контора уходит из ленты, но остаётся в расчёте, и когда слетает нога, панель перекрытия её видит. Крестик ✕ — «никогда в этом режиме»: контора исключается из улова этого пресета.</p>
+    <div class="sc">
+      <div class="axleg">
+        <span><b class="g">✓ (галка) + точка-индикатор</b> — подписка в расчёте</span>
+        <span><b class="a">★</b> закрепить в паре</span>
+        <span><svg class="ic" style="color:var(--sc-cyan)" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> резерв — вне ленты, recovery видит</span>
+        <span><b class="r">✕</b> никогда в этом режиме</span>
+      </div>
+      <div class="sc-box">
+        <div id="g3row"></div>
+        <div class="expl" id="g3expl"></div>
+      </div>
+    </div>
+    <p class="sig-why" style="margin-top:12px"><b>Галка и крестик — разные рычаги, и это важно.</b> Галка — оперативная пауза: «не сейчас», без последствий, вернуть одним кликом. Крестик — «никогда в этом режиме»: эта контора не для этой охоты — в ночном азиатском её лимиты бесполезны; он <b>сам снимает звезду и резерв</b> у этой конторы (защитная связка — нельзя быть одновременно «обязательной» и «исключённой»). А скам или бан — это уже не про режим, а «выключить везде» на Станции (⑦). Оба рычага остаются: пауза — для ритма смены, крестик — для роли конторы в этом режиме.</p>
+    <div class="sc">
+      <div class="sc-box">
+        <div class="sc-h">Что делает каждый рычаг</div>
+        <table class="lvmap">
+          <tr><th>Рычаг</th><th>Смысл</th><th>Связки</th></tr>
+          <tr><td><b>Галка снята</b></td><td>пауза подписки — пары не сканируются сейчас</td><td>ничего не трогает; вернуть один клик</td></tr>
+          <tr><td><b>✕ никогда</b></td><td>исключить из улова этого режима</td><td>снимает ★ и резерв (глаз)</td></tr>
+        </table>
+      </div>
+    </div>
+    <details class="note"><summary>Зачем звезде принудительная галка, а резерву — запрет у обязательной</summary>
+      Закрепить контору и одновременно выключить её из расчёта — значит молча опустошить ленту: вилки с ней отсекает снятая галка, вилки без неё — правило «минимум одна её нога». Поэтому звезда сама включает галку и снимает резерв. А у обязательной конторы резерв заблокирован: сначала снимается звезда — осознанный шаг, ведь «обязательная и невидимая» это снова пустая выдача. У исключённой ✕-конторы резерв не нужен: она и так вне ленты.</details>
+  </div>
+
+  <div class="signal">
+    <h3>④ Глушение из ленты — чип с отсчётом</h3>
+    <p class="sig-why">Решение: <b>заткнуть шумную контору на пару минут, не трогая её статус</b>. Правым кликом по строке в ленте контору глушат на 1 / 2 / 5 минут — в узле контор появляется чип с обратным отсчётом. Клик по чипу возвращает контору досрочно. Глушение сильнее закрепления: даже улов с обязательной конторой молчит до конца таймера. Одно исключение — закреплённая жестом строка (pin): она переживает глушение своей конторы и остаётся на месте.</p>
+    <div class="sc">
+      <div class="sc-box">
+        <div class="sc-h">Узел контор — временно заглушена одна</div>
+        <div id="g4row"></div>
+        <div class="sc-cnt" id="g4hint" style="margin-top:6px"></div>
+        <div style="margin-top:8px" class="sc-3 sc-sub">Лента — закреплённая строка на месте, обычная скрыта</div>
+        <div id="g4feed" class="feed"></div>
+      </div>
+    </div>
+    <details class="note"><summary>Чем глушение отличается от резерва и крестика</summary>
+      Глушение — временное и обратимое по таймеру, ставится жестом прямо из ленты и не меняет роль конторы в пресете. Резерв (глаз) — постоянное «вне ленты, но в расчёте». Крестик — «никогда в этом режиме». Три разных инструмента под три разные ситуации: «замолчи на минуту», «держись в запасе», «её тут нет».</details>
+  </div>
+
+  <div class="signal">
+    <h3>⑤ Быстрые наборы и «Станция сейчас»</h3>
+    <p class="sig-why">Решение: <b>собрать состав контор одним движением и держать сводку под рукой</b>. Кнопки-наборы включают целый класс контор: Sharp — эталонные линии, Биржи — площадки с комиссией, Регулярные — обычные. Наборы собраны от типов, которые сканер знает по своим справочникам, а не из выдуманных имён. «Мои конторы» — сквозной личный список, где реально есть аккаунты: применить его в пресет — один клик, статусы ★ и ✕ он не трогает. Карточка «Станция сейчас» держит живую сводку и ведёт на Станцию.</p>
+    <div class="sc">
+      <div class="sc-box">
+        <div class="sc-h">Набор</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+          <button class="b" disabled title="Sharp: в потоке нет — оживёт с подключением эталонных контор">Sharp <span class="sc-3">0</span></button>
+          <button class="b" disabled title="Биржи: в потоке нет — оживут с подключением бирж с комиссией">Биржи <span class="sc-3">0</span></button>
+          <button class="b on" id="g5reg">Регулярные <span class="sc-3">8</span></button>
+          <span class="sc-3" style="margin:0 4px">·</span>
+          <span class="sc-2" style="font-size:11.5px">Мои конторы (3)</span>
+          <button class="b" id="g5my">применить набором</button>
+        </div>
+        <div class="expl" id="g5expl" style="display:none"></div>
+        <div class="warn" style="border-color:var(--sc-border);color:var(--sc-2);background:var(--sc-s1)">Sharp и Биржи сейчас пустые — так и в живом сканере: эталонных контор и бирж в потоке пока нет, наборы оживут с их подключением. «Регулярные» покрывает все восемь живых контор.</div>
+        <div class="os">
+          <div class="osh">Станция сейчас</div>
+          <div class="cnt">парк: 8 контор · настроено: 2 · режимов: 3 · активный: Дневной</div>
+          <button class="b ghost" id="g5station" style="margin-top:6px" title="К Парку контор на Станции (ниже в главе)">Станция →</button>
+        </div>
+      </div>
+    </div>
+    <details class="note"><summary>Почему наборы Sharp и Биржи пустые — это честно</summary>
+      Составы наборов не хардкодятся под конкретные бренды — они собираются по типу конторы из справочников сканера. Эталонная линия (Sharp) и биржи с комиссией пока не подключены к живому потоку, поэтому их наборы пустые, а подсказка на кнопке это проговаривает. Как только такие конторы появятся — они попадут в набор сами, без ручной правки.</details>
+  </div>
+
+  <!-- BAND C -->
+  <div class="block-band" id="bandC">C · Уровень станции — Парк контор дашбордом</div>
+
+  <div class="signal">
+    <h3>⑥ Весь парк одним взглядом</h3>
+    <p class="sig-why">Решение: <b>видеть и править экономику всех контор сразу, не открывая каждую по отдельности</b>. Парк на Станции — это дашборд-таблица: строка на контору, значения прямо в ячейках. Зеркало входа, валюта счёта, шаг округления, комиссия, мой максимум, окно доверия к кэфам, бейдж клон-семьи и статус — всё видно и правится на месте. Правка применяется к расчётам сразу.</p>
+    <div class="sc">
+      <div class="sc-box" style="padding:9px 6px">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 8px">
+          <span style="display:inline-flex;align-items:center;background:#fff;border:1px solid var(--sc-border,#dde2ea);border-radius:6px;padding:2px 8px;font-size:11px;color:var(--sc-3)">поиск конторы…</span>
+          <span style="display:inline-flex;gap:2px;border:1px solid var(--sc-border,#dde2ea);border-radius:6px;overflow:hidden;font-size:10.5px"><button style="border:0;background:#e8e8e8;padding:2px 8px">все (22)</button><button style="border:0;background:transparent;padding:2px 8px;color:var(--sc-3)">Sharp (0)</button><button style="border:0;background:transparent;padding:2px 8px;color:var(--sc-3)">Exchange (3)</button><button style="border:0;background:transparent;padding:2px 8px;color:var(--sc-3)">Regular (19)</button></span>
+          <span style="margin-left:auto;font-size:10.5px;color:var(--sc-3)">Имена в интерфейсе: <select class="in" style="font-size:10.5px;padding:1px 4px"><option>домен — bet365.com</option><option>бренд — bet365</option></select></span>
+        </div>
+        <table class="park">
+          <thead><tr>
+            <th>контора · клон-семья</th><th>моё зеркало</th><th>валюта</th><th>округл. ⓘ</th><th>комиссия ⓘ</th><th>макс</th><th>кэфы от–до</th><th>статус</th><th></th>
+          </tr></thead>
+          <tbody>
+            <tr class="prow"><td><span class="pn">bet365.com</span> <span class="cbadge" title="Клон-семья Bet365: Bet365 · Bet365 mobile · 188sb · Allsport365 (образец с Позитива — заменится реальной картой)">×4</span> <svg class="ic" style="width:11px;height:11px;color:var(--sc-3)" viewBox="0 0 24 24" title="Fast-fix: контора быстро правит свои кэфы — перекрытия по ней живут короче"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg></td><td class="sc-3">—</td><td class="sc-3">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num sc-3">— —</td><td><span class="st-tri"><span style="color:var(--sc-3);opacity:.5" title="Закрепить (read-only)">★</span><svg class="ic" style="width:12px;height:12px;color:var(--sc-green,#1a8a2e)" viewBox="0 0 24 24" title="В работе (глаз активен)"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg><span style="color:var(--sc-3)" title="Выключить везде">✕</span></span><td><svg class="ic" style="width:12px;height:12px;color:var(--sc-3);cursor:pointer" viewBox="0 0 24 24" title="Расширенный редактор конторы (блок ⑧)"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01A1.65 1.65 0 0 0 10 3.09V3a2 2 0 1 1 4 0v.09c0 .66.39 1.26 1 1.51h.01c.59.25 1.28.12 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06c-.45.54-.58 1.23-.33 1.82v.01c.25.61.85 1 1.51 1H21a2 2 0 1 1 0 4h-.09c-.66 0-1.26.39-1.51 1z"/></svg></td></td></tr>
+            <tr class="prow"><td><span class="pn">fon.bet</span></td><td class="sc-3">—</td><td class="sc-3">—</td><td class="num">50</td><td class="num">5%</td><td class="num">—</td><td class="num sc-3">— —</td><td><span class="st-tri"><span style="color:var(--sc-3);opacity:.5" title="Закрепить (read-only)">★</span><svg class="ic" style="width:12px;height:12px;color:var(--sc-green,#1a8a2e)" viewBox="0 0 24 24" title="В работе (глаз активен)"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg><span style="color:var(--sc-3)" title="Выключить везде">✕</span></span><td><svg class="ic" style="width:12px;height:12px;color:var(--sc-3);cursor:pointer" viewBox="0 0 24 24" title="Расширенный редактор конторы (блок ⑧)"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01A1.65 1.65 0 0 0 10 3.09V3a2 2 0 1 1 4 0v.09c0 .66.39 1.26 1 1.51h.01c.59.25 1.28.12 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06c-.45.54-.58 1.23-.33 1.82v.01c.25.61.85 1 1.51 1H21a2 2 0 1 1 0 4h-.09c-.66 0-1.26.39-1.51 1z"/></svg></td></td></tr>
+            <tr class="prow"><td><span class="pn">lottoland.co.uk</span></td><td class="sc-3">вписать своё</td><td>GBP</td><td class="num">—</td><td class="num">—</td><td class="num">500</td><td class="num">1.6–4.0</td><td><span class="st-tri"><span style="color:var(--sc-3);opacity:.5" title="Закрепить (read-only)">★</span><svg class="ic" style="width:12px;height:12px;color:var(--sc-green,#1a8a2e)" viewBox="0 0 24 24" title="В работе (глаз активен)"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg><span style="color:var(--sc-3)" title="Выключить везде">✕</span></span></td><td><svg class="ic" style="width:12px;height:12px;color:var(--sc-3);cursor:pointer" viewBox="0 0 24 24" title="Расширенный редактор конторы (блок ⑧)"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01A1.65 1.65 0 0 0 10 3.09V3a2 2 0 1 1 4 0v.09c0 .66.39 1.26 1 1.51h.01c.59.25 1.28.12 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06c-.45.54-.58 1.23-.33 1.82v.01c.25.61.85 1 1.51 1H21a2 2 0 1 1 0 4h-.09c-.66 0-1.26.39-1.51 1z"/></svg></td></tr>
+            <tr class="prow off"><td><span class="pn">silverglow58.xyz</span></td><td class="sc-3">—</td><td class="sc-3">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num sc-3">— —</td><td><span class="st-tri"><span style="color:var(--sc-3);opacity:.5" title="Закрепить (read-only)">★</span><svg class="ic" style="width:12px;height:12px;color:var(--sc-3)" viewBox="0 0 24 24" title="Вернуть в работу"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg><span style="color:var(--sc-red)" title="Выключена везде">✕</span></span></td><td><svg class="ic" style="width:12px;height:12px;color:var(--sc-3);cursor:pointer" viewBox="0 0 24 24" title="Расширенный редактор конторы (блок ⑧)"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01A1.65 1.65 0 0 0 10 3.09V3a2 2 0 1 1 4 0v.09c0 .66.39 1.26 1 1.51h.01c.59.25 1.28.12 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06c-.45.54-.58 1.23-.33 1.82v.01c.25.61.85 1 1.51 1H21a2 2 0 1 1 0 4h-.09c-.66 0-1.26.39-1.51 1z"/></svg></td></tr>
+          </tbody>
+        </table>
+        <div class="sc-cnt" style="margin-top:6px">значения в ячейках — сразу в расчёт; серая строка со ✕ выключена везде</div>
+      </div>
+    </div>
+    <p class="demo-cap"><b>Демо-дашборд — иллюстрация, а не реальные данные про конторы.</b> Экономика в ячейках (зеркало, округление, комиссия, максимум, окно кэфов) — это ТВОИ поля: их заполняешь ты, сканер их не «знает». Клон-семью сканер подставляет сам. Валюта в этой колонке — тоже ТВОЙ оверрайд: по умолчанию стоит «—», а родную валюту конторы сканер знает и берёт в расчёт сам, в дашборде её не показывая. Остальные числа здесь — пример заполнения, не живые ставки. Три из полей — деньги: округление считает ставку кратно шагу в валюте конторы, комиссия срезает выигрыш, окно «кэфы от–до» скрывает вилки, где кэф этой конторы вне доверия. Над таблицей — поиск и сегменты типов (все/Sharp/Exchange/Regular со счётчиками), шестерёнка в строке открывает расширенный редактор (блок ⑧).</p>
+    <details class="note"><summary>Зеркало, максимум и кэф-диапазон — что каждое делает</summary>
+      <b>Моё зеркало</b> — личный URL входа в контору (не путать с зеркалами-клонами одной конторы из главы «Строка вилки» — там это источник фантомов): хранится и копируется, а сама постановка ставки всегда идёт на канонический домен. <b>Макс</b> — мой потолок ставки в этой конторе: нога калькулятора предупредит при превышении, но сумму НЕ урежет — деньги решает человек. <b>Кэфы от–до</b> — окно доверия: если кэф ноги этой конторы вне окна, вилка скрывается из ленты, и эта рамка жёстче порогов режима.</details>
+  </div>
+
+  <div class="signal">
+    <h3>⑦ Рубильник поверх режимов, спорты конторы, ручной ввод</h3>
+    <p class="sig-why">Решение: <b>управлять конторой глобально, а не в каждом режиме заново</b>. Крестик в Парке — «выключить везде»: вилки конторы уходят из всей ленты, поверх любого пресета. Можно задать возврат по таймеру — «вернуть в фильтр через N часов», а ручной возврат глазом отменяет таймер. Разворот строки открывает спорты конторы: выключенный здесь спорт не даст вилок с этой конторой ни в одном режиме — так режут её слабые линии точечно. А кнопка «+ контора вручную» заводит контору до первой вилки — свои рабочие площадки можно внести заранее.</p>
+    <div class="sc">
+      <div class="sc-box" style="padding:9px 6px">
+        <table class="park">
+          <thead><tr><th>контора</th><th>статус</th><th></th></tr></thead>
+          <tbody>
+            <tr class="prow"><td><span class="pn" id="g7name">lottoland.co.uk</span></td>
+              <td><span class="st-tri" id="g7tri"></span></td>
+              <td><button class="exp" id="g7exp" title="Развернуть профиль"><svg class="ic" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button></td></tr>
+          </tbody>
+        </table>
+        <div id="g7status" class="sc-cnt" style="display:none;margin-top:6px;color:#991b1b">выключена ВЕЗДЕ — вилки lottoland.co.uk уходят из всей ленты; вернётся по таймеру ниже или кликом по глазу</div>
+        <div id="g7profile" style="display:none">
+          <div class="profile">
+            <div class="ctl"><span class="prow-lbl">Спорты этой конторы</span> <span class="sc-cnt" id="g7spcnt"></span></div>
+            <div class="sport-grid" id="g7sports"></div>
+            <div class="ctl" style="margin-top:8px"><span class="prow-lbl">Вернуть в фильтр через</span>
+              <input class="in narrow" type="number" min="0" max="720" value="0" id="g7hours"> <span class="sc-3" style="font-size:11px">часов после ✕ (0 = вручную)</span></div>
+            <div class="ctl" style="margin-top:6px"><span class="prow-lbl">Порядок команд</span> <span class="stub">нормализация «Хозяин — Гость» — <b>придёт от бэка</b></span></div>
+            <div class="ctl" style="margin-top:4px"><span class="prow-lbl">Завышенность кэфа</span> <span class="stub">ловить вилки, где кэф завышен против рынка — <b>придёт</b> (нужен рыночный референс)</span></div>
+          </div>
+        </div>
+        <div style="margin-top:8px"><button class="b ghost" id="g7add" title="Завести контору в каталог до первой вилки с ней">+ контора вручную</button>
+          <div id="g7addnote" class="expl" style="display:none;margin-top:6px">В живом сканере откроется поле ввода имени — контора попадёт в накопительный список и появится в Парке при следующем пересчёте, ещё до первой вилки с ней. Честно про границу: в Парке она появится <b>как карточка настроек</b> — зеркало, валюту, лимит можно заполнить заранее. А <b>в вилках выдачи</b> она появится, когда контору подключит сканер: вилку с ней должен принести поток, парсинг конторы — на стороне бэка.</div></div>
+      </div>
+    </div>
+    <details class="note"><summary>Пустой парк и заведение вручную</summary>
+      Если поток ещё не дал ни одной конторы, Парк предлагает завести свои кнопкой «+ контора вручную» — имя попадает в накопительный список, и контора появится в таблице при следующем пересчёте, даже до первой вилки с ней. Так двенадцать рабочих площадок можно внести заранее, не дожидаясь, пока каждая всплывёт в потоке. Важная граница: заведённая вручную контора — это <b>карточка настроек в Парке</b>, не вилки. В выдаче её вилки появятся только когда контору подключит сканер (парсинг на стороне бэка); до этого карточка ждёт готовой — с зеркалом, валютой и лимитом.</details>
+    <details class="note"><summary>Не путать: «скрыть» из ленты ≠ «выключить контору» здесь</summary>
+      Это два разных рычага в двух разных местах. <b>Скрыть из выдачи</b> — правый клик по строке <i>ленты</i>: убирает вилку или событие (можно точечно «событие в этой конторе») — правит поток выдачи, сама контора продолжает работать. <b>Выключить контору везде</b> — крестик здесь, в Парке на Станции: гасит контору целиком во всех режимах, поверх любых пресетов, с возвратом по таймеру или вручную. Первое — про строки ленты, второе — про судьбу конторы.</details>
+  </div>
+
+  <!-- BAND D -->
+  <div class="block-band">D · Профиль конторы — расширенный редактор</div>
+
+  <div class="signal">
+    <h3>⑧ Пять вопросов к конторе: Вход · Деньги · Доверие · Семья</h3>
+    <p class="sig-why">Решение: <b>собрать всё про одну контору в одной карточке</b>. Шестерёнка в Парке открывает расширенный редактор — те же поля, что в строке дашборда, плюс формат кэфа «как на её сайте» и сброс профиля, разложенные по группам. Вход — моё зеркало с копированием в буфер для антидетект-браузера. Деньги — валюта, формат кэфа, комиссия, округление, мой максимум. Доверие — окно кэфов. Семья — клон-родство конторы.</p>
+    <div class="sc">
+      <div class="modal">
+        <div class="modal-h"><span>lottoland.co.uk</span><span class="sc-3">×</span></div>
+        <div class="modal-b">
+          <div class="grp">Вход</div>
+          <label class="fld-l">Моё зеркало <span class="fld-hint">URL входа в контору — «⧉» копирует в буфер (для антидетект-браузера); постановка идёт на канон-домене</span>
+            <div class="fld-row"><input class="in grow" type="url" id="g8mirror" value="https://lottoland.example/in" placeholder="https://…"><button class="cpbtn" id="g8copy" title="Копировать зеркало в буфер">⧉</button></div>
+          </label>
+          <div class="grp">Деньги</div>
+          <label class="fld-l">Currency <span class="fld-hint">оверрайд валюты счёта; по умолчанию — родная валюта БК</span>
+            <select class="in" style="margin-top:4px"><option>— default (как у БК) —</option><option>EUR</option><option>USD</option><option>GBP</option><option>PLN</option><option>RUB</option><option>JPY</option><option>BTC</option><option>USDT</option></select>
+          </label>
+          <div class="fld-row" style="gap:14px">
+            <label class="fld-l">Формат кэфа <span class="fld-hint">в ленте — как на сайте БК; калькулятор всегда decimal</span>
+              <select class="in" id="g8fmt" style="margin-top:4px"><option value="app">— как в приложении —</option><option value="dec">Decimal (1.93)</option><option value="am">American (−108)</option><option value="frac">Fractional (93/100)</option></select>
+            </label>
+          </div>
+          <label class="fld-l">Налог / комиссия БК <span class="fld-hint">процент, срезающий выигрыш — применяется к чистому профиту сейчас</span>
+            <div class="fld-row"><label class="radio"><input type="radio" name="g8tax" id="g8taxno" checked> NoTax</label><label class="radio"><input type="radio" name="g8tax" id="g8taxp"> Процент</label><input class="in narrow" type="number" id="g8rate" value="5" min="0" max="100" style="display:none">%</div>
+          </label>
+          <label class="fld-l">Rounding <span class="fld-hint">шаг ставки в валюте конторы (приоритет над общим «Округление R»)</span>
+            <div class="fld-row"><input class="in narrow" type="number" id="g8round" placeholder="шаг" min="0"></div>
+          </label>
+          <label class="fld-l">Макс. сумма (мой лимит) <span class="fld-hint">лимит предупреждает у ноги, ставку не урезает</span>
+            <div class="fld-row"><input class="in narrow" type="number" id="g8max" value="500" placeholder="макс" min="0"></div>
+          </label>
+          <div class="calcline" id="g8calc"></div>
+          <div class="grp">Доверие</div>
+          <label class="fld-l">Кэф-диапазон <span class="fld-hint">кэфы, которым доверяю у этой конторы — вилки с её кэфом вне диапазона скрываются из ленты</span>
+            <div class="fld-row"><input class="in narrow" type="number" id="g8min" value="1.6" step="0.1" placeholder="от"> — <input class="in narrow" type="number" id="g8maxo" value="4.0" step="0.1" placeholder="до"></div>
+          </label>
+          <div class="grp">Клон-семья</div>
+          <div class="clone-fam"><b>Bet365</b> <span class="sc-2" style="font-size:11.5px">Bet365 · Bet365 mobile · 188sb · Allsport365</span></div>
+          <div class="clone-sample">⚠ образец с Позитива — заменится реальной картой</div>
+          <div class="fld-hint">родство движков — справка: вилка между клонами одной семьи была бы фантомом (бэк их уже фильтрует)</div>
+          <div class="fld-row" style="justify-content:flex-end;gap:8px;margin-top:8px"><button class="cpbtn">Reset to default</button><button class="cpbtn" style="font-weight:700">Done</button></div>
+          <div class="modal-note">Изменения сохраняются автоматически и применяются к расчётам калькулятора сразу: ставка округляется до шага, комиссия снижает чистый профит.</div>
+        </div>
+      </div>
+    </div>
+    <p class="sig-why" style="margin-top:10px">Клон-семья — мост к тому, как устроен рынок вилок: движков два-три десятка, а вывесок под ними полторы сотни. Вилка «между клонами одной семьи» ничего не стоит — это фантом, и бэк такие уже отсекает. Справочник семей сейчас — образец с одной площадки и заменится реальной картой; помечено тем же словом, что в интерфейсе.</p>
+    <details class="note"><summary>Формат кэфа «как на её сайте» — зачем</summary>
+      В ленте кэф конторы можно показывать в её родном формате — десятичный, американский или дробный — чтобы при постановке не пересчитывать в голове. А калькулятор всегда работает в десятичном: там идёт ввод, и два формата в одном поле удорожали бы ошибку. Подсказка проговаривает эту границу честно. Похожая ручка вида — как контору звать в ленте, доменом (bet365.com) или брендом (bet365) — стоит селектом «Имена в интерфейсе» в шапке самого Парка контор; по умолчанию — домен.</details>
+  </div>
+
+  <div class="block-band" id="bandD">D · Остальные разделы Станции — краткая карта</div>
+
+  <div class="signal">
+    <h3>⑨ Станция целиком: девять разделов</h3>
+    <p class="sig-why">Станция — один экран «настроил и забыл» с девятью разделами якорной навигацией слева: <b>Выдача · Парк контор · Звуки · Оповещения · Валюты · Лиги · Калькулятор · Пути · Служебное</b>. «Выдача» — что и как показывает лента (у неё своя глава «Выдача»); «Парк контор» — блок C выше. Остальные семь — ниже. Общее правило: правки действуют сразу и сохраняются сами; единственный раздел с настоящей кнопкой сохранения — «Пути».</p>
+    <p class="sig-why"><b>Звуки.</b> Голос сканера: дефолтный звук улова — для пресетов, где свой не выбран (свой звук пресета выбирается в его алерте на «Режимах»), отдельные звуки на смерть ноги и залп, общая громкость с прослушкой. Набор звуков пока образец: механика выбора готова, файлы подберутся.</p>
+    <p class="sig-why"><b>Оповещения.</b> Каналы, которые догонят вне вкладки: браузерные push (общее разрешение + категории отдельными дверями — «улов пресета», «смерть ноги»; системные — придёт), счётчик (N) непрочитанного в заголовке вкладки, Telegram / email.</p>
+    <p class="sig-why"><b>Валюты.</b> Курсы для пересчёта ставок и профита: базовые приходят с бэка, свой курс можно задать поверх — он работает всегда. Контора без курса в расчёт не попадёт — калькулятор предупредит.</p>
+    <p class="sig-why"><b>Лиги.</b> Долгий справочник всех виденных лиг: пополняется сам из потока, тумблер строки правит активный пресет. Классы лиг и импорт — на «Режимах» (Спорты и лиги), точечно скрыть лигу можно правым кликом из ленты; экспорт переносит словарь между машинами.</p>
+    <p class="sig-why"><b>Калькулятор.</b> Предпочтения расчёта: логика очереди ног (какой ногой первой), поведение при смерти вилки и остальные ручки. Полный разбор — глава «Настройки калькулятора».</p>
+    <p class="sig-why"><b>Пути.</b> Единственный раздел с честной кнопкой «Сохранить в пресет»: правки путей копятся черновиком и фиксируются осознанно — потому что пути живут в пресете, а не глобально.</p>
+    <p class="sig-why"><b>Служебное.</b> Перенос и гигиена: экспорт/импорт профиля станции одним файлом (пресеты, группы, пути, свои курсы, парк с зеркалами, справочник лиг) и сбросы памяти потока — каталог виденных контор, память «новых» лиг и контор. Настройки per-контора при сбросе каталога не трогаются.</p>
+  </div>
+
+</div>
+
+<!-- ЧАСТЬ 2 -->
+<div class="part">
+  <div class="part-head">
+    <h2 class="part-t">Часть 2 · Оба уровня живьём</h2>
+    <div class="step">Узел контор пресета и лента рядом. Пауза и «никогда» ведут себя по-разному; резерв виден перекрытию. Управляй — лента и счётчик отвечают.</div>
+  </div>
+  <div class="sc">
+    <div class="sc-box">
+      <div class="sc-h">Уровень пресета — узел контор <span class="sc-3" id="p2cnt"></span></div>
+      <div class="axleg">
+        <span><b class="g">✓ + точка</b> — в расчёте (подписка)</span>
+        <span><b class="a">★</b> закрепить</span>
+        <span><svg class="ic" style="color:var(--sc-cyan)" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> резерв</span>
+        <span><b class="r">✕</b> никогда в режиме</span>
+      </div>
+      <div id="p2list"></div>
+      <div class="warn" id="p2warn" style="display:none">Нужно ≥2 конторы — арбу нужны разные конторы на двух ногах.</div>
+    </div>
+    <div class="sc-box">
+      <div class="sc-h">Лента <span class="sc-3">— отвечает на управление</span></div>
+      <div id="p2feed" class="feed"></div>
+      <div style="margin-top:8px"><button class="b" id="p2break">Нога слетела на выбранной вилке — показать перекрытие</button></div>
+      <div class="expl" id="p2rec" style="display:none"></div>
+    </div>
+    <div class="os">
+      <div class="osh">Уровень станции — рубильник поверх режимов</div>
+      <div class="cnt" style="margin-bottom:5px" id="p2stlab">Парк: lottoland.co.uk сейчас в работе</div>
+      <button class="b" id="p2global">✕ выключить lottoland.co.uk везде</button>
+      <div class="sc-3" style="font-size:11px;margin-top:5px">Это уровень станции: гасит контору во ВСЕХ режимах, поверх статусов пресета выше.</div>
+    </div>
+  </div>
+  <p class="demo-cap">Разница уровней вживую: сними у конторы галку — пауза, вилки вернутся кликом. Поставь ✕ в узле — звезда и резерв слетят, контора уйдёт из улова этого режима. Нажми «выключить везде» внизу — контора погаснет во всей ленте, независимо от статусов пресета.</p>
+</div>
+
+<!-- ЧАСТЬ 3 -->
+<div class="part">
+  <div class="part-head">
+    <h2 class="part-t">Часть 3 · Как в бою</h2>
+    <div class="step">Плотный вид без подсказок: слева — узел контор режима, справа — дашборд Парка на Станции.</div>
+  </div>
+  <div class="duo">
+    <div class="sc">
+      <div class="sc-sub" style="margin-bottom:6px">Режимы · узел контор</div>
+      <div class="bkrow"><input type="checkbox" checked disabled><span class="dot" style="background:var(--sc-teal)"></span><span class="nm">bet365.com</span><span class="cbadge">×4</span><span class="tri"><button class="tbtn on-star" disabled>★</button><button class="tbtn" disabled><svg class="ic" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="tbtn" disabled>✕</button></span></div>
+      <!-- демо=реал (волна-3.1): чип глушения стоит ДО триады ★/глаз/✕, как в op-bk.vue:270-282 (mute-chip перед .tri) -->
+      <div class="bkrow"><input type="checkbox" checked disabled><span class="dot" style="background:var(--sc-teal)"></span><span class="nm">fon.bet</span><span class="mchip"><svg class="ic" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="m23 9-6 6M17 9l6 6"/></svg>1:12</span><span class="tri"><button class="tbtn" disabled>★</button><button class="tbtn" disabled><svg class="ic" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="tbtn" disabled>✕</button></span></div>
+      <div class="bkrow hid"><input type="checkbox" checked disabled><span class="dot" style="background:var(--sc-teal)"></span><span class="nm">lottoland.co.uk</span><span class="tri"><button class="tbtn" disabled>★</button><button class="tbtn on-eye" disabled><svg class="ic" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="tbtn" disabled>✕</button></span></div>
+      <div class="bkrow"><input type="checkbox" checked disabled><span class="dot" style="background:var(--sc-teal)"></span><span class="nm">vbet.co.uk</span><span class="tri"><button class="tbtn" disabled>★</button><button class="tbtn" disabled><svg class="ic" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="tbtn" disabled>✕</button></span></div>
+      <div class="bkrow"><input type="checkbox" disabled><span class="dot" style="background:var(--sc-border)"></span><span class="nm">virginbet.com</span><span class="tri"><button class="tbtn" disabled>★</button><button class="tbtn" disabled><svg class="ic" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="tbtn" disabled>✕</button></span></div>
+      <div class="bkrow off"><input type="checkbox" disabled><span class="dot" style="background:var(--sc-red)"></span><span class="nm">silverglow58.xyz</span><span class="tri"><button class="tbtn" disabled>★</button><button class="tbtn" disabled><svg class="ic" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="tbtn on-exc" disabled>✕</button></span></div>
+      <div class="sc-cnt" style="margin-top:7px">в резерве: 1 (вне ленты, в расчёте) · заглушена: 1</div>
+    </div>
+    <div class="sc">
+      <div class="sc-sub" style="margin-bottom:6px">Станция · Парк контор</div>
+      <table class="park">
+        <thead><tr><th>контора</th><th>вал.</th><th>окр.</th><th>ком.</th><th>макс</th><th>кэфы</th><th>ст.</th></tr></thead>
+        <tbody>
+          <tr class="prow"><td><span class="pn">bet365.com</span> <span class="cbadge">×4</span></td><td>EUR</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num sc-3">—</td><td><span style="color:var(--sc-cyan)">✓</span></td></tr>
+          <tr class="prow"><td><span class="pn">fon.bet</span></td><td>RUB</td><td class="num">50</td><td class="num">5%</td><td class="num">—</td><td class="num sc-3">—</td><td><span style="color:var(--sc-cyan)">✓</span></td></tr>
+          <tr class="prow"><td><span class="pn">lottoland.co.uk</span></td><td>GBP</td><td class="num">—</td><td class="num">—</td><td class="num">500</td><td class="num">1.6–4.0</td><td><span style="color:var(--sc-cyan)">✓</span></td></tr>
+          <tr class="prow off"><td><span class="pn">silverglow58.xyz</span></td><td>EUR</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num sc-3">—</td><td><span style="color:var(--sc-red)">✕</span></td></tr>
+        </tbody>
+      </table>
+      <div class="sc-cnt" style="margin-top:7px">настроено: 2 · выключено везде: 1 · правки — сразу в расчёт</div>
+    </div>
+  </div>
+  <p class="demo-cap">Слева статус меняется с режимом (закрепить · резерв · заглушить · исключить), справа экономика и глобальное выключение живут одинаково во всех режимах. Один парк — два уровня.</p>
+</div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  /* Демо-движок Г11 «Мои конторы». Данные и правила — по живому коду сканера (реестр r3-registry-g12.md).
+     Процент вилки = (1 − 1/o1 − 1/o2)·100 — кэфы первичны, процент следствие. */
+  var BKS = ["bet365.com","fon.bet","virginbet.com","lottoland.co.uk","vbet.co.uk","livescorebet.com","silverglow58.xyz","betonline.ag"];
+  var MY = {"fon.bet":true,"vbet.co.uk":true,"betonline.ag":true};
+  function pct(o1,o2){ return (1 - 1/o1 - 1/o2) * 100; }
+  function fmt(x){ return (x>=0?"+":"") + x.toFixed(2) + "%"; }
+  function pairs(n){ return n*(n-1)/2; }
+  var EYE = '<svg class="ic" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>';
+
+  /* Мини-поток: пары живых контор, кэфы первичны. */
+  var FLOW = [
+    {ev:"Osasuna – Girona",  mkt:"Тотал 2.5",  o1:2.10, o2:2.05, b1:"bet365.com",      b2:"fon.bet"},
+    {ev:"Alavés – Getafe",   mkt:"Фора",       o1:1.95, o2:2.18, b1:"lottoland.co.uk", b2:"vbet.co.uk"},
+    {ev:"Lecce – Torino",    mkt:"1X2",        o1:2.32, o2:1.88, b1:"virginbet.com",   b2:"betonline.ag"},
+    {ev:"Metz – Nantes",     mkt:"Тотал 3.0",  o1:2.02, o2:2.12, b1:"fon.bet",         b2:"livescorebet.com"},
+    {ev:"Gent – Brugge",     mkt:"1X2",        o1:1.90, o2:2.28, b1:"lottoland.co.uk", b2:"livescorebet.com"},
+    {ev:"Nancy – Caen",      mkt:"Тотал 2.5",  o1:2.15, o2:2.01, b1:"virginbet.com",   b2:"fon.bet"}
+  ];
+  function feedRow(a, opt){
+    opt = opt || {};
+    var lvl = opt.lvl ? " frow--"+opt.lvl : "";
+    var cls = "frow"+lvl+(opt.sel?" sel":"")+(opt.pinned?" pinned":"")+(pct(a.o1,a.o2)<0?" neg":"");
+    return '<div class="'+cls+'" data-i="'+(opt.i!=null?opt.i:"")+'">'
+      + '<span class="pc">'+fmt(pct(a.o1,a.o2))+'</span>'
+      + '<span>'+a.ev+' <span class="sc-3" style="font-size:10px">'+a.mkt+'</span></span>'
+      + '<span class="bk">'+a.b1+' · '+a.b2+'</span>'
+      + '<span class="od">'+a.o1.toFixed(2)+' / '+a.o2.toFixed(2)+'</span></div>';
+  }
+
+  /* ── ② галки и пары ── */
+  var g2on = {}; BKS.forEach(function(b){ g2on[b]=true; });
+  function g2render(){
+    var html="";
+    BKS.forEach(function(b){
+      html += '<div class="bkrow"><label class="chk"><input type="checkbox" data-bk="'+b+'"'+(g2on[b]?" checked":"")+' title="'+(g2on[b]?"В расчёте — пары конторы сканируются бэком":"На паузе — пары не сканируются. Клик: вернуть")+'"></label>'
+        + '<span class="dot" style="background:'+(g2on[b]?"var(--sc-teal)":"var(--sc-border)")+'"></span><span class="nm'+(g2on[b]?"":" ")+'" '+(g2on[b]?"":'style="color:var(--sc-3)"')+'>'+b+'</span></div>';
+    });
+    document.getElementById("g2list").innerHTML = html;
+    var n = BKS.filter(function(b){ return g2on[b]; }).length;
+    document.getElementById("g2cnt").textContent = n + " из " + BKS.length + " → " + pairs(n) + " пар на сканирование";
+    document.getElementById("g2warn").style.display = n<2 ? "" : "none";
+    document.querySelectorAll("#g2list input").forEach(function(cb){
+      cb.addEventListener("change", function(){ g2on[cb.dataset.bk]=cb.checked; g2render(); });
+    });
+  }
+  g2render();
+
+  /* ── ③ один ряд, три статуса + галка vs ✕ ── */
+  var g3 = { st:"optional", on:true, hid:false };
+  function g3render(){
+    var st=g3.st, hid=g3.hid, box=document.getElementById("g3row");
+    box.className = "bkrow"+(st==="excluded"?" off":(hid?" hid":""));
+    box.innerHTML = '<label class="chk"><input type="checkbox" id="g3cb"'+(g3.on?" checked":"")
+      + ((st==="excluded"||(st==="required"&&g3.on))?" disabled":"")+' title="подписка — пауза/в расчёте"></label>'
+      + '<span class="dot" style="background:'+(st==="excluded"?"var(--sc-red)":(g3.on?"var(--sc-teal)":"var(--sc-border)"))+'"></span>'
+      + '<span class="nm">fon.bet</span>'
+      + '<span class="tri">'
+      + '<button class="tbtn'+(st==="required"?" on-star":"")+'" id="g3star"'+(st==="excluded"?" disabled":"")+' title="'+(st==="required"?"Закреплена — клик снять":"Закрепить: минимум одна её нога в каждой вилке")+'">★</button>'
+      + '<button class="tbtn'+(hid?" on-eye":"")+'" id="g3eye"'+(st!=="optional"?" disabled":"")+' title="'+(st==="required"?"Сними ★, чтобы убрать в резерв":(st==="excluded"?"Недоступно: контора исключена":"Резерв: вне ленты, в расчёте (recovery видит)"))+'">'+EYE+'</button>'
+      + '<button class="tbtn'+(st==="excluded"?" on-exc":"")+'" id="g3exc" title="'+(st==="excluded"?"Вернуть из «никогда»":"Никогда в этом режиме — снимет ★ и резерв")+'">✕</button>'
+      + '</span>';
+    var e=document.getElementById("g3expl");
+    if(st==="required"){ e.innerHTML="<b>Закреплена ★</b> — в ленте только вилки с fon.bet; галка заблокирована, резерв снят автоматически."; }
+    else if(st==="excluded"){ e.innerHTML="<b>Никогда ✕</b> — исключена из улова этого режима; звезда и резерв сняты защитной связкой. Другие режимы её вилки ещё ловят."; }
+    else if(hid){ e.innerHTML="<b>Резерв (глаз)</b> — строк в ленте нет, но контора в расчёте: перекрытие увидит её, когда слетит нога."; }
+    else if(!g3.on){ e.innerHTML="<b>Пауза (галка снята)</b> — пары не сканируются сейчас. Ни звезда, ни резерв не тронуты; вернуть — один клик по галке."; }
+    else{ e.innerHTML="<b>Обычная</b> — в расчёте наравне со всеми."; }
+    document.getElementById("g3star").addEventListener("click", function(){
+      if(g3.st==="required"){ g3.st="optional"; } else { g3.st="required"; g3.on=true; g3.hid=false; } g3render();
+    });
+    document.getElementById("g3eye").addEventListener("click", function(){ g3.hid=!g3.hid; g3render(); });
+    document.getElementById("g3exc").addEventListener("click", function(){
+      if(g3.st==="excluded"){ g3.st="optional"; } else { g3.st="excluded"; g3.hid=false; } g3render();
+    });
+    var cb=document.getElementById("g3cb");
+    if(cb&&!cb.disabled){ cb.addEventListener("change", function(){ g3.on=cb.checked; g3render(); }); }
+  }
+  g3render();
+
+  /* ── ④ mute-чип + pinned переживает ── */
+  var g4left = 92; var g4timer=null;
+  function g4render(){
+    var m=Math.floor(g4left/60), s=g4left%60;
+    var chip = g4left>0
+      ? '<button class="mchip" id="g4chip" title="заглушена жестом из ленты — клик вернуть досрочно"><svg class="ic" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="m23 9-6 6M17 9l6 6"/></svg>'+m+':'+(s<10?"0":"")+s+'</button>'
+      : '<span class="sc-3" style="font-size:11px">вернулась</span>';
+    document.getElementById("g4row").innerHTML =
+      '<div class="bkrow"><span class="dot" style="background:var(--sc-teal)"></span><span class="nm">fon.bet</span>'+chip+'</div>';
+    document.getElementById("g4hint").textContent = g4left>0
+      ? "чип тикает — контора молчит до конца таймера (сильнее закрепления); клик по чипу вернёт досрочно"
+      : "контора снова в ленте";
+    /* лента: pinned-строка (её контора заглушена) остаётся; обычная вилка fon.bet скрыта */
+    var pinnedArb = FLOW[3]; /* Metz – Nantes, fon.bet нога — закреплена жестом */
+    var normalArb = FLOW[0]; /* Osasuna – Girona, fon.bet — обычная, скрыта при глушении */
+    var rows = feedRow(pinnedArb, {pinned:true, lvl:"med"});
+    if(g4left<=0){ rows += feedRow(normalArb, {lvl:"med"}); }
+    else { rows += '<div class="sc-cnt" style="padding:4px 8px">обычная вилка с fon.bet скрыта на время глушения</div>'; }
+    document.getElementById("g4feed").innerHTML = rows;
+    var chipEl=document.getElementById("g4chip");
+    if(chipEl){ chipEl.addEventListener("click", function(){ g4left=0; if(g4timer){clearInterval(g4timer);g4timer=null;} g4render(); }); }
+  }
+  g4render();
+  g4timer=setInterval(function(){ if(g4left>0){ g4left--; g4render(); } else { clearInterval(g4timer); g4timer=null; } }, 1000);
+
+  /* ── ⑤ наборы ── */
+  document.getElementById("g5my").addEventListener("click", function(){
+    var mine=Object.keys(MY);
+    var e=document.getElementById("g5expl"); e.style.display="";
+    e.innerHTML='Применено набором: в расчёте теперь <b>'+mine.join(", ")+'</b>. Статусы ★ и ✕ не тронуты — исключённая руками контора осталась исключённой.';
+  });
+  document.getElementById("g5reg").addEventListener("click", function(){
+    var e=document.getElementById("g5expl"); e.style.display="";
+    e.innerHTML='Регулярные: включены все восемь живых контор одним нажатием (обязательные ★ при этом остаются).';
+  });
+  document.getElementById("g5station").addEventListener("click", function(){
+    var b=document.getElementById("bandC"); if(b){ b.scrollIntoView({behavior:"smooth",block:"start"}); }
+  });
+
+  /* ── ⑦ разворот профиля станции ── */
+  var SPORTS=["Футбол","Баскетбол","Теннис","Наст. теннис","Волейбол","Гандбол","Хоккей","Бейсбол","Амер. футбол","Киберспорт"];
+  var g7off={"Киберспорт":true};
+  var g7open=false;
+  var g7excluded=false;
+  function g7tri(){
+    document.getElementById("g7tri").innerHTML =
+      '<span style="color:var(--sc-3);opacity:.5;width:22px;display:inline-flex;justify-content:center" title="Моя контора — правится в Режимах">★</span>'
+      + '<button class="tbtn'+(g7excluded?"":" on-eye")+'" id="g7eye" title="В работе — клик вернуть в работу">'+EYE+'</button>'
+      + '<button class="tbtn'+(g7excluded?" on-exc":"")+'" id="g7exc" title="Выключить везде: вилки уходят из всей ленты">✕</button>';
+    var nm=document.getElementById("g7name");
+    if(nm){ nm.style.textDecoration=g7excluded?"line-through":""; nm.style.color=g7excluded?"var(--sc-3)":""; }
+    var stat=document.getElementById("g7status");
+    if(stat){ stat.style.display=g7excluded?"":"none"; }
+    document.getElementById("g7eye").addEventListener("click", function(){ g7excluded=false; g7tri(); });
+    document.getElementById("g7exc").addEventListener("click", function(){ g7excluded=true; g7tri(); });
+  }
+  function g7render(){
+    document.getElementById("g7profile").style.display = g7open?"":"none";
+    document.getElementById("g7exp").querySelector("svg").style.transform = g7open?"rotate(90deg)":"";
+    if(g7open){
+      var html="";
+      SPORTS.forEach(function(sp){
+        html += '<label><input type="checkbox" data-sp="'+sp+'"'+(g7off[sp]?"":" checked")+'>'+sp+'</label>';
+      });
+      document.getElementById("g7sports").innerHTML=html;
+      var on=SPORTS.length-Object.keys(g7off).length;
+      document.getElementById("g7spcnt").textContent = "только отмеченные попадут в вилки · вкл "+on+" из "+SPORTS.length+" · выключенный спорт режется во всех режимах";
+      document.querySelectorAll("#g7sports input").forEach(function(cb){
+        cb.addEventListener("change", function(){ if(cb.checked){ delete g7off[cb.dataset.sp]; } else { g7off[cb.dataset.sp]=true; } g7render(); });
+      });
+    }
+    g7tri();
+  }
+  g7tri();
+  document.getElementById("g7exp").addEventListener("click", function(){ g7open=!g7open; g7render(); });
+  document.getElementById("g7add").addEventListener("click", function(){
+    var n=document.getElementById("g7addnote"); n.style.display = n.style.display==="none"?"":"none";
+  });
+
+  /* ── ⑧ модал профиля: живой расчёт денег + копирование зеркала ── */
+  function g8calc(){
+    var taxP=document.getElementById("g8taxp").checked;
+    document.getElementById("g8rate").style.display = taxP?"":"none";
+    var rate = taxP ? Math.min(100,Math.max(0, parseFloat(document.getElementById("g8rate").value)||0)) : 0;
+    var step = parseFloat(document.getElementById("g8round").value)||0;
+    var max = parseFloat(document.getElementById("g8max").value)||0;
+    var stake=476.19, profit=36.00;
+    var stakeR = step>0 ? Math.round(stake/step)*step : stake;
+    var net = profit*(1-rate/100);
+    var over = (max>0 && stakeR>max);
+    document.getElementById("g8calc").innerHTML =
+      "Нога: ставка "+stake.toFixed(2)+" → "+(step>0?"по шагу "+step+" → <b>"+stakeR.toFixed(2)+"</b>":"<b>без округления</b>")
+      + " · профит 36.00 → "+(rate>0?"после комиссии "+rate+"% → <b>"+net.toFixed(2)+"</b>":"<b>36.00</b>")
+      + (over?' · <span style="color:#b45309">выше моего лимита '+max+' — предупредит, не урежет</span>':"");
+  }
+  ["g8taxno","g8taxp","g8round","g8max","g8rate","g8fmt"].forEach(function(id){
+    var el=document.getElementById(id); if(el){ el.addEventListener("change", g8calc); el.addEventListener("input", g8calc); }
+  });
+  g8calc();
+  document.getElementById("g8copy").addEventListener("click", function(){
+    var btn=this, url=document.getElementById("g8mirror").value;
+    if(!url) return;
+    if(navigator.clipboard){ navigator.clipboard.writeText(url).catch(function(){}); }
+    btn.textContent="✓"; btn.title="Скопировано";
+    setTimeout(function(){ btn.textContent="⧉"; btn.title="Копировать зеркало в буфер"; }, 1500);
+  });
+
+  /* ── Часть 2: оба уровня живьём ── */
+  var P2={st:{},on:{},hid:{}}; BKS.forEach(function(b){ P2.st[b]="optional"; P2.on[b]=true; P2.hid[b]=false; });
+  P2.st["silverglow58.xyz"]="excluded";
+  var p2sel=0, p2global=false;
+  function p2calc(){ return BKS.filter(function(b){ return P2.on[b] && P2.st[b]!=="excluded"; }); }
+  function p2render(){
+    var html="";
+    BKS.forEach(function(b){
+      var st=P2.st[b], hid=P2.hid[b], glob = (p2global && b==="lottoland.co.uk");
+      html += '<div class="bkrow'+(st==="excluded"||glob?" off":(hid?" hid":""))+'">'
+        + '<label class="chk"><input type="checkbox" data-bk="'+b+'"'+(P2.on[b]?" checked":"")+((st==="excluded"||(st==="required"&&P2.on[b]))?" disabled":"")+'></label>'
+        + '<span class="dot" style="background:'+((st==="excluded"||glob)?"var(--sc-red)":(P2.on[b]?"var(--sc-teal)":"var(--sc-border)"))+'"></span>'
+        + '<span class="nm">'+b+(glob?' <span class="sc-3" style="font-size:10px">выключена везде</span>':"")+'</span>'
+        + '<span class="tri">'
+        + '<button class="tbtn'+(st==="required"?" on-star":"")+'" data-a="star" data-bk="'+b+'"'+(st==="excluded"?" disabled":"")+'>★</button>'
+        + '<button class="tbtn'+(hid?" on-eye":"")+'" data-a="eye" data-bk="'+b+'"'+(st!=="optional"?" disabled":"")+'>'+EYE+'</button>'
+        + '<button class="tbtn'+(st==="excluded"?" on-exc":"")+'" data-a="exc" data-bk="'+b+'">✕</button>'
+        + '</span></div>';
+    });
+    document.getElementById("p2list").innerHTML=html;
+    document.querySelectorAll("#p2list input[type=checkbox]").forEach(function(cb){
+      cb.addEventListener("change", function(){ P2.on[cb.dataset.bk]=cb.checked; p2render(); });
+    });
+    document.querySelectorAll("#p2list button[data-a]").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        var b=btn.dataset.bk, a=btn.dataset.a;
+        if(a==="star"){ if(P2.st[b]==="required"){P2.st[b]="optional";} else {P2.st[b]="required";P2.on[b]=true;P2.hid[b]=false;} }
+        else if(a==="eye"){ P2.hid[b]=!P2.hid[b]; }
+        else { if(P2.st[b]==="excluded"){P2.st[b]="optional";} else {P2.st[b]="excluded";P2.hid[b]=false;} }
+        p2render();
+      });
+    });
+    var calc=p2calc(), req=BKS.filter(function(b){ return P2.st[b]==="required"; });
+    var visible=FLOW.filter(function(a){
+      if(calc.indexOf(a.b1)<0||calc.indexOf(a.b2)<0) return false;
+      if(req.length && req.indexOf(a.b1)<0 && req.indexOf(a.b2)<0) return false;
+      if(P2.hid[a.b1]||P2.hid[a.b2]) return false;
+      if(p2global && (a.b1==="lottoland.co.uk"||a.b2==="lottoland.co.uk")) return false;
+      return true;
+    });
+    document.getElementById("p2cnt").textContent = "в расчёте: "+calc.length+" → "+pairs(calc.length)+" пар";
+    document.getElementById("p2warn").style.display = calc.length<2 ? "" : "none";
+    if(p2sel>=visible.length) p2sel=0;
+    document.getElementById("p2feed").innerHTML = visible.length
+      ? visible.map(function(a,i){ return feedRow(a,{i:i,sel:i===p2sel,lvl:"med"}); }).join("")
+      : '<div class="sc-cnt" style="padding:6px">Лента пуста — проверь галки, звёзды и крестики.</div>';
+    document.querySelectorAll("#p2feed .frow").forEach(function(r){
+      r.addEventListener("click", function(){ p2sel=parseInt(r.dataset.i,10)||0; p2render(); });
+    });
+    document.getElementById("p2rec").style.display="none";
+    document.getElementById("p2stlab").textContent = p2global ? "Парк: lottoland.co.uk выключена ВЕЗДЕ (поверх режима)" : "Парк: lottoland.co.uk сейчас в работе";
+    document.getElementById("p2global").textContent = p2global ? "вернуть lottoland.co.uk в работу" : "✕ выключить lottoland.co.uk везде";
+    document.getElementById("p2global").className = p2global ? "b on" : "b";
+  }
+  document.getElementById("p2break").addEventListener("click", function(){
+    var calc=p2calc();
+    var visible=FLOW.filter(function(a){
+      if(calc.indexOf(a.b1)<0||calc.indexOf(a.b2)<0) return false;
+      if(P2.hid[a.b1]||P2.hid[a.b2]) return false;
+      if(p2global && (a.b1==="lottoland.co.uk"||a.b2==="lottoland.co.uk")) return false;
+      return true;
+    });
+    if(!visible.length) return;
+    var dead=visible[p2sel]||visible[0];
+    var reserve=BKS.filter(function(b){ return P2.hid[b] && calc.indexOf(b)>=0; });
+    var box=document.getElementById("p2rec"); box.style.display="";
+    box.innerHTML = 'Вилка «'+dead.ev+'», нога слетела. Перекрытие ищет варианты среди контор <b>в расчёте</b> — резервные (глаз) тоже участвуют'
+      + (reserve.length ? ': <span style="color:var(--sc-cyan)">'+reserve.join(", ")+'</span> (в резерве — вне ленты, но перекрытие видит).' : '. Сейчас резервных нет — включи глаз у любой конторы и повтори.')
+      + '<br><span class="sc-3" style="font-size:11px">С крестиком ✕ этих вариантов бы не было: пары исключённой конторы не сканируются.</span>';
+  });
+  p2render();
+  document.getElementById("p2global").addEventListener("click", function(){ p2global=!p2global; p2render(); });
+})();
+</script>
+
+</body>
+</html>
